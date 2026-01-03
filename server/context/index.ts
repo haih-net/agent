@@ -1,4 +1,5 @@
 import type { User } from '@prisma/client'
+import { externalApiQuery } from '../externalApiClient'
 import { prismaClient } from '../prisma'
 import { verifyToken } from '../schema/types/User/helpers/auth'
 import { PrismaContext } from './interfaces'
@@ -28,5 +29,6 @@ export async function createContext({
     currentUser,
     Token: null,
     req,
+    externalApiQuery,
   }
 }

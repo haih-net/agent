@@ -1,5 +1,6 @@
 import { ExpressContextFunctionArgument } from '@as-integrations/express4'
 import type { PrismaClient, Token, User } from '@prisma/client'
+import { externalApiQuery } from 'server/externalApiClient'
 
 export interface PrismaContext {
   prisma: PrismaClient
@@ -15,4 +16,6 @@ export interface PrismaContext {
    * Токен авторизации
    */
   Token: (Token & { User: User | null }) | null
+
+  externalApiQuery: typeof externalApiQuery
 }

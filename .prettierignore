@@ -12,3 +12,4 @@ next-env.d.ts
 # codegen
 generated
 
+.n8n

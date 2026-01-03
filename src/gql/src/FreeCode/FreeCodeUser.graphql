@@ -1,0 +1,16 @@
+query freeCodeUsers($take: Int = 10, $fullInfo: Boolean = false) {
+  freeCodeUsers(take: $take) {
+    ...FreeCodeUser_
+  }
+}
+
+fragment FreeCodeUser_ on FreeCodeUser {
+  id
+  username
+  fullname
+  createdAt
+  ... on FreeCodeUser @include(if: $fullInfo) {
+    intro
+    content
+  }
+}

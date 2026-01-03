@@ -1,0 +1,238 @@
+{
+  "name": "Knowledge Agent: Senior",
+  "active": true,
+  "versionId": "knowledge-agent-senior-v1",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "workflow-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-400, 304]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "chatInput",
+              "name": "chatInput",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-chat-input",
+      "name": "Set Chat Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-200, 304]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a senior knowledge assistant for n8n-selfhost.dev project.\nYou have access to the project source code at /app/sources/n8n-boilerplate/\n\nYou can read files using the read_file tool to answer detailed technical questions.\n\n## Your capabilities:\n- Read source files (Dockerfile, scripts, workflows, etc.)\n- Analyze code structure and logic\n- Provide detailed technical explanations\n- Answer questions that require looking at actual implementation\n\n## Project structure:\n/app/sources/n8n-boilerplate/\n├── Dockerfile\n├── entrypoint.sh\n├── scripts/\n│   ├── bootstrap.sh\n│   └── workflow-sync.sh\n├── workflows/\n├── credentials/\n└── databases/\n\n## Rules:\n- Always read the relevant file before answering technical questions\n- Be accurate - quote actual code when relevant\n- If you can't find information, say so\n- Be concise but thorough",
+          "maxIterations": 50
+        }
+      },
+      "id": "senior-ai-agent",
+      "name": "Senior AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [0, 304]
+    },
+    {
+      "parameters": {
+        "model": "=anthropic/claude-sonnet-4",
+        "options": {}
+      },
+      "id": "senior-chat-model",
+      "name": "Sonnet Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [-100, 512],
+      "credentials": {
+        "openRouterApi": {
+          "id": "FsN0N48lU327xkz6",
+          "name": "OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "read_file",
+        "description": "Read a file from the project source code. Use this to answer technical questions about the implementation.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Tool: Read File"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "path": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('path', `File path relative to /app/sources/n8n-boilerplate/, e.g. 'Dockerfile' or 'scripts/bootstrap.sh'`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "path",
+              "displayName": "path",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "tool-read-file",
+      "name": "Read File Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [100, 512]
+    },
+    {
+      "parameters": {
+        "name": "list_files",
+        "description": "List files in a directory of the project source code.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Tool: List Files"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "path": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('path', `Directory path relative to /app/sources/n8n-boilerplate/, e.g. '.' or 'scripts'`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "path",
+              "displayName": "path",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "tool-list-files",
+      "name": "List Files Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [260, 512]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [-400, 592],
+      "id": "chat-trigger",
+      "name": "When chat message received",
+      "webhookId": "knowledge-agent-senior-chat"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Chat Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Chat Input": {
+      "main": [
+        [
+          {
+            "node": "Senior AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Senior AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sonnet Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Senior AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read File Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Senior AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Files Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Senior AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "narasim-dev-knowledge-senior"
+  },
+  "tags": [
+    {
+      "name": "knowledge"
+    },
+    {
+      "name": "ai"
+    },
+    {
+      "name": "senior"
+    }
+  ]
+}

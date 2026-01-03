@@ -1,0 +1,12 @@
+query users ($take: Int = 10, $fullInfo: Boolean = false, $if: Boolean!) {
+  users(take: $take) {
+    id
+    username
+    fullname
+    createdAt
+    ... on User @include(if: $fullInfo) {
+      intro
+      content
+    }
+  }
+}

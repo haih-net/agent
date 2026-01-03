@@ -1,0 +1,97 @@
+{
+  "name": "MindLog: Delete",
+  "active": true,
+  "versionId": "e5f6g7h8",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "id"
+            }
+          ]
+        }
+      },
+      "id": "trigger-delete",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-delete",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-200, 200]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"id\": \"test-id-123\"\n}",
+        "options": {}
+      },
+      "id": "test-data-delete",
+      "name": "Test Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "command": "=sqlite3 ${KNOWLEDGE_DB_PATH:-/home/node/knowledge-db}/knowledge.sqlite \"DELETE FROM mindlogs WHERE id='{{ $json.id }}'\" && echo '{\"success\":true,\"id\":\"{{ $json.id }}\"}'  || echo '{\"success\":false}'"
+      },
+      "id": "exec-delete",
+      "name": "Execute Delete",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [250, 0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Test Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Data": {
+      "main": [
+        [
+          {
+            "node": "Execute Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Delete": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

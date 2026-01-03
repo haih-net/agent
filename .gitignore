@@ -39,6 +39,8 @@ storybook-static/
 shared/
 
 # Generated
-src/gql/generated/
+generated
 
 tsconfig.tsbuildinfo
+
+.n8n

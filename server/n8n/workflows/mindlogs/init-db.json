@@ -1,0 +1,126 @@
+{
+  "name": "MindLog: Init Database",
+  "active": true,
+  "versionId": "f6g7h8i9",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-init",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger-init",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-200, 200]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"db_path\": \"/knowledge/db\"\n}",
+        "options": {}
+      },
+      "id": "test-data-init",
+      "name": "Test Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [0, 200]
+    },
+    {
+      "parameters": {
+        "command": "=export KNOWLEDGE_DB_PATH=\"{{ $json.db_path }}\"; /knowledge/scripts/init-db.sh",
+        "cwd": "=/knowledge"
+      },
+      "id": "exec-init",
+      "name": "Execute Init",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [250, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success-field",
+              "name": "success",
+              "value": "={{ $json.exitCode === 0 }}",
+              "type": "boolean"
+            },
+            {
+              "id": "output-field",
+              "name": "output",
+              "value": "={{ $json.stdout }}"
+            },
+            {
+              "id": "error-field",
+              "name": "error",
+              "value": "={{ $json.exitCode !== 0 ? $json.stderr : '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-result-init",
+      "name": "Parse Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [500, 0]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute Init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Test Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Data": {
+      "main": [
+        [
+          {
+            "node": "Execute Init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Init": {
+      "main": [
+        [
+          {
+            "node": "Parse Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
