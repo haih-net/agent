@@ -1,0 +1,62 @@
+query freeCodeProjects($take: Int = 10, $fullInfo: Boolean = false) {
+  freeCodeProjects(take: $take) {
+    ...FreeCodeProject_
+  }
+}
+
+query freeCodeProject(
+  $where: FreeCodeProjectWhereUniqueInput!
+  $fullInfo: Boolean = false
+) {
+  freeCodeProject(where: $where) {
+    ...FreeCodeProject_
+  }
+}
+
+query freeCodeProjectsCount($where: FreeCodeProjectWhereInput) {
+  freeCodeProjectsCount(where: $where)
+}
+
+mutation createFreeCodeProject($data: FreeCodeProjectCreateInput!, $fullInfo: Boolean = true) {
+  createFreeCodeProject(data: $data) {
+    success
+    message
+    data {
+      ...FreeCodeProject_
+    }
+  }
+}
+
+mutation updateFreeCodeProject(
+  $data: FreeCodeProjectUpdateInput!
+  $where: FreeCodeProjectUpdateWhereInput!
+  $fullInfo: Boolean = true
+) {
+  updateFreeCodeProject(data: $data, where: $where) {
+    success
+    message
+    data {
+      ...FreeCodeProject_
+    }
+  }
+}
+
+fragment FreeCodeProjectNoNesting on FreeCodeProject {
+  id
+  name
+  status
+  createdAt
+  updatedAt
+}
+
+fragment FreeCodeProjectFullInfo on FreeCodeProject {
+  description
+  url
+}
+
+fragment FreeCodeProject_ on FreeCodeProject {
+  ...FreeCodeProjectNoNesting
+  ... on FreeCodeProject @include(if: $fullInfo) {
+    ...FreeCodeProjectFullInfo
+  }
+}

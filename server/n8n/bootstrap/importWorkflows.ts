@@ -1,44 +1,16 @@
 /* eslint-disable no-console */
 import fs from 'fs'
 import path from 'path'
-import { n8nConfig } from '../config'
+import { n8nApiRequest } from './n8nApiRequest'
 
 const WORKFLOWS_DIR = path.join(__dirname, '../workflows')
 
-interface ApiResponse {
-  data: unknown
-  cookies?: string
-}
-
-async function apiRequest(
-  method: string,
-  endpoint: string,
-  body?: object,
-  cookies?: string,
-): Promise<ApiResponse> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (cookies) {
-    headers['Cookie'] = cookies
-  }
-
-  const res = await fetch(`http://localhost:${n8nConfig.port}${endpoint}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  })
-
-  const setCookie = res.headers.get('set-cookie') || undefined
-  const data = await res.json().catch(() => ({}))
-
-  return { data, cookies: setCookie }
-}
-
-async function loadWorkflow(entry: string): Promise<object | null> {
+async function loadWorkflow(entry: string): Promise<object[]> {
   const fullPath = path.join(WORKFLOWS_DIR, entry)
   const stat = fs.statSync(fullPath)
 
   if (stat.isFile() && entry.endsWith('.json')) {
-    return JSON.parse(fs.readFileSync(fullPath, 'utf-8'))
+    return [JSON.parse(fs.readFileSync(fullPath, 'utf-8'))]
   }
 
   if (stat.isDirectory()) {
@@ -47,11 +19,15 @@ async function loadWorkflow(entry: string): Promise<object | null> {
 
     if (fs.existsSync(indexTs) || fs.existsSync(indexJs)) {
       const module = await import(fullPath)
-      return module.default || module
+      const exported = module.default || module
+      if (Array.isArray(exported)) {
+        return exported
+      }
+      return [exported]
     }
   }
 
-  return null
+  return []
 }
 
 interface WorkflowData {
@@ -81,7 +57,7 @@ async function resolveWorkflowDependencies(
   console.log('[bootstrap] Resolving workflow dependencies...')
 
   for (const [name, id] of Object.entries(idMap)) {
-    const { data } = await apiRequest(
+    const { data } = await n8nApiRequest(
       'GET',
       `/rest/workflows/${id}`,
       undefined,
@@ -120,7 +96,7 @@ async function resolveWorkflowDependencies(
     if (hasChanges) {
       console.log(`[bootstrap] Resolving '${name}' tool references...`)
       const resolved = { ...wf, nodes: resolvedNodes }
-      const { data: patchData } = await apiRequest(
+      const { data: patchData } = await n8nApiRequest(
         'PATCH',
         `/rest/workflows/${id}`,
         resolved,
@@ -141,7 +117,7 @@ async function activateWorkflow(
   wfName: string,
   cookies: string,
 ): Promise<void> {
-  const { data } = await apiRequest(
+  const { data } = await n8nApiRequest(
     'GET',
     `/rest/workflows/${wfId}`,
     undefined,
@@ -155,7 +131,7 @@ async function activateWorkflow(
     return
   }
 
-  const { data: activateData } = await apiRequest(
+  const { data: activateData } = await n8nApiRequest(
     'POST',
     `/rest/workflows/${wfId}/activate`,
     { versionId: wf.versionId, name: wf.name },
@@ -193,34 +169,39 @@ export async function importWorkflows(cookies: string): Promise<void> {
 
   for (const entry of entries) {
     try {
-      const workflow = await loadWorkflow(entry)
-      if (!workflow) {
+      const workflows = await loadWorkflow(entry)
+      if (workflows.length === 0) {
         continue
       }
 
-      const wf = workflow as { name?: string; active?: boolean }
-      console.log(`[bootstrap] Importing workflow: ${wf.name || entry}`)
+      for (const workflow of workflows) {
+        const wf = workflow as { name?: string; active?: boolean }
+        console.log(`[bootstrap] Importing workflow: ${wf.name || entry}`)
 
-      const { data } = await apiRequest(
-        'POST',
-        '/rest/workflows',
-        workflow,
-        cookies,
-      )
-      const result = data as { data?: { id?: string }; id?: string }
-      const id = result?.data?.id || result?.id
-
-      if (id) {
-        const workflowName = wf.name || entry
-        console.log(
-          `[bootstrap] Workflow imported: ${workflowName} (id: ${id})`,
+        const { data } = await n8nApiRequest(
+          'POST',
+          '/rest/workflows',
+          workflow,
+          cookies,
         )
-        idMap[workflowName] = id
-        if (wf.active) {
-          toActivate.push({ id, name: workflowName })
+        const result = data as { data?: { id?: string }; id?: string }
+        const id = result?.data?.id || result?.id
+
+        if (id) {
+          const workflowName = wf.name || entry
+          console.log(
+            `[bootstrap] Workflow imported: ${workflowName} (id: ${id})`,
+          )
+          idMap[workflowName] = id
+          if (wf.active) {
+            toActivate.push({ id, name: workflowName })
+          }
+        } else {
+          console.error(
+            `[bootstrap] Failed to import workflow ${wf.name || entry}:`,
+            data,
+          )
         }
-      } else {
-        console.error(`[bootstrap] Failed to import workflow ${entry}:`, data)
       }
     } catch (err) {
       console.error(`[bootstrap] Failed to load workflow ${entry}:`, err)

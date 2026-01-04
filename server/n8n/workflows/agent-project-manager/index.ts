@@ -8,9 +8,9 @@ const systemMessage = fs.readFileSync(
   'utf-8',
 )
 
-const AGENT_NAME = 'API Agent'
-const CREDENTIAL_ID = 'freecode-agent-api-cred'
-const CREDENTIAL_NAME = 'FreeCode API - agent-api'
+const AGENT_NAME = 'Project Manager Agent'
+const CREDENTIAL_ID = 'freecode-agent-project-manager-cred'
+const CREDENTIAL_NAME = 'FreeCode API - agent-project-manager'
 
 const toolGraphqlRequest = createToolGraphqlRequest({
   agentName: AGENT_NAME,
@@ -19,9 +19,9 @@ const toolGraphqlRequest = createToolGraphqlRequest({
 })
 
 const agentWorkflow: WorkflowBase = {
-  name: 'Agent: API',
+  name: 'Agent: Project Manager',
   active: true,
-  versionId: 'agent-api-v3',
+  versionId: 'agent-project-manager-v1',
   nodes: [
     {
       parameters: {
@@ -30,11 +30,11 @@ const agentWorkflow: WorkflowBase = {
           maxIterations: 20,
         },
       },
-      id: 'api-agent',
-      name: 'API Agent',
+      id: 'project-manager-agent',
+      name: 'Project Manager Agent',
       type: '@n8n/n8n-nodes-langchain.agent',
       typeVersion: 3.1,
-      position: [200, 300],
+      position: [224, 304],
     },
     {
       parameters: {
@@ -42,11 +42,11 @@ const agentWorkflow: WorkflowBase = {
         model: 'anthropic/claude-sonnet-4',
         options: {},
       },
-      id: 'api-chat-model',
+      id: 'project-chat-model',
       name: 'Sonnet 4.5 Chat Model',
       type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
       typeVersion: 1,
-      position: [-200, 600],
+      position: [64, 512],
       credentials: {
         openRouterApi: {
           id: 'FsN0N48lU327xkz6',
@@ -58,11 +58,11 @@ const agentWorkflow: WorkflowBase = {
       parameters: {
         name: 'graphql_request',
         description:
-          'Execute a GraphQL query or mutation against the API. IMPORTANT: All requests are authenticated as API Agent, not as the external user. Mutations are executed on behalf of the agent.',
+          'Execute a GraphQL query or mutation against the API for project management. IMPORTANT: All requests are authenticated as Project Manager Agent, not as the external user.',
         workflowId: {
           __rl: true,
           mode: 'list',
-          value: 'Tool: GraphQL Request (API Agent)',
+          value: `Tool: GraphQL Request (${AGENT_NAME})`,
         },
         workflowInputs: {
           mappingMode: 'defineBelow',
@@ -114,91 +114,78 @@ const agentWorkflow: WorkflowBase = {
       name: 'GraphQL Request Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [200, 600],
+      position: [224, 512],
     },
     {
       parameters: {
-        name: 'list_gql_files',
+        name: 'chat_agent',
         description:
-          'List available generated GraphQL TypeScript files in src/gql/generated/ directory. No parameters needed.',
+          'Send a message to the Chat Agent for assistance. Use when you need help with user communication, general questions, or tasks outside project management scope.',
         workflowId: {
           __rl: true,
           mode: 'list',
-          value: 'Tool: List Files',
+          value: 'Agent: Chat',
         },
         workflowInputs: {
           mappingMode: 'defineBelow',
           value: {
-            path: 'src/gql/generated',
+            chatInput:
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', `Message to send to Chat Agent for assistance`, 'string') }}",
+            // TODO: Do not pass user from agent input to prevent passing arbitrary user objects.
+            // User should be fetched by Chat Agent itself via Get User Data node.
+            // user: '={{ $json.user }}',
           },
           matchingColumns: [],
           schema: [
             {
-              id: 'path',
-              displayName: 'path',
+              id: 'chatInput',
+              displayName: 'message',
               required: true,
               defaultMatch: false,
               display: true,
               canBeUsedToMatch: true,
               type: 'string',
             },
+            // {
+            //   id: 'user',
+            //   displayName: 'user',
+            //   required: false,
+            //   defaultMatch: false,
+            //   display: true,
+            //   canBeUsedToMatch: true,
+            //   type: 'object',
+            // },
           ],
           attemptToConvertTypes: false,
           convertFieldsToString: false,
         },
       },
-      id: 'tool-list-gql-files',
-      name: 'List GQL Files',
+      id: 'tool-chat-agent',
+      name: 'Chat Agent Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [520, 600],
+      position: [448, 512],
     },
     {
       parameters: {
-        name: 'read_gql_file',
-        description:
-          "Read a specific file from src/gql/generated/ directory. Pass only filename like 'types.ts' or 'schema.json'.",
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: 'Tool: Read File',
-        },
         workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            path: "={{ 'src/gql/generated/' + $fromAI('filename', `Filename to read, e.g. 'types.ts'`, 'string') }}",
-          },
-          matchingColumns: [],
-          schema: [
+          values: [
             {
-              id: 'path',
-              displayName: 'path',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
+              name: 'chatInput',
               type: 'string',
             },
+            {
+              name: 'user',
+              type: 'object',
+            },
           ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
         },
       },
-      id: 'tool-read-gql-file',
-      name: 'Read GQL File',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [840, 600],
-    },
-    {
-      parameters: {
-        inputSource: 'passthrough',
-      },
-      id: 'api-workflow-trigger',
+      id: 'project-workflow-trigger',
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-400, 300],
+      position: [-200, 304],
     },
     {
       parameters: {
@@ -216,11 +203,11 @@ const agentWorkflow: WorkflowBase = {
         },
         options: {},
       },
-      id: 'api-workflow-output',
+      id: 'project-workflow-output',
       name: 'Workflow Output',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [600, 300],
+      position: [608, 304],
     },
     {
       parameters: {
@@ -228,35 +215,32 @@ const agentWorkflow: WorkflowBase = {
       },
       type: '@n8n/n8n-nodes-langchain.chatTrigger',
       typeVersion: 1.4,
-      position: [-400, 500],
+      position: [-200, 592],
       id: 'chat-trigger',
       name: 'When chat message received',
-      webhookId: 'agent-api-chat',
+      webhookId: 'agent-project-manager-chat',
     },
   ],
   connections: {
-    'API Agent': {
+    'Project Manager Agent': {
       main: [[{ node: 'Workflow Output', type: 'main', index: 0 }]],
     },
     'Sonnet 4.5 Chat Model': {
       ai_languageModel: [
-        [{ node: 'API Agent', type: 'ai_languageModel', index: 0 }],
+        [{ node: 'Project Manager Agent', type: 'ai_languageModel', index: 0 }],
       ],
     },
     'GraphQL Request Tool': {
-      ai_tool: [[{ node: 'API Agent', type: 'ai_tool', index: 0 }]],
+      ai_tool: [[{ node: 'Project Manager Agent', type: 'ai_tool', index: 0 }]],
     },
-    'List GQL Files': {
-      ai_tool: [[{ node: 'API Agent', type: 'ai_tool', index: 0 }]],
-    },
-    'Read GQL File': {
-      ai_tool: [[{ node: 'API Agent', type: 'ai_tool', index: 0 }]],
+    'Chat Agent Tool': {
+      ai_tool: [[{ node: 'Project Manager Agent', type: 'ai_tool', index: 0 }]],
     },
     'Execute Workflow Trigger': {
-      main: [[{ node: 'API Agent', type: 'main', index: 0 }]],
+      main: [[{ node: 'Project Manager Agent', type: 'main', index: 0 }]],
     },
     'When chat message received': {
-      main: [[{ node: 'API Agent', type: 'main', index: 0 }]],
+      main: [[{ node: 'Project Manager Agent', type: 'main', index: 0 }]],
     },
   },
   pinData: {},
@@ -264,7 +248,7 @@ const agentWorkflow: WorkflowBase = {
     executionOrder: 'v1',
   },
   meta: {
-    instanceId: 'narasim-dev-api',
+    instanceId: 'narasim-dev-project-manager',
   },
 }
 

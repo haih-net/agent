@@ -95,6 +95,8 @@ module.exports = [
         process: 'readonly',
         console: 'readonly',
         $input: 'readonly',
+        $config: 'readonly',
+        $: 'readonly',
       },
     },
   },

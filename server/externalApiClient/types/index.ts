@@ -1,3 +1,4 @@
-export * from './User'
-export * from './Project'
-export * from './Task'
+export * from './FreeCodeAuthResponse'
+export * from './FreeCodeProject'
+export * from './FreeCodeTask'
+export * from './FreeCodeUser'

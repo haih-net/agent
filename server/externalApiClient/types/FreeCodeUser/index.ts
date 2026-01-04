@@ -13,3 +13,8 @@ export const FreeCodeUser = builder.simpleObject('FreeCodeUser', {
 })
 
 import './resolvers/freeCodeUsers'
+import './resolvers/freeCodeUser'
+import './resolvers/freeCodeUsersCount'
+import './resolvers/freeCodeMe'
+import './resolvers/freeCodeSignin'
+import './resolvers/freeCodeSignup'

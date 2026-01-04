@@ -15,6 +15,7 @@ export async function createContext({
   let token: string | null = null
 
   const authHeader = req?.headers.authorization
+
   if (authHeader?.startsWith('Bearer ')) {
     token = authHeader.slice(7)
     const payload = verifyToken(token)

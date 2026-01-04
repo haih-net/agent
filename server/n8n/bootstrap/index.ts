@@ -3,11 +3,10 @@ import fs from 'fs'
 import path from 'path'
 import { n8nConfig } from '../config'
 import { importWorkflows } from './importWorkflows'
+import { importAgentCredentials } from './authenticateAgent'
+import { n8nApiRequest } from './n8nApiRequest'
 
 const CREDENTIALS_DIR = n8nConfig.credentialsDir
-
-const DELETE_CREDENTIALS_AFTER_IMPORT =
-  process.env.N8N_DELETE_CREDENTIALS_AFTER_IMPORT === 'true'
 
 interface BootstrapEnv {
   email: string
@@ -48,32 +47,9 @@ function loadBootstrapEnv(): BootstrapEnv | null {
   }
 }
 
-async function apiRequest(
-  method: string,
-  endpoint: string,
-  body?: object,
-  cookies?: string,
-): Promise<{ data: unknown; cookies?: string }> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (cookies) {
-    headers['Cookie'] = cookies
-  }
-
-  const res = await fetch(`http://localhost:${n8nConfig.port}${endpoint}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  })
-
-  const setCookie = res.headers.get('set-cookie') || undefined
-  const data = await res.json().catch(() => ({}))
-
-  return { data, cookies: setCookie }
-}
-
 async function isOwnerSetup(): Promise<boolean> {
   try {
-    const { data } = await apiRequest('GET', '/rest/settings')
+    const { data } = await n8nApiRequest('GET', '/rest/settings')
     const settings = data as {
       userManagement?: { showSetupOnFirstLoad?: boolean }
     }
@@ -86,7 +62,7 @@ async function isOwnerSetup(): Promise<boolean> {
 async function createOwner(env: BootstrapEnv): Promise<string | null> {
   console.log('[bootstrap] Creating owner user...')
 
-  const { data, cookies } = await apiRequest('POST', '/rest/owner/setup', {
+  const { data, cookies } = await n8nApiRequest('POST', '/rest/owner/setup', {
     email: env.email,
     password: env.password,
     firstName: env.firstName || 'Admin',
@@ -129,7 +105,7 @@ async function importCredentials(cookies: string): Promise<void> {
 
       for (const cred of credentials) {
         try {
-          await apiRequest('POST', '/rest/credentials', cred, cookies)
+          await n8nApiRequest('POST', '/rest/credentials', cred, cookies)
           console.log(`[bootstrap] Imported credential: ${cred.name}`)
         } catch (err) {
           console.error(
@@ -139,7 +115,7 @@ async function importCredentials(cookies: string): Promise<void> {
         }
       }
 
-      if (DELETE_CREDENTIALS_AFTER_IMPORT) {
+      if (n8nConfig.DELETE_CREDENTIALS_AFTER_IMPORT) {
         fs.unlinkSync(filePath)
         console.log(`[bootstrap] Deleted: ${file}`)
       }
@@ -150,7 +126,7 @@ async function importCredentials(cookies: string): Promise<void> {
 }
 
 async function loginOwner(env: BootstrapEnv): Promise<string | null> {
-  const { cookies } = await apiRequest('POST', '/rest/login', {
+  const { cookies } = await n8nApiRequest('POST', '/rest/login', {
     email: env.email,
     password: env.password,
   })
@@ -183,6 +159,7 @@ export async function runBootstrap(): Promise<void> {
   }
 
   await importCredentials(cookies)
+  await importAgentCredentials(cookies)
   await importWorkflows(cookies)
 
   console.log('[bootstrap] Completed')

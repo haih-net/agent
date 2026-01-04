@@ -25,7 +25,7 @@ export async function externalApiQuery<TData, TVariables>(
   const authorization = ctx.req?.headers.authorization
 
   if (authorization) {
-    headers['Authorization'] = `Bearer ${authorization}`
+    headers['Authorization'] = authorization
   }
 
   const response = await fetch(GRAPHQL_API_ENDPOINT, {

@@ -18,11 +18,19 @@ if (
   }
 }
 
+// Handle operationName
+let operationName = ''
+if (input.operationName && typeof input.operationName === 'string') {
+  operationName = input.operationName.trim()
+}
+
 return [
   {
     json: {
       query: input.query || '',
       variables,
+      operationName,
+      token: input.token || '',
     },
   },
 ]

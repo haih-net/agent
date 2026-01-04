@@ -3,14 +3,34 @@ import * as path from 'path'
 import { WorkflowBase } from '../interfaces'
 
 const parseInputCode = fs.readFileSync(
-  path.join(__dirname, 'parseInput.js'),
+  path.join(__dirname, '../tool-graphql-request/parseInput.js'),
   'utf-8',
 )
 
-const workflow: WorkflowBase = {
-  name: 'Tool: GraphQL Request',
+const mergeConfigTemplate = fs.readFileSync(
+  path.join(__dirname, '../tool-graphql-request/mergeConfig.js'),
+  'utf-8',
+)
+
+if (!process.env.GRAPHQL_ENDPOINT) {
+  throw new Error('GRAPHQL_ENDPOINT environment variable is required')
+}
+
+const config = {
+  GRAPHQL_ENDPOINT: process.env.GRAPHQL_ENDPOINT,
+}
+
+const testUserToken = process.env.TEST_USER_TOKEN || ''
+
+const mergeConfigCode = mergeConfigTemplate.replace(
+  '$config',
+  JSON.stringify(config, null, 2),
+)
+
+const toolGraphqlRequestUser: WorkflowBase = {
+  name: 'Tool: GraphQL Request With Token (User)',
   active: true,
-  versionId: 'tool-graphql-request-v3',
+  versionId: 'tool-graphql-request-with-token-user-v1',
   nodes: [
     {
       parameters: {
@@ -23,6 +43,9 @@ const workflow: WorkflowBase = {
               name: 'variables',
               type: 'any',
             },
+            {
+              name: 'token',
+            },
           ],
         },
       },
@@ -30,7 +53,7 @@ const workflow: WorkflowBase = {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-200, 304],
+      position: [-400, 300],
     },
     {
       parameters: {
@@ -40,13 +63,13 @@ const workflow: WorkflowBase = {
       name: 'Parse Input',
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [0, 304],
+      position: [0, 300],
     },
     {
       parameters: {},
       type: 'n8n-nodes-base.manualTrigger',
       typeVersion: 1,
-      position: [-200, 504],
+      position: [-400, 500],
       id: 'manual-trigger',
       name: 'Manual Trigger',
     },
@@ -59,13 +82,7 @@ const workflow: WorkflowBase = {
             {
               id: 'query',
               name: 'query',
-              value: `query users {
-                freeCodeUsers(take: 3) {
-                  id
-                  username
-                  fullname
-                }
-              }`,
+              value: `query freeCodeMeUser { freeCodeMe { id username fullname } }`,
               type: 'string',
             },
             {
@@ -73,6 +90,12 @@ const workflow: WorkflowBase = {
               name: 'variables',
               value: '={}',
               type: 'object',
+            },
+            {
+              id: 'token',
+              name: 'token',
+              value: testUserToken,
+              type: 'string',
             },
           ],
         },
@@ -82,52 +105,24 @@ const workflow: WorkflowBase = {
       name: 'Set Test Input',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [0, 504],
+      position: [0, 500],
     },
     {
       parameters: {
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: 'Tool: Get Config',
-        },
-      },
-      id: 'get-config',
-      name: 'Get Config',
-      type: 'n8n-nodes-base.executeWorkflow',
-      typeVersion: 1.2,
-      position: [200, 304],
-    },
-    {
-      parameters: {
-        jsCode: `const config = $input.first().json;
-
-let triggerData = {};
-
-if ($('Parse Input').isExecuted) {
-  triggerData = $('Parse Input').first().json;
-} else if ($('Set Test Input').isExecuted) {
-  triggerData = $('Set Test Input').first().json;
-}
-
-return [{
-  json: {
-    query: triggerData.query || '',
-    variables: triggerData.variables || {},
-    endpoint: config.GRAPHQL_ENDPOINT,
-  }
-}];`,
+        jsCode: mergeConfigCode,
       },
       id: 'merge-config',
       name: 'Merge Config',
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [400, 304],
+      position: [400, 300],
     },
     {
       parameters: {
         method: 'POST',
         url: '={{ $json.endpoint }}',
+        authentication: 'genericCredentialType',
+        genericAuthType: 'none',
         sendHeaders: true,
         headerParameters: {
           parameters: [
@@ -135,18 +130,23 @@ return [{
               name: 'Content-Type',
               value: 'application/json',
             },
+            {
+              name: 'Authorization',
+              value: '={{ $json.token }}',
+            },
           ],
         },
         sendBody: true,
         specifyBody: 'json',
         jsonBody:
           '={{ JSON.stringify({ query: $json.query, variables: $json.variables }) }}',
+        options: {},
       },
       id: 'http-request',
       name: 'GraphQL Request',
       type: 'n8n-nodes-base.httpRequest',
       typeVersion: 4.2,
-      position: [600, 304],
+      position: [800, 300],
     },
   ],
   connections: {
@@ -154,15 +154,12 @@ return [{
       main: [[{ node: 'Parse Input', type: 'main', index: 0 }]],
     },
     'Parse Input': {
-      main: [[{ node: 'Get Config', type: 'main', index: 0 }]],
+      main: [[{ node: 'Merge Config', type: 'main', index: 0 }]],
     },
     'Manual Trigger': {
       main: [[{ node: 'Set Test Input', type: 'main', index: 0 }]],
     },
     'Set Test Input': {
-      main: [[{ node: 'Get Config', type: 'main', index: 0 }]],
-    },
-    'Get Config': {
       main: [[{ node: 'Merge Config', type: 'main', index: 0 }]],
     },
     'Merge Config': {
@@ -172,10 +169,14 @@ return [{
   pinData: {},
   settings: {
     executionOrder: 'v1',
+    saveDataErrorExecution: 'none',
+    saveDataSuccessExecution: 'none',
+    saveManualExecutions: false,
+    saveExecutionProgress: true,
   },
   meta: {
-    instanceId: 'narasim-dev-tool-graphql-request',
+    instanceId: 'narasim-dev-tool-graphql-request-with-token-user',
   },
 }
 
-export default workflow
+export default [toolGraphqlRequestUser]

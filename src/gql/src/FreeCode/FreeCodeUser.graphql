@@ -4,13 +4,60 @@ query freeCodeUsers($take: Int = 10, $fullInfo: Boolean = false) {
   }
 }
 
-fragment FreeCodeUser_ on FreeCodeUser {
+query freeCodeUser($where: FreeCodeUserWhereUniqueInput!, $fullInfo: Boolean = false) {
+  freeCodeUser(where: $where) {
+    ...FreeCodeUser_
+  }
+}
+
+query freeCodeUsersCount($where: FreeCodeUserWhereInput) {
+  freeCodeUsersCount(where: $where)
+}
+
+query freeCodeMeUser($fullInfo: Boolean = true) {
+  freeCodeMe {
+    ...FreeCodeUser_
+  }
+}
+
+mutation freeCodeSignin(
+  $data: FreeCodeUserSigninDataInput!
+  $where: FreeCodeUserWhereUniqueInput!
+  $fullInfo: Boolean = true
+) {
+  freeCodeSignin(data: $data, where: $where) {
+    success
+    message
+    token
+    data {
+      ...FreeCodeUser_
+    }
+  }
+}
+
+mutation freeCodeSignup($data: FreeCodeUserSignupDataInput!, $fullInfo: Boolean = true) {
+  freeCodeSignup(data: $data) {
+    success
+    message
+    token
+  }
+}
+
+fragment FreeCodeUserNoNesting on FreeCodeUser {
   id
   username
   fullname
   createdAt
+}
+
+fragment FreeCodeUserFullInfo on FreeCodeUser {
+  intro
+  content
+}
+
+fragment FreeCodeUser_ on FreeCodeUser {
+  ...FreeCodeUserNoNesting
   ... on FreeCodeUser @include(if: $fullInfo) {
-    intro
-    content
+    ...FreeCodeUserFullInfo
   }
 }

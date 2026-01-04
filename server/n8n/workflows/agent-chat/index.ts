@@ -1,13 +1,24 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { WorkflowBase } from '../interfaces'
+import { createToolGraphqlRequest } from '../tool-graphql-request/factory'
 
 const systemMessage = fs.readFileSync(
   path.join(__dirname, 'system-message.md'),
   'utf-8',
 )
 
-const workflow: WorkflowBase = {
+const AGENT_NAME = 'Chat Agent'
+const CREDENTIAL_ID = 'freecode-agent-chat-cred'
+const CREDENTIAL_NAME = 'FreeCode API - agent-chat'
+
+const toolGraphqlRequest = createToolGraphqlRequest({
+  agentName: AGENT_NAME,
+  credentialId: CREDENTIAL_ID,
+  credentialName: CREDENTIAL_NAME,
+})
+
+const agentWorkflow: WorkflowBase = {
   name: 'Agent: Chat',
   active: true,
   versionId: 'agent-chat-v2',
@@ -15,15 +26,15 @@ const workflow: WorkflowBase = {
     {
       parameters: {
         options: {
-          systemMessage,
-          maxIterations: 50,
+          systemMessage: `=${systemMessage}`,
+          maxIterations: 20,
         },
       },
       id: 'ai-agent',
       name: 'AI Agent',
       type: '@n8n/n8n-nodes-langchain.agent',
-      typeVersion: 1.7,
-      position: [224, 304],
+      typeVersion: 3.1,
+      position: [200, 300],
     },
     {
       parameters: {
@@ -34,7 +45,7 @@ const workflow: WorkflowBase = {
       name: 'OpenRouter Chat Model',
       type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
       typeVersion: 1,
-      position: [224, 512],
+      position: [-200, 600],
       credentials: {
         openRouterApi: {
           id: 'FsN0N48lU327xkz6',
@@ -45,20 +56,82 @@ const workflow: WorkflowBase = {
     {
       parameters: {
         sessionIdType: 'customKey',
-        sessionKey: '={{ $json.sessionId }}',
+        sessionKey: '={{ $json.user?.id ? $json.user.id : $json.sessionId }}',
         contextWindowLength: 10,
       },
       id: 'simple-memory',
       name: 'Simple Memory',
       type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
       typeVersion: 1.3,
-      position: [64, 512],
+      position: [-520, 600],
+    },
+    {
+      parameters: {
+        name: 'graphql_request',
+        description:
+          'Execute a GraphQL query or mutation against the API directly. IMPORTANT: All requests are authenticated as Chat Agent, not as the external user. Mutations are executed on behalf of the agent.',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: `Tool: GraphQL Request (${AGENT_NAME})`,
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            query:
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', `Required! GraphQL query or mutation string`, 'string') }}",
+            variables:
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', `Variables object for the query, use {} if no variables needed`, 'string') }}",
+            operationName:
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('operationName', `Optional: GraphQL operation name to execute specific operation from document`, 'string') }}",
+          },
+          matchingColumns: ['query'],
+          schema: [
+            {
+              id: 'query',
+              displayName: 'query',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+              removed: false,
+            },
+            {
+              id: 'variables',
+              displayName: 'variables',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              removed: false,
+            },
+            {
+              id: 'operationName',
+              displayName: 'operationName',
+              required: false,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+              removed: false,
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: 'tool-graphql-request',
+      name: 'GraphQL Request Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [200, 600],
     },
     {
       parameters: {
         name: 'api_agent',
         description:
-          'Execute GraphQL queries against the platform API. Use this to fetch real data about users, content, etc. Pass a valid GraphQL query string.',
+          'Delegate API tasks to the API Agent — a specialized agent with deep knowledge of the GraphQL schema and API structure. Use when: (1) you need to fetch data but unsure which query to use, (2) you want the API Agent to construct complex queries for you, (3) you need help understanding available API operations. The API Agent executes requests on ITS OWN behalf (not yours). You can also ask it to explain how to construct a query if you want to execute it yourself via graphql_request.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -68,7 +141,7 @@ const workflow: WorkflowBase = {
           mappingMode: 'defineBelow',
           value: {
             chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe what data you need from the API. The API agent will construct and execute the appropriate GraphQL query.`, 'string') }}",
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe what you need: data to fetch, query to construct, or API operation to understand. The API Agent will help.`, 'string') }}",
           },
           matchingColumns: [],
           schema: [
@@ -90,7 +163,55 @@ const workflow: WorkflowBase = {
       name: 'API Agent Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [384, 512],
+      position: [520, 600],
+    },
+    {
+      parameters: {
+        name: 'project_manager_agent',
+        description:
+          'Delegate project and task management to the Project Manager Agent — a specialized agent for managing projects, tasks, team members, and tracking progress. Use when: (1) user asks about projects or tasks, (2) need to create/update/list projects or tasks, (3) need to manage team assignments, (4) need project status reports. The Project Manager Agent executes requests on ITS OWN behalf.',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: 'Agent: Project Manager',
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            chatInput:
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the project/task operation: list projects, create task, update status, assign members, etc.`, 'string') }}",
+            user: '={{ $json.user }}',
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'chatInput',
+              displayName: 'request',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'user',
+              displayName: 'user',
+              required: false,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'object',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: 'tool-project-manager-agent',
+      name: 'Project Manager Agent Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [520, 760],
     },
     {
       parameters: {
@@ -112,7 +233,7 @@ const workflow: WorkflowBase = {
             {
               id: 'type',
               displayName: 'type',
-              required: false,
+              required: true,
               defaultMatch: false,
               display: true,
               canBeUsedToMatch: true,
@@ -121,7 +242,7 @@ const workflow: WorkflowBase = {
             {
               id: 'data',
               displayName: 'data',
-              required: false,
+              required: true,
               defaultMatch: false,
               display: true,
               canBeUsedToMatch: true,
@@ -145,7 +266,7 @@ const workflow: WorkflowBase = {
       name: 'Create MindLog Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [544, 512],
+      position: [840, 600],
     },
     {
       parameters: {
@@ -200,7 +321,7 @@ const workflow: WorkflowBase = {
       name: 'Search MindLogs Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [704, 512],
+      position: [1160, 600],
     },
     {
       parameters: {
@@ -255,7 +376,7 @@ const workflow: WorkflowBase = {
       name: 'Update MindLog Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [864, 512],
+      position: [1480, 600],
     },
     {
       parameters: {
@@ -289,7 +410,7 @@ const workflow: WorkflowBase = {
       name: 'Delete MindLog Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [1024, 512],
+      position: [1800, 600],
     },
     {
       parameters: {
@@ -297,7 +418,7 @@ const workflow: WorkflowBase = {
       },
       type: '@n8n/n8n-nodes-langchain.chatTrigger',
       typeVersion: 1.4,
-      position: [-64, 592],
+      position: [-400, 500],
       id: 'chat-trigger',
       name: 'When chat message received',
       webhookId: 'agent-chat-webhook',
@@ -314,6 +435,10 @@ const workflow: WorkflowBase = {
               name: 'sessionId',
               type: 'string',
             },
+            {
+              name: 'user',
+              type: 'object',
+            },
           ],
         },
       },
@@ -321,7 +446,7 @@ const workflow: WorkflowBase = {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-200, 500],
+      position: [-400, 300],
     },
   ],
   connections: {
@@ -350,7 +475,29 @@ const workflow: WorkflowBase = {
         ],
       ],
     },
+    'GraphQL Request Tool': {
+      ai_tool: [
+        [
+          {
+            node: 'AI Agent',
+            type: 'ai_tool',
+            index: 0,
+          },
+        ],
+      ],
+    },
     'API Agent Tool': {
+      ai_tool: [
+        [
+          {
+            node: 'AI Agent',
+            type: 'ai_tool',
+            index: 0,
+          },
+        ],
+      ],
+    },
+    'Project Manager Agent Tool': {
       ai_tool: [
         [
           {
@@ -437,4 +584,4 @@ const workflow: WorkflowBase = {
   },
 }
 
-export default workflow
+export default [toolGraphqlRequest, agentWorkflow]
