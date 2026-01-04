@@ -12,10 +12,11 @@ export async function createContext({
   req,
 }: CreateContextArgs): Promise<PrismaContext> {
   let currentUser: User | null = null
+  let token: string | null = null
 
   const authHeader = req?.headers.authorization
   if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7)
+    token = authHeader.slice(7)
     const payload = verifyToken(token)
     if (payload?.userId) {
       currentUser = await prismaClient.user.findUnique({
@@ -28,6 +29,7 @@ export async function createContext({
     prisma: prismaClient,
     currentUser,
     Token: null,
+    token,
     req,
     externalApiQuery,
   }

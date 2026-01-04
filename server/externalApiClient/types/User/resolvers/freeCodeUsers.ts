@@ -19,9 +19,13 @@ builder.queryField('freeCodeUsers', (t) =>
       const result = await ctx.externalApiQuery<
         UsersConnectionQuery,
         UsersConnectionQueryVariables
-      >(UsersConnectionDocument, {
-        first: take,
-      })
+      >(
+        UsersConnectionDocument,
+        {
+          first: take,
+        },
+        ctx,
+      )
 
       if (result.errors?.length) {
         throw new Error(result.errors[0].message)

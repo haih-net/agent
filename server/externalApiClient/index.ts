@@ -1,5 +1,6 @@
 import { print } from 'graphql'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import { PrismaContext } from 'server/context/interfaces'
 
 if (!process.env.GRAPHQL_API_ENDPOINT) {
   throw new Error('GRAPHQL_API_ENDPOINT environment variable is required')
@@ -14,13 +15,22 @@ type GraphQLResponse<T> = {
 
 export async function externalApiQuery<TData, TVariables>(
   document: TypedDocumentNode<TData, TVariables>,
-  variables?: TVariables,
+  variables: TVariables | null,
+  ctx: PrismaContext,
 ): Promise<GraphQLResponse<TData>> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+
+  const authorization = ctx.req?.headers.authorization
+
+  if (authorization) {
+    headers['Authorization'] = `Bearer ${authorization}`
+  }
+
   const response = await fetch(GRAPHQL_API_ENDPOINT, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       query: print(document),
       variables: variables || {},

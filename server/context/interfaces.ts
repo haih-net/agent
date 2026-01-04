@@ -17,5 +17,10 @@ export interface PrismaContext {
    */
   Token: (Token & { User: User | null }) | null
 
+  /**
+   * Raw JWT token from Authorization header (for external API calls)
+   */
+  token: string | null
+
   externalApiQuery: typeof externalApiQuery
 }
