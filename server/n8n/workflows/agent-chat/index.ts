@@ -1,58 +1,27 @@
-import * as fs from 'fs'
 import * as path from 'path'
-import { WorkflowBase } from '../interfaces'
-import { createToolGraphqlRequest } from '../tool-graphql-request/factory'
-
-const systemMessage = fs.readFileSync(
-  path.join(__dirname, 'system-message.md'),
-  'utf-8',
-)
+import { createAgent } from '../agent-factory'
 
 const AGENT_NAME = 'Chat Agent'
-const CREDENTIAL_ID = 'freecode-agent-chat-cred'
-const CREDENTIAL_NAME = 'FreeCode API - agent-chat'
 
-const toolGraphqlRequest = createToolGraphqlRequest({
+const { toolGraphqlRequest, agentWorkflow } = createAgent({
   agentName: AGENT_NAME,
-  credentialId: CREDENTIAL_ID,
-  credentialName: CREDENTIAL_NAME,
-})
-
-const agentWorkflow: WorkflowBase = {
-  name: 'Agent: Chat',
-  active: true,
+  agentDescription:
+    'Main chat agent (secretary) for user interactions. Delegates specialized tasks to other agents.',
+  agentId: 'chat-agent',
+  workflowName: 'Agent: Chat',
   versionId: 'agent-chat-v2',
-  nodes: [
-    {
-      parameters: {
-        options: {
-          systemMessage: `=${systemMessage}`,
-          maxIterations: 20,
-        },
-      },
-      id: 'ai-agent',
-      name: 'AI Agent',
-      type: '@n8n/n8n-nodes-langchain.agent',
-      typeVersion: 3.1,
-      position: [200, 300],
-    },
-    {
-      parameters: {
-        model: 'anthropic/claude-sonnet-4',
-        options: {},
-      },
-      id: 'chat-model',
-      name: 'OpenRouter Chat Model',
-      type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
-      typeVersion: 1,
-      position: [-200, 600],
-      credentials: {
-        openRouterApi: {
-          id: 'FsN0N48lU327xkz6',
-          name: 'OpenRouter',
-        },
-      },
-    },
+  credentialId: 'freecode-agent-chat-cred',
+  credentialName: 'FreeCode API - agent-chat',
+  systemMessagePath: path.join(__dirname, 'system-message.md'),
+  webhookId: 'agent-chat-webhook',
+  instanceId: 'narasim-dev-agent-chat',
+  hasWorkflowOutput: false,
+  workflowInputs: [
+    { name: 'chatInput', type: 'string' },
+    { name: 'sessionId', type: 'string' },
+    { name: 'user', type: 'object' },
+  ],
+  additionalNodes: [
     {
       parameters: {
         sessionIdType: 'customKey',
@@ -63,69 +32,7 @@ const agentWorkflow: WorkflowBase = {
       name: 'Simple Memory',
       type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
       typeVersion: 1.3,
-      position: [-520, 600],
-    },
-    {
-      parameters: {
-        name: 'graphql_request',
-        description:
-          'Execute a GraphQL query or mutation against the API directly. IMPORTANT: All requests are authenticated as Chat Agent, not as the external user. Mutations are executed on behalf of the agent.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${AGENT_NAME})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', `Required! GraphQL query or mutation string`, 'string') }}",
-            variables:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', `Variables object for the query, use {} if no variables needed`, 'string') }}",
-            operationName:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('operationName', `Optional: GraphQL operation name to execute specific operation from document`, 'string') }}",
-          },
-          matchingColumns: ['query'],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-              removed: false,
-            },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              removed: false,
-            },
-            {
-              id: 'operationName',
-              displayName: 'operationName',
-              required: false,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-              removed: false,
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: 'tool-graphql-request',
-      name: 'GraphQL Request Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [200, 600],
+      position: [-120, 512],
     },
     {
       parameters: {
@@ -163,7 +70,7 @@ const agentWorkflow: WorkflowBase = {
       name: 'API Agent Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [520, 600],
+      position: [448, 512],
     },
     {
       parameters: {
@@ -211,7 +118,7 @@ const agentWorkflow: WorkflowBase = {
       name: 'Project Manager Agent Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [520, 760],
+      position: [448, 672],
     },
     {
       parameters: {
@@ -259,7 +166,7 @@ const agentWorkflow: WorkflowBase = {
       name: 'PR Manager Agent Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [520, 920],
+      position: [448, 832],
     },
     {
       parameters: {
@@ -314,7 +221,7 @@ const agentWorkflow: WorkflowBase = {
       name: 'Create MindLog Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [840, 600],
+      position: [672, 512],
     },
     {
       parameters: {
@@ -369,7 +276,7 @@ const agentWorkflow: WorkflowBase = {
       name: 'Search MindLogs Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [1160, 600],
+      position: [896, 512],
     },
     {
       parameters: {
@@ -424,7 +331,7 @@ const agentWorkflow: WorkflowBase = {
       name: 'Update MindLog Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [1480, 600],
+      position: [1120, 512],
     },
     {
       parameters: {
@@ -458,189 +365,35 @@ const agentWorkflow: WorkflowBase = {
       name: 'Delete MindLog Tool',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [1800, 600],
-    },
-    {
-      parameters: {
-        options: {},
-      },
-      type: '@n8n/n8n-nodes-langchain.chatTrigger',
-      typeVersion: 1.4,
-      position: [-400, 500],
-      id: 'chat-trigger',
-      name: 'When chat message received',
-      webhookId: 'agent-chat-webhook',
-    },
-    {
-      parameters: {
-        workflowInputs: {
-          values: [
-            {
-              name: 'chatInput',
-              type: 'string',
-            },
-            {
-              name: 'sessionId',
-              type: 'string',
-            },
-            {
-              name: 'user',
-              type: 'object',
-            },
-          ],
-        },
-      },
-      id: 'execute-workflow-trigger',
-      name: 'Execute Workflow Trigger',
-      type: 'n8n-nodes-base.executeWorkflowTrigger',
-      typeVersion: 1.1,
-      position: [-400, 300],
+      position: [1344, 512],
     },
   ],
-  connections: {
-    'AI Agent': {
-      main: [],
-    },
-    'OpenRouter Chat Model': {
-      ai_languageModel: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_languageModel',
-            index: 0,
-          },
-        ],
-      ],
-    },
+  additionalConnections: {
     'Simple Memory': {
-      ai_memory: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_memory',
-            index: 0,
-          },
-        ],
-      ],
-    },
-    'GraphQL Request Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
+      ai_memory: [[{ node: AGENT_NAME, type: 'ai_memory', index: 0 }]],
     },
     'API Agent Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
     'Project Manager Agent Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
     'PR Manager Agent Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
     'Create MindLog Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
     'Search MindLogs Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
     'Update MindLog Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
     'Delete MindLog Tool': {
-      ai_tool: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'ai_tool',
-            index: 0,
-          },
-        ],
-      ],
-    },
-    'When chat message received': {
-      main: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'main',
-            index: 0,
-          },
-        ],
-      ],
-    },
-    'Execute Workflow Trigger': {
-      main: [
-        [
-          {
-            node: 'AI Agent',
-            type: 'main',
-            index: 0,
-          },
-        ],
-      ],
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
   },
-  pinData: {},
-  settings: {
-    executionOrder: 'v1',
-  },
-  meta: {
-    instanceId: 'narasim-dev-agent-chat',
-  },
-}
+})
 
 export default [toolGraphqlRequest, agentWorkflow]

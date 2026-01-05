@@ -13,6 +13,7 @@ export interface WorkflowInputValue {
 
 export interface AgentFactoryConfig {
   agentName: string
+  agentDescription: string
   agentId: string
   workflowName: string
   versionId: string
@@ -37,6 +38,7 @@ export interface AgentFactoryResult {
 export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
   const {
     agentName,
+    agentDescription,
     agentId,
     workflowName,
     versionId,
@@ -171,7 +173,13 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     },
     {
       parameters: {
-        options: {},
+        availableInChat: true,
+        agentName,
+        agentDescription,
+        options: {
+          allowFileUploads: true,
+          responseMode: 'streaming',
+        },
       },
       type: '@n8n/n8n-nodes-langchain.chatTrigger',
       typeVersion: 1.4,
