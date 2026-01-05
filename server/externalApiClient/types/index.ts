@@ -1,4 +1,6 @@
 export * from './FreeCodeAuthResponse'
+export * from './FreeCodeBlog'
 export * from './FreeCodeProject'
 export * from './FreeCodeTask'
+export * from './FreeCodeTopic'
 export * from './FreeCodeUser'

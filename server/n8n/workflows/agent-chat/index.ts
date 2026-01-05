@@ -215,6 +215,54 @@ const agentWorkflow: WorkflowBase = {
     },
     {
       parameters: {
+        name: 'pr_manager_agent',
+        description:
+          'Delegate content/publication management to the PR Manager Agent — a specialized agent for managing topics, articles, and publications. Use when: (1) user asks about topics, articles, or publications, (2) need to create/update/list content, (3) need to manage blog posts or educational materials. The PR Manager Agent executes requests on ITS OWN behalf.',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: 'Agent: PR Manager',
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            chatInput:
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the content operation: list topics, create article, update publication, etc.`, 'string') }}",
+            user: '={{ $json.user }}',
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'chatInput',
+              displayName: 'request',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'user',
+              displayName: 'user',
+              required: false,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'object',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: 'tool-pr-manager-agent',
+      name: 'PR Manager Agent Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [520, 920],
+    },
+    {
+      parameters: {
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -498,6 +546,17 @@ const agentWorkflow: WorkflowBase = {
       ],
     },
     'Project Manager Agent Tool': {
+      ai_tool: [
+        [
+          {
+            node: 'AI Agent',
+            type: 'ai_tool',
+            index: 0,
+          },
+        ],
+      ],
+    },
+    'PR Manager Agent Tool': {
       ai_tool: [
         [
           {

@@ -1,0 +1,46 @@
+query topics($take: Int = 10, $skip: Int, $where: ResourceWhereInput) {
+  resources(take: $take, skip: $skip, where: $where) {
+    ...TopicNoNesting
+  }
+}
+
+query topicsCount($where: ResourceWhereInput) {
+  resourcesCount(where: $where)
+}
+
+query topic($where: ResourceWhereUniqueInput!) {
+  resource(where: $where) {
+    ...TopicNoNesting
+  }
+}
+
+mutation createTopic($data: TopicCreateInput!) {
+  createTopicProcessor(data: $data) {
+    success
+    message
+    data {
+      ...TopicNoNesting
+    }
+  }
+}
+
+mutation updateTopic($where: ResourceWhereUniqueInput!, $data: TopicUpdateInput!) {
+  updateTopicProcessor(where: $where, data: $data) {
+    success
+    message
+    data {
+      ...TopicNoNesting
+    }
+  }
+}
+
+fragment TopicNoNesting on Resource {
+  id
+  createdAt
+  updatedAt
+  name
+  longtitle
+  intro
+  contentV2
+  uri
+}
