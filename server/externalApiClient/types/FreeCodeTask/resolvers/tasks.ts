@@ -5,7 +5,19 @@ import type {
   TasksQueryVariables,
   TaskWhereInput,
 } from 'server/externalApiClient/gql/generated'
-import { TaskStatus as GqlTaskStatus } from 'server/externalApiClient/gql/generated'
+import {
+  TaskStatus as GqlTaskStatus,
+  SortOrder,
+} from 'server/externalApiClient/gql/generated'
+import { FreeCodeSortOrder } from 'server/externalApiClient/types/FreeCodeProject/resolvers/projects'
+
+const FreeCodeTaskOrderByInput = builder.inputType('FreeCodeTaskOrderByInput', {
+  fields: (t) => ({
+    createdAt: t.field({ type: FreeCodeSortOrder, required: false }),
+    updatedAt: t.field({ type: FreeCodeSortOrder, required: false }),
+    name: t.field({ type: FreeCodeSortOrder, required: false }),
+  }),
+})
 
 const FreeCodeTaskWhereInput = builder.inputType('FreeCodeTaskWhereInput', {
   fields: (t) => ({
@@ -22,11 +34,12 @@ builder.queryField('freeCodeTasks', (t) =>
     type: [FreeCodeTask],
     args: {
       where: t.arg({ type: FreeCodeTaskWhereInput, required: false }),
+      orderBy: t.arg({ type: FreeCodeTaskOrderByInput, required: false }),
       take: t.arg.int({ defaultValue: 10 }),
       skip: t.arg.int({ required: false }),
     },
     resolve: async (_root, args, ctx) => {
-      const { take, skip, where: whereArg } = args
+      const { take, skip, where: whereArg, orderBy: orderByArg } = args
 
       const { TasksDocument } =
         await import('server/externalApiClient/gql/generated')
@@ -51,6 +64,20 @@ builder.queryField('freeCodeTasks', (t) =>
         }
       }
 
+      let orderBy: TasksQueryVariables['orderBy']
+      if (orderByArg) {
+        orderBy = {}
+        if (orderByArg.createdAt) {
+          orderBy.createdAt = orderByArg.createdAt as SortOrder
+        }
+        if (orderByArg.updatedAt) {
+          orderBy.updatedAt = orderByArg.updatedAt as SortOrder
+        }
+        if (orderByArg.name) {
+          orderBy.name = orderByArg.name as SortOrder
+        }
+      }
+
       const result = await ctx.externalApiQuery<
         TasksQuery,
         TasksQueryVariables
@@ -60,6 +87,7 @@ builder.queryField('freeCodeTasks', (t) =>
           take,
           skip,
           where,
+          orderBy,
         },
         ctx,
       )

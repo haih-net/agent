@@ -1,0 +1,26 @@
+fragment TimerNoNesting on Timer {
+  id
+  createdAt
+  updatedAt
+  stopedAt
+  content
+  Task
+}
+
+query timers(
+  $where: TimerWhereInput
+  $take: Int = 10
+  $skip: Int
+  $orderBy: [TimerOrderByWithRelationInput!] = { createdAt: desc }
+) {
+  timersCount(where: $where)
+  timers(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
+    ...TimerNoNesting
+  }
+}
+
+query timer($where: TimerWhereUniqueInput!) {
+  timer(where: $where) {
+    ...TimerNoNesting
+  }
+}

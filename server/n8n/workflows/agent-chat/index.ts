@@ -24,18 +24,6 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   additionalNodes: [
     {
       parameters: {
-        sessionIdType: 'customKey',
-        sessionKey: '={{ $json.user?.id ? $json.user.id : $json.sessionId }}',
-        contextWindowLength: 10,
-      },
-      id: 'simple-memory',
-      name: 'Simple Memory',
-      type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
-      typeVersion: 1.3,
-      position: [-120, 512],
-    },
-    {
-      parameters: {
         name: 'api_agent',
         description:
           'Delegate API tasks to the API Agent — a specialized agent with deep knowledge of the GraphQL schema and API structure. Use when: (1) you need to fetch data but unsure which query to use, (2) you want the API Agent to construct complex queries for you, (3) you need help understanding available API operations. The API Agent executes requests on ITS OWN behalf (not yours). You can also ask it to explain how to construct a query if you want to execute it yourself via graphql_request.',
@@ -369,9 +357,6 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
     },
   ],
   additionalConnections: {
-    'Simple Memory': {
-      ai_memory: [[{ node: AGENT_NAME, type: 'ai_memory', index: 0 }]],
-    },
     'API Agent Tool': {
       ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },

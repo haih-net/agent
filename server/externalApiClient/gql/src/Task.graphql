@@ -18,7 +18,7 @@ query tasks(
   $where: TaskWhereInput
   $take: Int = 10
   $skip: Int
-  $orderBy: [TaskOrderByWithRelationInput!]
+  $orderBy: [TaskOrderByWithRelationInput!] = { createdAt: desc }
 ) {
   tasksCount(where: $where)
   tasks(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {

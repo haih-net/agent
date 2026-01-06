@@ -12,7 +12,7 @@ query projects(
   $where: ProjectWhereInput
   $take: Int = 10
   $skip: Int
-  $orderBy: [ProjectOrderByWithRelationInput!]
+  $orderBy: [ProjectOrderByWithRelationInput!] = { createdAt: desc }
 ) {
   projectsCount(where: $where)
   projects(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {

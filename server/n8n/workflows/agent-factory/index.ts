@@ -1,6 +1,12 @@
 import * as fs from 'fs'
+import * as path from 'path'
 import { WorkflowBase } from '../interfaces'
 import { createToolGraphqlRequest } from '../tool-graphql-request/factory'
+
+const prepareContextTemplate = fs.readFileSync(
+  path.join(__dirname, 'prepareContext.js'),
+  'utf-8',
+)
 
 type NodeType = WorkflowBase['nodes'][number]
 type ConnectionsType = WorkflowBase['connections']
@@ -26,6 +32,7 @@ export interface AgentFactoryConfig {
   hasWorkflowOutput?: boolean
   model?: string
   maxIterations?: number
+  memorySize?: number | false
   additionalNodes?: NodeType[]
   additionalConnections?: ConnectionsType
 }
@@ -51,11 +58,19 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     hasWorkflowOutput = true,
     model = 'anthropic/claude-sonnet-4',
     maxIterations = 20,
+    memorySize = 10,
     additionalNodes = [],
     additionalConnections = {},
   } = config
 
+  const hasMemory = typeof memorySize === 'number' && memorySize > 0
+
   const systemMessage = fs.readFileSync(systemMessagePath, 'utf-8')
+
+  const prepareContextCode = prepareContextTemplate.replace(
+    '$config',
+    JSON.stringify({ agentId }, null, 2),
+  )
 
   const toolGraphqlRequest = createToolGraphqlRequest({
     agentName,
@@ -64,6 +79,51 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
   })
 
   const baseNodes: NodeType[] = [
+    {
+      parameters: {
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: `Tool: GraphQL Request (${agentName})`,
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            query:
+              'query freeCodeMe { freeCodeMe { id username fullname intro content createdAt } }',
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'query',
+              displayName: 'query',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: `${agentId}-get-agent-data`,
+      name: 'Get Agent Data',
+      type: 'n8n-nodes-base.executeWorkflow',
+      typeVersion: 1.2,
+      position: [-224, 304],
+    },
+    {
+      parameters: {
+        jsCode: prepareContextCode,
+      },
+      id: `${agentId}-prepare-context`,
+      name: 'Prepare Context',
+      type: 'n8n-nodes-base.code',
+      typeVersion: 2,
+      position: [-16, 304],
+    },
     {
       parameters: {
         options: {
@@ -86,7 +146,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       name: 'Chat Model',
       type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
       typeVersion: 1,
-      position: [64, 512],
+      position: [-64, 512],
       credentials: {
         openRouterApi: {
           id: 'FsN0N48lU327xkz6',
@@ -169,7 +229,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-200, 304],
+      position: [-432, 304],
     },
     {
       parameters: {
@@ -183,12 +243,27 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       },
       type: '@n8n/n8n-nodes-langchain.chatTrigger',
       typeVersion: 1.4,
-      position: [-200, 592],
+      position: [-432, 592],
       id: `${agentId}-chat-trigger`,
       name: 'When chat message received',
       webhookId,
     },
   ]
+
+  if (hasMemory) {
+    baseNodes.push({
+      parameters: {
+        sessionIdType: 'customKey',
+        sessionKey: '={{ $json.sessionId }}',
+        contextWindowLength: memorySize,
+      },
+      id: `${agentId}-memory`,
+      name: 'Simple Memory',
+      type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
+      typeVersion: 1.3,
+      position: [320, 720],
+    })
+  }
 
   if (hasWorkflowOutput) {
     baseNodes.push({
@@ -230,11 +305,23 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
     },
     'Execute Workflow Trigger': {
-      main: [[{ node: agentName, type: 'main', index: 0 }]],
+      main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
     },
     'When chat message received': {
+      main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
+    },
+    'Get Agent Data': {
+      main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
+    },
+    'Prepare Context': {
       main: [[{ node: agentName, type: 'main', index: 0 }]],
     },
+  }
+
+  if (hasMemory) {
+    baseConnections['Simple Memory'] = {
+      ai_memory: [[{ node: agentName, type: 'ai_memory', index: 0 }]],
+    }
   }
 
   const connections: ConnectionsType = {

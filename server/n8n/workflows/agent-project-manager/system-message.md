@@ -72,16 +72,19 @@ graphql_request({
 
 **Allowed operation names from the document:**
 - `freeCodeMe` - Get current agent profile
-- `freeCodeProjects` - List projects  
+- `freeCodeProjects` - List projects (with filters and sorting)
 - `freeCodeProject` - Get single project
 - `freeCodeProjectsCount` - Count projects
 - `createFreeCodeProject` - Create project
 - `updateFreeCodeProject` - Update project
-- `freeCodeTasks` - List tasks
+- `freeCodeTasks` - List tasks (with filters and sorting)
 - `freeCodeTask` - Get single task
 - `freeCodeTasksCount` - Count tasks
 - `createFreeCodeTask` - Create task
 - `updateFreeCodeTask` - Update task
+- `freeCodeTimers` - List timers (with filters and sorting)
+- `freeCodeTimer` - Get single timer
+- `freeCodeTimersCount` - Count timers
 
 ## CRITICAL: PROJECT CREATION WORKFLOW
 
@@ -231,8 +234,14 @@ query freeCodeMe($fullInfo: Boolean = true) {
 
 # ===== PROJECT QUERIES =====
 
-query freeCodeProjects($take: Int = 10, $fullInfo: Boolean = false) {
-  freeCodeProjects(take: $take) {
+query freeCodeProjects(
+  $where: FreeCodeProjectWhereInput
+  $orderBy: FreeCodeProjectOrderByInput
+  $take: Int = 10
+  $skip: Int
+  $fullInfo: Boolean = false
+) {
+  freeCodeProjects(where: $where, orderBy: $orderBy, take: $take, skip: $skip) {
     ...FreeCodeProject_
   }
 }
@@ -275,8 +284,14 @@ mutation updateFreeCodeProject(
 
 # ===== TASK QUERIES =====
 
-query freeCodeTasks($take: Int = 10, $fullInfo: Boolean = false) {
-  freeCodeTasks(take: $take) {
+query freeCodeTasks(
+  $where: FreeCodeTaskWhereInput
+  $orderBy: FreeCodeTaskOrderByInput
+  $take: Int = 10
+  $skip: Int
+  $fullInfo: Boolean = false
+) {
+  freeCodeTasks(where: $where, orderBy: $orderBy, take: $take, skip: $skip) {
     ...FreeCodeTask_
   }
 }
@@ -289,6 +304,38 @@ query freeCodeTask($where: FreeCodeTaskWhereUniqueInput!, $fullInfo: Boolean = f
 
 query freeCodeTasksCount($where: FreeCodeTaskWhereInput) {
   freeCodeTasksCount(where: $where)
+}
+
+# ===== TIMER QUERIES =====
+
+fragment FreeCodeTimerNoNesting on FreeCodeTimer {
+  id
+  createdAt
+  updatedAt
+  stopedAt
+  content
+  Task
+}
+
+query freeCodeTimers(
+  $where: FreeCodeTimerWhereInput
+  $orderBy: FreeCodeTimerOrderByInput
+  $take: Int = 10
+  $skip: Int
+) {
+  freeCodeTimers(where: $where, orderBy: $orderBy, take: $take, skip: $skip) {
+    ...FreeCodeTimerNoNesting
+  }
+}
+
+query freeCodeTimer($id: String!) {
+  freeCodeTimer(id: $id) {
+    ...FreeCodeTimerNoNesting
+  }
+}
+
+query freeCodeTimersCount($where: FreeCodeTimerWhereInput) {
+  freeCodeTimersCount(where: $where)
 }
 
 # ===== TASK MUTATIONS =====
@@ -338,13 +385,26 @@ chat_agent({
 })
 ```
 
-### List projects (CORRECT - with operationName):
+### List projects (with filters and sorting):
 ```javascript
 graphql_request({
   query: "[GRAPHQL_DOCUMENT_ABOVE]",
   variables: {
     take: 10,
-    fullInfo: false
+    where: { status: "Processing" },
+    orderBy: { createdAt: "desc" }
+  },
+  operationName: "freeCodeProjects"
+})
+```
+
+### List projects by name search:
+```javascript
+graphql_request({
+  query: "[GRAPHQL_DOCUMENT_ABOVE]",
+  variables: {
+    where: { name: "search term" },
+    orderBy: { name: "asc" }
   },
   operationName: "freeCodeProjects"
 })
@@ -405,15 +465,53 @@ graphql_request({
 })
 ```
 
-### List tasks for a project:
+### List tasks for a project (with filters and sorting):
 ```javascript
 graphql_request({
   query: "[GRAPHQL_DOCUMENT_ABOVE]",
   variables: {
     take: 20,
+    where: { projectId: "project-id", status: "Progress" },
+    orderBy: { createdAt: "desc" },
     fullInfo: true
   },
   operationName: "freeCodeTasks"
+})
+```
+
+### List tasks by name search:
+```javascript
+graphql_request({
+  query: "[GRAPHQL_DOCUMENT_ABOVE]",
+  variables: {
+    where: { name: "search term" },
+    orderBy: { name: "asc" }
+  },
+  operationName: "freeCodeTasks"
+})
+```
+
+### List active timers:
+```javascript
+graphql_request({
+  query: "[GRAPHQL_DOCUMENT_ABOVE]",
+  variables: {
+    where: { stopedAt_null: true },
+    orderBy: { createdAt: "desc" }
+  },
+  operationName: "freeCodeTimers"
+})
+```
+
+### List timers for a task:
+```javascript
+graphql_request({
+  query: "[GRAPHQL_DOCUMENT_ABOVE]",
+  variables: {
+    where: { Task: "task-id" },
+    orderBy: { createdAt: "desc" }
+  },
+  operationName: "freeCodeTimers"
 })
 ```
 
@@ -448,6 +546,39 @@ graphql_request({
   operationName: "updateFreeCodeTask"
 })
 ```
+
+## FILTERS AND SORTING
+
+### FreeCodeProjectWhereInput
+- `id` (String) - Filter by project ID
+- `name` (String) - Search by name (contains)
+- `status` (ProjectStatus) - Filter by status
+
+### FreeCodeProjectOrderByInput
+- `createdAt` ("asc" | "desc") - Sort by creation date
+- `updatedAt` ("asc" | "desc") - Sort by update date
+- `name` ("asc" | "desc") - Sort by name
+
+### FreeCodeTaskWhereInput
+- `id` (String) - Filter by task ID
+- `name` (String) - Search by name (contains)
+- `projectId` (String) - Filter by project
+- `status` (TaskStatus) - Filter by status
+- `needHelp` (Boolean) - Filter by needHelp flag
+
+### FreeCodeTaskOrderByInput
+- `createdAt` ("asc" | "desc") - Sort by creation date
+- `updatedAt` ("asc" | "desc") - Sort by update date
+- `name` ("asc" | "desc") - Sort by name
+
+### FreeCodeTimerWhereInput
+- `id` (String) - Filter by timer ID
+- `Task` (String) - Filter by task ID
+- `stopedAt_null` (Boolean) - true = active timers, false = stopped timers
+
+### FreeCodeTimerOrderByInput
+- `createdAt` ("asc" | "desc") - Sort by creation date
+- `updatedAt` ("asc" | "desc") - Sort by update date
 
 ## ENUMS
 
