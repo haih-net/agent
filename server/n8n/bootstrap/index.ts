@@ -87,7 +87,11 @@ async function importCredentials(cookies: string): Promise<void> {
 
   const credFiles = fs
     .readdirSync(CREDENTIALS_DIR)
-    .filter((f) => f.endsWith('.json'))
+    .filter(
+      (f) =>
+        f.endsWith('.json') &&
+        (f.startsWith('openrouter') || f.startsWith('openai')),
+    )
 
   if (credFiles.length === 0) {
     return
@@ -114,13 +118,34 @@ async function importCredentials(cookies: string): Promise<void> {
           )
         }
       }
-
-      if (n8nConfig.DELETE_CREDENTIALS_AFTER_IMPORT) {
-        fs.unlinkSync(filePath)
-        console.log(`[bootstrap] Deleted: ${file}`)
-      }
     } catch (err) {
       console.error(`[bootstrap] Failed to parse ${file}:`, err)
+    }
+  }
+}
+
+async function cleanupCredentials(): Promise<void> {
+  if (n8nConfig.DELETE_CREDENTIALS_AFTER_IMPORT) {
+    if (fs.existsSync(CREDENTIALS_DIR)) {
+      const credFiles = fs
+        .readdirSync(CREDENTIALS_DIR)
+        .filter((f) => f.endsWith('.json'))
+
+      if (credFiles.length === 0) {
+        return
+      }
+
+      console.log('[bootstrap] Cleaning up credentials files...')
+
+      for (const file of credFiles) {
+        const filePath = path.join(CREDENTIALS_DIR, file)
+        try {
+          fs.unlinkSync(filePath)
+          console.log(`[bootstrap] Deleted: ${file}`)
+        } catch (err) {
+          console.error(`[bootstrap] Failed to delete ${file}:`, err)
+        }
+      }
     }
   }
 }
@@ -161,6 +186,7 @@ export async function runBootstrap(): Promise<void> {
   await importCredentials(cookies)
   await importAgentCredentials(cookies)
   await importWorkflows(cookies)
+  await cleanupCredentials()
 
   console.log('[bootstrap] Completed')
 }

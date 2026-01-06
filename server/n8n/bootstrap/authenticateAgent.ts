@@ -144,11 +144,6 @@ export async function importAgentCredentials(cookies: string): Promise<void> {
 
       await n8nApiRequest('POST', '/rest/credentials', credential, cookies)
       console.log(`[bootstrap] Imported credentials for agent: ${agentName}`)
-
-      if (n8nConfig.DELETE_CREDENTIALS_AFTER_IMPORT) {
-        fs.unlinkSync(filePath)
-        console.log(`[bootstrap] Deleted: ${file}`)
-      }
     } catch (err) {
       console.error(
         `[bootstrap] Failed to import agent credentials for ${file}:`,
