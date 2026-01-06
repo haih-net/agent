@@ -17,6 +17,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   instanceId: 'narasim-dev-project-manager',
   workflowInputs: [
     { name: 'chatInput', type: 'string' },
+    { name: 'sessionId', type: 'string' },
     { name: 'user', type: 'object' },
   ],
   additionalNodes: [
@@ -35,12 +36,23 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', `Message to send to Chat Agent for assistance`, 'string') }}",
+            sessionId:
+              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
           },
           matchingColumns: [],
           schema: [
             {
               id: 'chatInput',
               displayName: 'message',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'sessionId',
+              displayName: 'sessionId',
               required: true,
               defaultMatch: false,
               display: true,

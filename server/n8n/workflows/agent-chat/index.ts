@@ -37,12 +37,23 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe what you need: data to fetch, query to construct, or API operation to understand. The API Agent will help.`, 'string') }}",
+            sessionId:
+              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
           },
           matchingColumns: [],
           schema: [
             {
               id: 'chatInput',
               displayName: 'request',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'sessionId',
+              displayName: 'sessionId',
               required: true,
               defaultMatch: false,
               display: true,
@@ -75,6 +86,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the project/task operation: list projects, create task, update status, assign members, etc.`, 'string') }}",
+            sessionId:
+              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
             user: '={{ $json.user }}',
           },
           matchingColumns: [],
@@ -82,6 +95,15 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
             {
               id: 'chatInput',
               displayName: 'request',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'sessionId',
+              displayName: 'sessionId',
               required: true,
               defaultMatch: false,
               display: true,
@@ -123,6 +145,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the content operation: list topics, create article, update publication, etc.`, 'string') }}",
+            sessionId:
+              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
             user: '={{ $json.user }}',
           },
           matchingColumns: [],
@@ -130,6 +154,15 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
             {
               id: 'chatInput',
               displayName: 'request',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'sessionId',
+              displayName: 'sessionId',
               required: true,
               defaultMatch: false,
               display: true,
