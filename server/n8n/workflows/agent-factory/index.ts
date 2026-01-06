@@ -33,6 +33,8 @@ export interface AgentFactoryConfig {
   model?: string
   maxIterations?: number
   memorySize?: number | false
+  canExecuteCode?: boolean
+  authFromToken?: boolean
   additionalNodes?: NodeType[]
   additionalConnections?: ConnectionsType
 }
@@ -59,6 +61,8 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     model = 'anthropic/claude-sonnet-4',
     maxIterations = 20,
     memorySize = 10,
+    canExecuteCode = false,
+    authFromToken = false,
     additionalNodes = [],
     additionalConnections = {},
   } = config
@@ -90,7 +94,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           mappingMode: 'defineBelow',
           value: {
             query:
-              'query freeCodeMeUser { freeCodeMe { id username fullname intro content createdAt } }',
+              'query freeCodeMeUser($fullInfo: Boolean = true) { freeCodeMe { ...FreeCodeUserNoNesting } } fragment FreeCodeUserNoNesting on FreeCodeUser { id username fullname createdAt intro @include(if: $fullInfo) content @include(if: $fullInfo) }',
           },
           matchingColumns: [],
           schema: [
@@ -233,6 +237,10 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     },
     {
       parameters: {
+        // public: true enables external webhook access (without it returns 404)
+        public: true,
+        // mode: 'webhook' for embedded chat / direct webhook calls (vs 'hostedChat' for n8n-served page)
+        mode: 'webhook',
         availableInChat: true,
         agentName,
         agentDescription,
@@ -290,12 +298,98 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     })
   }
 
+  const authNodes: NodeType[] = authFromToken
+    ? [
+        {
+          parameters: {
+            workflowId: {
+              __rl: true,
+              mode: 'name',
+              value: 'Tool: Get User By Token',
+            },
+            workflowInputs: {
+              mappingMode: 'defineBelow',
+              value: {
+                token: '={{ $json.body.token }}',
+              },
+              matchingColumns: [],
+              schema: [
+                {
+                  id: 'token',
+                  displayName: 'token',
+                  required: false,
+                  defaultMatch: false,
+                  display: true,
+                  canBeUsedToMatch: true,
+                  type: 'string',
+                },
+              ],
+              attemptToConvertTypes: false,
+              convertFieldsToString: false,
+            },
+          },
+          id: `${agentId}-get-user-by-token`,
+          name: 'Get User By Token',
+          type: 'n8n-nodes-base.executeWorkflow',
+          typeVersion: 1.2,
+          position: [-224, 592],
+        },
+        {
+          parameters: {
+            mode: 'manual',
+            duplicateItem: false,
+            assignments: {
+              assignments: [
+                {
+                  id: 'user',
+                  name: 'user',
+                  value: '={{ $json.user }}',
+                  type: 'object',
+                },
+                {
+                  id: 'chatInput',
+                  name: 'chatInput',
+                  value:
+                    '={{ $("When chat message received").item.json.chatInput }}',
+                  type: 'string',
+                },
+                {
+                  id: 'sessionId',
+                  name: 'sessionId',
+                  value:
+                    '={{ $("When chat message received").item.json.sessionId }}',
+                  type: 'string',
+                },
+              ],
+            },
+            options: {},
+          },
+          id: `${agentId}-set-auth-context`,
+          name: 'Set Auth Context',
+          type: 'n8n-nodes-base.set',
+          typeVersion: 3.4,
+          position: [-16, 592],
+        },
+      ]
+    : []
+
+  const authConnections: ConnectionsType = authFromToken
+    ? {
+        'Get User By Token': {
+          main: [[{ node: 'Set Auth Context', type: 'main', index: 0 }]],
+        },
+        'Set Auth Context': {
+          main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
+        },
+      }
+    : {}
+
   const mindLogNodes: NodeType[] = [
     {
       parameters: {
         name: 'create_mindlog',
         description:
-          'Create a new MindLog entry. Types: Stimulus (initial trigger), Reaction (internal response), Action (chosen action), Error (error log), Result (outcome), Conclusion (lesson learned), Evaluation (external feedback), Correction (adjustment), Knowledge (persistent fact/pattern).',
+          'Create a MindLog entry. Types: Knowledge (useful new information worth remembering), Error (any error that occurred). Use Knowledge only for genuinely useful new facts/patterns. Use Error always when any error occurs.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -305,9 +399,9 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           mappingMode: 'defineBelow',
           value: {
             query:
-              'mutation createFreeCodeMindLog($data: FreeCodeMindLogCreateInput!) { response: createFreeCodeMindLog(data: $data) { success message data { id type data quality createdAt } } }',
+              'mutation createFreeCodeMindLog($data: FreeCodeMindLogCreateInput!) { response: createFreeCodeMindLog(data: $data) { success message data { id type data createdAt } } }',
             variables:
-              "={{ JSON.stringify({ data: { type: $fromAI('type', 'MindLog type: Stimulus, Reaction, Action, Error, Result, Conclusion, Evaluation, Correction, Knowledge', 'string'), data: $fromAI('data', 'Content of the mindlog', 'string'), quality: $fromAI('quality', 'Quality score 0-10 (optional, can be null)', 'number') || null } }) }}",
+              "={{ JSON.stringify({ data: { type: $fromAI('type', 'Knowledge or Error', 'string'), data: $fromAI('data', 'Content to save', 'string') } }) }}",
           },
           matchingColumns: [],
           schema: [
@@ -344,7 +438,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       parameters: {
         name: 'search_mindlogs',
         description:
-          'Search MindLog entries. Filter by type (Knowledge, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction, Error). Use Knowledge type to retrieve stored facts and patterns.',
+          'Search MindLog entries. Filter by type: Knowledge or Error.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -354,9 +448,9 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           mappingMode: 'defineBelow',
           value: {
             query:
-              'query freeCodeMyMindLogs($where: FreeCodeMindLogWhereInput, $take: Int) { freeCodeMyMindLogs(where: $where, take: $take) { id type data quality createdAt updatedAt } freeCodeMyMindLogsCount(where: $where) }',
+              'query freeCodeMyMindLogs($where: FreeCodeMindLogWhereInput, $take: Int) { freeCodeMyMindLogs(where: $where, take: $take) { id type data createdAt } freeCodeMyMindLogsCount(where: $where) }',
             variables:
-              "={{ JSON.stringify({ where: $fromAI('type', 'Filter by type (optional): Knowledge, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction, Error', 'string') ? { type: $fromAI('type', '', 'string') } : undefined, take: $fromAI('limit', 'Max results (default 50)', 'number') || 50 }) }}",
+              "={{ JSON.stringify({ where: $fromAI('type', 'Filter by type (optional): Knowledge or Error', 'string') ? { type: $fromAI('type', '', 'string') } : undefined, take: $fromAI('limit', 'Max results (default 50)', 'number') || 50 }) }}",
           },
           matchingColumns: [],
           schema: [
@@ -389,103 +483,6 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       typeVersion: 2.2,
       position: [896, 512],
     },
-    {
-      parameters: {
-        name: 'update_mindlog',
-        description:
-          'Update an existing MindLog entry by ID. Can update data content and/or quality score.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              'mutation updateFreeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!, $data: FreeCodeMindLogUpdateInput!) { response: updateFreeCodeMindLog(where: $where, data: $data) { success message data { id type data quality updatedAt } } }',
-            variables:
-              "={{ JSON.stringify({ where: { id: $fromAI('id', 'MindLog ID to update', 'string') }, data: { data: $fromAI('data', 'New content (optional)', 'string') || undefined, quality: $fromAI('quality', 'New quality score 0-10 (optional)', 'number') ?? undefined } }) }}",
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-tool-update-mindlog`,
-      name: 'Update MindLog Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [1120, 512],
-    },
-    {
-      parameters: {
-        name: 'delete_mindlog',
-        description: 'Delete a MindLog entry by ID.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              'mutation deleteFreeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!) { response: deleteFreeCodeMindLog(where: $where) { success message } }',
-            variables:
-              "={{ JSON.stringify({ where: { id: $fromAI('id', 'MindLog ID to delete', 'string') } }) }}",
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-tool-delete-mindlog`,
-      name: 'Delete MindLog Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [1344, 512],
-    },
   ]
 
   const mindLogConnections: ConnectionsType = {
@@ -495,15 +492,105 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     'Search MindLogs Tool': {
       ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
     },
-    'Update MindLog Tool': {
-      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-    },
-    'Delete MindLog Tool': {
-      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-    },
   }
 
-  const nodes: NodeType[] = [...baseNodes, ...mindLogNodes, ...additionalNodes]
+  const codeExecutionNodes: NodeType[] = canExecuteCode
+    ? [
+        {
+          parameters: {
+            name: 'read_file',
+            description:
+              'Read a file from the project source code. Returns file content (max 500 lines).',
+            workflowId: {
+              __rl: true,
+              mode: 'list',
+              value: 'Tool: Read File',
+            },
+            workflowInputs: {
+              mappingMode: 'defineBelow',
+              value: {
+                path: "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('path', `File path to read, e.g. 'src/index.ts' or 'package.json'`, 'string') }}",
+              },
+              matchingColumns: [],
+              schema: [
+                {
+                  id: 'path',
+                  displayName: 'path',
+                  required: true,
+                  defaultMatch: false,
+                  display: true,
+                  canBeUsedToMatch: true,
+                  type: 'string',
+                },
+              ],
+              attemptToConvertTypes: false,
+              convertFieldsToString: false,
+            },
+          },
+          id: `${agentId}-tool-read-file`,
+          name: 'Read File Tool',
+          type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+          typeVersion: 2.2,
+          position: [1568, 512],
+        },
+        {
+          parameters: {
+            name: 'list_files',
+            description:
+              'List files and directories in a given path. Returns ls -la output.',
+            workflowId: {
+              __rl: true,
+              mode: 'list',
+              value: 'Tool: List Files',
+            },
+            workflowInputs: {
+              mappingMode: 'defineBelow',
+              value: {
+                path: "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('path', `Directory path to list, e.g. '.' or 'src'`, 'string') }}",
+              },
+              matchingColumns: [],
+              schema: [
+                {
+                  id: 'path',
+                  displayName: 'path',
+                  required: true,
+                  defaultMatch: false,
+                  display: true,
+                  canBeUsedToMatch: true,
+                  type: 'string',
+                },
+              ],
+              attemptToConvertTypes: false,
+              convertFieldsToString: false,
+            },
+          },
+          id: `${agentId}-tool-list-files`,
+          name: 'List Files Tool',
+          type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+          typeVersion: 2.2,
+          position: [1792, 512],
+        },
+      ]
+    : []
+
+  const codeExecutionConnections: ConnectionsType = canExecuteCode
+    ? {
+        'Read File Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'List Files Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+      }
+    : {}
+
+  const nodes: NodeType[] = [
+    ...baseNodes,
+    ...authNodes,
+    ...mindLogNodes,
+    ...codeExecutionNodes,
+    ...additionalNodes,
+  ]
 
   const baseConnections: ConnectionsType = {
     [agentName]: hasWorkflowOutput
@@ -521,7 +608,15 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
     },
     'When chat message received': {
-      main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
+      main: [
+        [
+          {
+            node: authFromToken ? 'Get User By Token' : 'Get Agent Data',
+            type: 'main',
+            index: 0,
+          },
+        ],
+      ],
     },
     'Get Agent Data': {
       main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
@@ -539,7 +634,9 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
 
   const connections: ConnectionsType = {
     ...baseConnections,
+    ...authConnections,
     ...mindLogConnections,
+    ...codeExecutionConnections,
     ...additionalConnections,
   }
 

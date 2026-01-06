@@ -39,37 +39,46 @@ ALWAYS prefer queries with freeCode prefix when available:
 ### Users List
 
 ```graphql
-query freeCodeUsers($take: Int = 10) {
+query freeCodeUsers($take: Int = 10, $fullInfo: Boolean = false) {
   freeCodeUsers(take: $take) {
-    id
-    username
-    fullname
-    createdAt
+    ...FreeCodeUserNoNesting
   }
+}
+
+fragment FreeCodeUserNoNesting on FreeCodeUser {
+  id
+  username
+  fullname
+  createdAt
+  intro @include(if: $fullInfo)
+  content @include(if: $fullInfo)
 }
 ```
 
 ### Single User
 
 ```graphql
-query freeCodeUser($where: FreeCodeUserWhereUniqueInput!) {
+query freeCodeUser($where: FreeCodeUserWhereUniqueInput!, $fullInfo: Boolean = true) {
   freeCodeUser(where: $where) {
-    id
-    username
-    fullname
-    createdAt
-    intro
-    content
+    ...FreeCodeUserNoNesting
   }
+}
+
+fragment FreeCodeUserNoNesting on FreeCodeUser {
+  id
+  username
+  fullname
+  createdAt
+  intro @include(if: $fullInfo)
+  content @include(if: $fullInfo)
 }
 ```
 
 Variables example:
 ```json
 {
-  "where": {
-    "id": "user-id-here"
-  }
+  "where": { "id": "user-id-here" },
+  "fullInfo": true
 }
 ```
 
@@ -78,15 +87,19 @@ Variables example:
 Use this to get YOUR (API Agent) profile information:
 
 ```graphql
-query freeCodeMeUser {
+query freeCodeMeUser($fullInfo: Boolean = true) {
   freeCodeMe {
-    id
-    username
-    fullname
-    createdAt
-    intro
-    content
+    ...FreeCodeUserNoNesting
   }
+}
+
+fragment FreeCodeUserNoNesting on FreeCodeUser {
+  id
+  username
+  fullname
+  createdAt
+  intro @include(if: $fullInfo)
+  content @include(if: $fullInfo)
 }
 ```
 

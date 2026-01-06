@@ -48,16 +48,10 @@ fragment FreeCodeUserNoNesting on FreeCodeUser {
   username
   fullname
   createdAt
-}
-
-fragment FreeCodeUserFullInfo on FreeCodeUser {
-  intro
-  content
+  intro @include(if: $fullInfo)
+  content @include(if: $fullInfo)
 }
 
 fragment FreeCodeUser_ on FreeCodeUser {
   ...FreeCodeUserNoNesting
-  ... on FreeCodeUser @include(if: $fullInfo) {
-    ...FreeCodeUserFullInfo
-  }
 }

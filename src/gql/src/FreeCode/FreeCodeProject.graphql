@@ -47,16 +47,10 @@ fragment FreeCodeProjectNoNesting on FreeCodeProject {
   status
   createdAt
   updatedAt
-}
-
-fragment FreeCodeProjectFullInfo on FreeCodeProject {
-  description
-  url
+  description @include(if: $fullInfo)
+  url @include(if: $fullInfo)
 }
 
 fragment FreeCodeProject_ on FreeCodeProject {
   ...FreeCodeProjectNoNesting
-  ... on FreeCodeProject @include(if: $fullInfo) {
-    ...FreeCodeProjectFullInfo
-  }
 }

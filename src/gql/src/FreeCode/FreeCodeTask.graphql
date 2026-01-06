@@ -45,20 +45,14 @@ fragment FreeCodeTaskNoNesting on FreeCodeTask {
   projectId
   createdAt
   updatedAt
-}
-
-fragment FreeCodeTaskFullInfo on FreeCodeTask {
-  description
-  content
-  startDatePlaning
-  endDatePlaning
-  startDate
-  endDate
+  description @include(if: $fullInfo)
+  content @include(if: $fullInfo)
+  startDatePlaning @include(if: $fullInfo)
+  endDatePlaning @include(if: $fullInfo)
+  startDate @include(if: $fullInfo)
+  endDate @include(if: $fullInfo)
 }
 
 fragment FreeCodeTask_ on FreeCodeTask {
   ...FreeCodeTaskNoNesting
-  ... on FreeCodeTask @include(if: $fullInfo) {
-    ...FreeCodeTaskFullInfo
-  }
 }

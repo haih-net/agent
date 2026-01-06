@@ -1,5 +1,11 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
+import {
+  SESSION_ID_EXPRESSION,
+  SESSION_ID_SCHEMA,
+  USER_EXPRESSION,
+  USER_SCHEMA,
+} from '../helpers'
 
 const AGENT_NAME = 'Chat Agent'
 
@@ -9,13 +15,14 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
     'Main chat agent (secretary) for user interactions. Delegates specialized tasks to other agents.',
   agentId: 'chat-agent',
   workflowName: 'Agent: Chat',
-  versionId: 'agent-chat-v3',
+  versionId: 'agent-chat-v4',
   credentialId: 'freecode-agent-chat-cred',
   credentialName: 'FreeCode API - agent-chat',
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-chat-webhook',
   instanceId: 'narasim-dev-agent-chat',
   hasWorkflowOutput: false,
+  authFromToken: true,
   workflowInputs: [
     { name: 'chatInput', type: 'string' },
     { name: 'sessionId', type: 'string' },
@@ -37,8 +44,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe what you need: data to fetch, query to construct, or API operation to understand. The API Agent will help.`, 'string') }}",
-            sessionId:
-              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
+            sessionId: SESSION_ID_EXPRESSION,
           },
           matchingColumns: [],
           schema: [
@@ -51,15 +57,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
               canBeUsedToMatch: true,
               type: 'string',
             },
-            {
-              id: 'sessionId',
-              displayName: 'sessionId',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
+            SESSION_ID_SCHEMA,
           ],
           attemptToConvertTypes: false,
           convertFieldsToString: false,
@@ -86,9 +84,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the project/task operation: list projects, create task, update status, assign members, etc.`, 'string') }}",
-            sessionId:
-              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
-            user: '={{ $json.user }}',
+            sessionId: SESSION_ID_EXPRESSION,
+            user: USER_EXPRESSION,
           },
           matchingColumns: [],
           schema: [
@@ -101,24 +98,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
               canBeUsedToMatch: true,
               type: 'string',
             },
-            {
-              id: 'sessionId',
-              displayName: 'sessionId',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            {
-              id: 'user',
-              displayName: 'user',
-              required: false,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'object',
-            },
+            SESSION_ID_SCHEMA,
+            USER_SCHEMA,
           ],
           attemptToConvertTypes: false,
           convertFieldsToString: false,
@@ -145,9 +126,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the content operation: list topics, create article, update publication, etc.`, 'string') }}",
-            sessionId:
-              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
-            user: '={{ $json.user }}',
+            sessionId: SESSION_ID_EXPRESSION,
+            user: USER_EXPRESSION,
           },
           matchingColumns: [],
           schema: [
@@ -160,24 +140,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
               canBeUsedToMatch: true,
               type: 'string',
             },
-            {
-              id: 'sessionId',
-              displayName: 'sessionId',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            {
-              id: 'user',
-              displayName: 'user',
-              required: false,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'object',
-            },
+            SESSION_ID_SCHEMA,
+            USER_SCHEMA,
           ],
           attemptToConvertTypes: false,
           convertFieldsToString: false,

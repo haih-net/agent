@@ -123,7 +123,21 @@ Use when you know exactly which query to execute.
 To get your own agent profile, use:
 ```javascript
 graphql_request({
-  query: "query freeCodeMeUser { freeCodeMe { id username fullname intro content createdAt } }",
+  query: `query freeCodeMeUser($fullInfo: Boolean = true) {
+  freeCodeMe {
+    ...FreeCodeUserNoNesting
+  }
+}
+
+fragment FreeCodeUserNoNesting on FreeCodeUser {
+  id
+  username
+  fullname
+  createdAt
+  intro @include(if: $fullInfo)
+  content @include(if: $fullInfo)
+}`,
+  variables: { fullInfo: true },
   operationName: "freeCodeMeUser"
 })
 ```

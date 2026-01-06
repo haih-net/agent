@@ -2,6 +2,7 @@ const config = $config
 
 let triggerData = {}
 
+// isExecuted is a valid boolean property in n8n runtime, n8n UI type error is incorrect
 if ($('Execute Workflow Trigger').isExecuted) {
   triggerData = $('Execute Workflow Trigger').first().json
 } else if ($('When chat message received').isExecuted) {
@@ -25,7 +26,10 @@ if (userId && callerAgentId) {
 }
 
 if (!sessionId) {
-  throw new Error('Can not get sessionId')
+  // TODO: Session loss occurs when messages pass from agent to agent to third agent.
+  // Currently hardcoding fallback, but need to properly handle session propagation chain.
+  console.error(new Error('Can not get sessionId'))
+  sessionId = 'unhandledSessionId'
 }
 
 return [

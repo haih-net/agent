@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
+import { SESSION_ID_EXPRESSION, SESSION_ID_SCHEMA } from '../helpers'
 
 const AGENT_NAME = 'PR Manager Agent'
 
@@ -36,8 +37,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           value: {
             chatInput:
               "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', `Message to send to Chat Agent for assistance`, 'string') }}",
-            sessionId:
-              "={{ [($json.agentId || ''), ($json.sessionId || '')].filter(v => v).join('_') }}",
+            sessionId: SESSION_ID_EXPRESSION,
           },
           matchingColumns: [],
           schema: [
@@ -50,15 +50,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
               canBeUsedToMatch: true,
               type: 'string',
             },
-            {
-              id: 'sessionId',
-              displayName: 'sessionId',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
+            SESSION_ID_SCHEMA,
           ],
           attemptToConvertTypes: false,
           convertFieldsToString: false,
