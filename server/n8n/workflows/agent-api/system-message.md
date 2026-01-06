@@ -84,6 +84,7 @@ query freeCodeMeUser {
     username
     fullname
     createdAt
+    intro
     content
   }
 }

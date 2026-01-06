@@ -123,8 +123,8 @@ Use when you know exactly which query to execute.
 To get your own agent profile, use:
 ```javascript
 graphql_request({
-  query: "query freeCodeMe { freeCodeMe { id username fullname intro content createdAt } }",
-  operationName: "freeCodeMe"
+  query: "query freeCodeMeUser { freeCodeMe { id username fullname intro content createdAt } }",
+  operationName: "freeCodeMeUser"
 })
 ```
 

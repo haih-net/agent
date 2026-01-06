@@ -90,7 +90,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           mappingMode: 'defineBelow',
           value: {
             query:
-              'query freeCodeMe { freeCodeMe { id username fullname intro content createdAt } }',
+              'query freeCodeMeUser { freeCodeMe { id username fullname intro content createdAt } }',
           },
           matchingColumns: [],
           schema: [
@@ -290,7 +290,220 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     })
   }
 
-  const nodes: NodeType[] = [...baseNodes, ...additionalNodes]
+  const mindLogNodes: NodeType[] = [
+    {
+      parameters: {
+        name: 'create_mindlog',
+        description:
+          'Create a new MindLog entry. Types: Stimulus (initial trigger), Reaction (internal response), Action (chosen action), Error (error log), Result (outcome), Conclusion (lesson learned), Evaluation (external feedback), Correction (adjustment), Knowledge (persistent fact/pattern).',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: `Tool: GraphQL Request (${agentName})`,
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            query:
+              'mutation createFreeCodeMindLog($data: FreeCodeMindLogCreateInput!) { response: createFreeCodeMindLog(data: $data) { success message data { id type data quality createdAt } } }',
+            variables:
+              "={{ JSON.stringify({ data: { type: $fromAI('type', 'MindLog type: Stimulus, Reaction, Action, Error, Result, Conclusion, Evaluation, Correction, Knowledge', 'string'), data: $fromAI('data', 'Content of the mindlog', 'string'), quality: $fromAI('quality', 'Quality score 0-10 (optional, can be null)', 'number') || null } }) }}",
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'query',
+              displayName: 'query',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'variables',
+              displayName: 'variables',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: `${agentId}-tool-create-mindlog`,
+      name: 'Create MindLog Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [672, 512],
+    },
+    {
+      parameters: {
+        name: 'search_mindlogs',
+        description:
+          'Search MindLog entries. Filter by type (Knowledge, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction, Error). Use Knowledge type to retrieve stored facts and patterns.',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: `Tool: GraphQL Request (${agentName})`,
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            query:
+              'query freeCodeMyMindLogs($where: FreeCodeMindLogWhereInput, $take: Int) { freeCodeMyMindLogs(where: $where, take: $take) { id type data quality createdAt updatedAt } freeCodeMyMindLogsCount(where: $where) }',
+            variables:
+              "={{ JSON.stringify({ where: $fromAI('type', 'Filter by type (optional): Knowledge, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction, Error', 'string') ? { type: $fromAI('type', '', 'string') } : undefined, take: $fromAI('limit', 'Max results (default 50)', 'number') || 50 }) }}",
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'query',
+              displayName: 'query',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'variables',
+              displayName: 'variables',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: `${agentId}-tool-search-mindlogs`,
+      name: 'Search MindLogs Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [896, 512],
+    },
+    {
+      parameters: {
+        name: 'update_mindlog',
+        description:
+          'Update an existing MindLog entry by ID. Can update data content and/or quality score.',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: `Tool: GraphQL Request (${agentName})`,
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            query:
+              'mutation updateFreeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!, $data: FreeCodeMindLogUpdateInput!) { response: updateFreeCodeMindLog(where: $where, data: $data) { success message data { id type data quality updatedAt } } }',
+            variables:
+              "={{ JSON.stringify({ where: { id: $fromAI('id', 'MindLog ID to update', 'string') }, data: { data: $fromAI('data', 'New content (optional)', 'string') || undefined, quality: $fromAI('quality', 'New quality score 0-10 (optional)', 'number') ?? undefined } }) }}",
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'query',
+              displayName: 'query',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'variables',
+              displayName: 'variables',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: `${agentId}-tool-update-mindlog`,
+      name: 'Update MindLog Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [1120, 512],
+    },
+    {
+      parameters: {
+        name: 'delete_mindlog',
+        description: 'Delete a MindLog entry by ID.',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: `Tool: GraphQL Request (${agentName})`,
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            query:
+              'mutation deleteFreeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!) { response: deleteFreeCodeMindLog(where: $where) { success message } }',
+            variables:
+              "={{ JSON.stringify({ where: { id: $fromAI('id', 'MindLog ID to delete', 'string') } }) }}",
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'query',
+              displayName: 'query',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'variables',
+              displayName: 'variables',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: `${agentId}-tool-delete-mindlog`,
+      name: 'Delete MindLog Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [1344, 512],
+    },
+  ]
+
+  const mindLogConnections: ConnectionsType = {
+    'Create MindLog Tool': {
+      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+    },
+    'Search MindLogs Tool': {
+      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+    },
+    'Update MindLog Tool': {
+      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+    },
+    'Delete MindLog Tool': {
+      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+    },
+  }
+
+  const nodes: NodeType[] = [...baseNodes, ...mindLogNodes, ...additionalNodes]
 
   const baseConnections: ConnectionsType = {
     [agentName]: hasWorkflowOutput
@@ -326,6 +539,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
 
   const connections: ConnectionsType = {
     ...baseConnections,
+    ...mindLogConnections,
     ...additionalConnections,
   }
 

@@ -27,13 +27,7 @@ This means:
    - When unsure how to respond to user
 
 **Getting your profile:**
-To get your own agent profile, use:
-```javascript
-graphql_request({
-  query: "query freeCodeMe { freeCodeMe { id username fullname intro content createdAt } }",
-  operationName: "freeCodeMe"
-})
-```
+To get your own agent profile, use the full document with `operationName: "freeCodeMeUser"` (see USAGE EXAMPLES section).
 
 **Important:** This returns YOUR profile as Project Manager Agent, not the user's profile.
 
@@ -71,20 +65,17 @@ graphql_request({
 ```
 
 **Allowed operation names from the document:**
-- `freeCodeMe` - Get current agent profile
-- `freeCodeProjects` - List projects (with filters and sorting)
+- `freeCodeMeUser` - Get current agent profile
+- `freeCodeProjects` - List projects
 - `freeCodeProject` - Get single project
 - `freeCodeProjectsCount` - Count projects
 - `createFreeCodeProject` - Create project
 - `updateFreeCodeProject` - Update project
-- `freeCodeTasks` - List tasks (with filters and sorting)
+- `freeCodeTasks` - List tasks
 - `freeCodeTask` - Get single task
 - `freeCodeTasksCount` - Count tasks
 - `createFreeCodeTask` - Create task
 - `updateFreeCodeTask` - Update task
-- `freeCodeTimers` - List timers (with filters and sorting)
-- `freeCodeTimer` - Get single timer
-- `freeCodeTimersCount` - Count timers
 
 ## CRITICAL: PROJECT CREATION WORKFLOW
 
@@ -157,6 +148,10 @@ graphql_request({
 
 ## GRAPHQL OPERATIONS DOCUMENT
 
+**CRITICAL: You MUST send the ENTIRE document below (including all fragments) in every graphql_request call.**
+
+The document contains fragments with `@include(if: $fullInfo)` directive. The `$fullInfo` parameter controls whether full details are returned. This only works when the complete document with fragments is sent.
+
 ```graphql
 # ===== FRAGMENTS =====
 
@@ -226,7 +221,7 @@ fragment FreeCodeTask_ on FreeCodeTask {
 
 # ===== USER QUERY =====
 
-query freeCodeMe($fullInfo: Boolean = true) {
+query freeCodeMeUser($fullInfo: Boolean = true) {
   freeCodeMe {
     ...FreeCodeUser_
   }
@@ -234,14 +229,8 @@ query freeCodeMe($fullInfo: Boolean = true) {
 
 # ===== PROJECT QUERIES =====
 
-query freeCodeProjects(
-  $where: FreeCodeProjectWhereInput
-  $orderBy: FreeCodeProjectOrderByInput
-  $take: Int = 10
-  $skip: Int
-  $fullInfo: Boolean = false
-) {
-  freeCodeProjects(where: $where, orderBy: $orderBy, take: $take, skip: $skip) {
+query freeCodeProjects($take: Int = 10, $fullInfo: Boolean = false) {
+  freeCodeProjects(take: $take) {
     ...FreeCodeProject_
   }
 }
@@ -284,14 +273,8 @@ mutation updateFreeCodeProject(
 
 # ===== TASK QUERIES =====
 
-query freeCodeTasks(
-  $where: FreeCodeTaskWhereInput
-  $orderBy: FreeCodeTaskOrderByInput
-  $take: Int = 10
-  $skip: Int
-  $fullInfo: Boolean = false
-) {
-  freeCodeTasks(where: $where, orderBy: $orderBy, take: $take, skip: $skip) {
+query freeCodeTasks($take: Int = 10, $fullInfo: Boolean = false) {
+  freeCodeTasks(take: $take) {
     ...FreeCodeTask_
   }
 }
@@ -304,38 +287,6 @@ query freeCodeTask($where: FreeCodeTaskWhereUniqueInput!, $fullInfo: Boolean = f
 
 query freeCodeTasksCount($where: FreeCodeTaskWhereInput) {
   freeCodeTasksCount(where: $where)
-}
-
-# ===== TIMER QUERIES =====
-
-fragment FreeCodeTimerNoNesting on FreeCodeTimer {
-  id
-  createdAt
-  updatedAt
-  stopedAt
-  content
-  Task
-}
-
-query freeCodeTimers(
-  $where: FreeCodeTimerWhereInput
-  $orderBy: FreeCodeTimerOrderByInput
-  $take: Int = 10
-  $skip: Int
-) {
-  freeCodeTimers(where: $where, orderBy: $orderBy, take: $take, skip: $skip) {
-    ...FreeCodeTimerNoNesting
-  }
-}
-
-query freeCodeTimer($id: String!) {
-  freeCodeTimer(id: $id) {
-    ...FreeCodeTimerNoNesting
-  }
-}
-
-query freeCodeTimersCount($where: FreeCodeTimerWhereInput) {
-  freeCodeTimersCount(where: $where)
 }
 
 # ===== TASK MUTATIONS =====
@@ -374,7 +325,7 @@ graphql_request({
   variables: {
     fullInfo: true
   },
-  operationName: "freeCodeMe"
+  operationName: "freeCodeMeUser"
 })
 ```
 
@@ -385,26 +336,12 @@ chat_agent({
 })
 ```
 
-### List projects (with filters and sorting):
+### List projects:
 ```javascript
 graphql_request({
   query: "[GRAPHQL_DOCUMENT_ABOVE]",
   variables: {
-    take: 10,
-    where: { status: "Processing" },
-    orderBy: { createdAt: "desc" }
-  },
-  operationName: "freeCodeProjects"
-})
-```
-
-### List projects by name search:
-```javascript
-graphql_request({
-  query: "[GRAPHQL_DOCUMENT_ABOVE]",
-  variables: {
-    where: { name: "search term" },
-    orderBy: { name: "asc" }
+    take: 10
   },
   operationName: "freeCodeProjects"
 })
@@ -465,53 +402,15 @@ graphql_request({
 })
 ```
 
-### List tasks for a project (with filters and sorting):
+### List tasks:
 ```javascript
 graphql_request({
   query: "[GRAPHQL_DOCUMENT_ABOVE]",
   variables: {
     take: 20,
-    where: { projectId: "project-id", status: "Progress" },
-    orderBy: { createdAt: "desc" },
     fullInfo: true
   },
   operationName: "freeCodeTasks"
-})
-```
-
-### List tasks by name search:
-```javascript
-graphql_request({
-  query: "[GRAPHQL_DOCUMENT_ABOVE]",
-  variables: {
-    where: { name: "search term" },
-    orderBy: { name: "asc" }
-  },
-  operationName: "freeCodeTasks"
-})
-```
-
-### List active timers:
-```javascript
-graphql_request({
-  query: "[GRAPHQL_DOCUMENT_ABOVE]",
-  variables: {
-    where: { stopedAt_null: true },
-    orderBy: { createdAt: "desc" }
-  },
-  operationName: "freeCodeTimers"
-})
-```
-
-### List timers for a task:
-```javascript
-graphql_request({
-  query: "[GRAPHQL_DOCUMENT_ABOVE]",
-  variables: {
-    where: { Task: "task-id" },
-    orderBy: { createdAt: "desc" }
-  },
-  operationName: "freeCodeTimers"
 })
 ```
 
@@ -547,38 +446,18 @@ graphql_request({
 })
 ```
 
-## FILTERS AND SORTING
+## WHERE INPUTS
 
-### FreeCodeProjectWhereInput
+### FreeCodeProjectWhereInput (for freeCodeProjectsCount)
 - `id` (String) - Filter by project ID
 - `name` (String) - Search by name (contains)
 - `status` (ProjectStatus) - Filter by status
 
-### FreeCodeProjectOrderByInput
-- `createdAt` ("asc" | "desc") - Sort by creation date
-- `updatedAt` ("asc" | "desc") - Sort by update date
-- `name` ("asc" | "desc") - Sort by name
-
-### FreeCodeTaskWhereInput
+### FreeCodeTaskWhereInput (for freeCodeTasksCount)
 - `id` (String) - Filter by task ID
 - `name` (String) - Search by name (contains)
 - `projectId` (String) - Filter by project
 - `status` (TaskStatus) - Filter by status
-- `needHelp` (Boolean) - Filter by needHelp flag
-
-### FreeCodeTaskOrderByInput
-- `createdAt` ("asc" | "desc") - Sort by creation date
-- `updatedAt` ("asc" | "desc") - Sort by update date
-- `name` ("asc" | "desc") - Sort by name
-
-### FreeCodeTimerWhereInput
-- `id` (String) - Filter by timer ID
-- `Task` (String) - Filter by task ID
-- `stopedAt_null` (Boolean) - true = active timers, false = stopped timers
-
-### FreeCodeTimerOrderByInput
-- `createdAt` ("asc" | "desc") - Sort by creation date
-- `updatedAt` ("asc" | "desc") - Sort by update date
 
 ## ENUMS
 
@@ -619,11 +498,11 @@ graphql_request({
 
 ## COMMON WORKFLOWS
 
-1. **Project Overview**: freeCodeProject (with fullInfo: true) + freeCodeTasks (filter by projectId) + freeCodeProjectsCount
+1. **Project Overview**: freeCodeProject (with fullInfo: true) + freeCodeTasks + freeCodeProjectsCount
 2. **Task Management**: createFreeCodeTask → updateFreeCodeTask → Track progress with status updates
 3. **Project Management**: createFreeCodeProject → updateFreeCodeProject → Monitor with freeCodeProjects
-4. **Progress Reporting**: freeCodeTasks (filter by status) → freeCodeTasksCount → Generate summaries
-5. **Agent Profile**: freeCodeMe to get current agent information
+4. **Progress Reporting**: freeCodeTasks → freeCodeTasksCount → Generate summaries
+5. **Agent Profile**: freeCodeMeUser to get current agent information
 
 ## COMMON ERRORS AND SOLUTIONS
 
@@ -640,22 +519,7 @@ graphql_request({ query: "[DOC]", variables: {}, operationName: "freeCodeProject
 
 ### Error: "Variable $fullInfo is never used in operation"
 **Cause**: Including `fullInfo` in variables when operation doesn't use it
-**Solution**: Only include `fullInfo` in variables for operations that actually use it
-```javascript
-// ❌ WRONG for freeCodeProjects (doesn't use fullInfo in variables)
-graphql_request({
-  query: "[DOC]",
-  variables: { take: 5, fullInfo: false },  // fullInfo not used
-  operationName: "freeCodeProjects"
-})
-
-// ✅ CORRECT
-graphql_request({
-  query: "[DOC]",
-  variables: { take: 5 },
-  operationName: "freeCodeProjects"
-})
-```
+**Solution**: Only include `fullInfo` in variables for operations that actually use it (freeCodeProjects, freeCodeProject, freeCodeTasks, freeCodeTask, freeCodeMeUser)
 
 ### Error: "Bad request - please check your parameters"
 **Cause**: Trying to pass unsupported fields in createFreeCodeProject

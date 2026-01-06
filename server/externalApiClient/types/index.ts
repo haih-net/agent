@@ -1,5 +1,6 @@
 export * from './FreeCodeAuthResponse'
 export * from './FreeCodeBlog'
+export * from './FreeCodeMindLog'
 export * from './FreeCodeProject'
 export * from './FreeCodeTask'
 export * from './FreeCodeTimer'
