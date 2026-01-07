@@ -8,6 +8,11 @@ const prepareContextTemplate = fs.readFileSync(
   'utf-8',
 )
 
+const baseSystemMessage = fs.readFileSync(
+  path.join(__dirname, 'base-system-message.md'),
+  'utf-8',
+)
+
 type NodeType = WorkflowBase['nodes'][number]
 type ConnectionsType = WorkflowBase['connections']
 
@@ -69,7 +74,12 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
 
   const hasMemory = typeof memorySize === 'number' && memorySize > 0
 
-  const systemMessage = fs.readFileSync(systemMessagePath, 'utf-8')
+  const customSystemMessage = fs.readFileSync(systemMessagePath, 'utf-8')
+  const systemMessage = `${baseSystemMessage}
+
+# Agent-Specific Instructions
+
+${customSystemMessage}`
 
   const prepareContextCode = prepareContextTemplate.replace(
     '$config',

@@ -108,8 +108,15 @@ Proxy to freecode.academy GraphQL API. Forwards requests with authentication.
 ### n8n Integration (`server/n8n/`)
 AI agents and workflows for automation.
 - Workflows auto-imported on server start
-- Agents: chat, api, project-manager, pr-manager
-- Tools: graphql-request, get-user-data
+- Agents: chat, api, project-manager, pr-manager, gitlab, techlead, senior-dev, middle-dev, junior-dev, qa-engineer
+- Tools: graphql-request, get-user-data, gitlab-projects, gitlab-issues, read-file, list-files
+
+### Credentials (`credentials/`)
+Credentials are organized into two folders:
+- `system/` — n8n system credentials (GitLab, OpenRouter, Telegram, etc.) — all `.json` files auto-imported
+- `agents/` — Agent credentials (username/password for FreeCode API auth)
+
+See `credentials/README.md` for details.
 
 ## Scripts
 

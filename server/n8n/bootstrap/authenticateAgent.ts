@@ -93,14 +93,14 @@ export async function authenticateAgent(
 }
 
 export async function importAgentCredentials(cookies: string): Promise<void> {
+  const agentsDir = path.join(CREDENTIALS_DIR, 'agents')
+  if (!fs.existsSync(agentsDir)) {
+    return
+  }
+
   const agentFiles = fs
-    .readdirSync(CREDENTIALS_DIR)
-    .filter(
-      (f) =>
-        f.endsWith('.json') &&
-        !f.startsWith('openrouter') &&
-        !f.startsWith('openai'),
-    )
+    .readdirSync(agentsDir)
+    .filter((f) => f.endsWith('.json'))
 
   if (agentFiles.length === 0) {
     return
@@ -109,7 +109,7 @@ export async function importAgentCredentials(cookies: string): Promise<void> {
   console.log('[bootstrap] Importing agent credentials...')
 
   for (const file of agentFiles) {
-    const filePath = path.join(CREDENTIALS_DIR, file)
+    const filePath = path.join(agentsDir, file)
     const agentName = path.basename(file, '.json')
 
     try {

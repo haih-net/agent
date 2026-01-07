@@ -81,26 +81,21 @@ async function createOwner(env: BootstrapEnv): Promise<string | null> {
 }
 
 async function importCredentials(cookies: string): Promise<void> {
-  if (!fs.existsSync(CREDENTIALS_DIR)) {
+  const systemDir = path.join(CREDENTIALS_DIR, 'system')
+  if (!fs.existsSync(systemDir)) {
     return
   }
 
-  const credFiles = fs
-    .readdirSync(CREDENTIALS_DIR)
-    .filter(
-      (f) =>
-        f.endsWith('.json') &&
-        (f.startsWith('openrouter') || f.startsWith('openai')),
-    )
+  const credFiles = fs.readdirSync(systemDir).filter((f) => f.endsWith('.json'))
 
   if (credFiles.length === 0) {
     return
   }
 
-  console.log('[bootstrap] Importing credentials...')
+  console.log('[bootstrap] Importing system credentials...')
 
   for (const file of credFiles) {
-    const filePath = path.join(CREDENTIALS_DIR, file)
+    const filePath = path.join(systemDir, file)
     console.log(`[bootstrap] Processing: ${file}`)
 
     try {
@@ -125,26 +120,30 @@ async function importCredentials(cookies: string): Promise<void> {
 }
 
 async function cleanupCredentials(): Promise<void> {
-  if (n8nConfig.DELETE_CREDENTIALS_AFTER_IMPORT) {
-    if (fs.existsSync(CREDENTIALS_DIR)) {
-      const credFiles = fs
-        .readdirSync(CREDENTIALS_DIR)
-        .filter((f) => f.endsWith('.json'))
+  if (!n8nConfig.DELETE_CREDENTIALS_AFTER_IMPORT) {
+    return
+  }
 
-      if (credFiles.length === 0) {
-        return
-      }
+  const dirsToClean = [
+    path.join(CREDENTIALS_DIR, 'system'),
+    path.join(CREDENTIALS_DIR, 'agents'),
+  ]
 
-      console.log('[bootstrap] Cleaning up credentials files...')
+  console.log('[bootstrap] Cleaning up credentials files...')
 
-      for (const file of credFiles) {
-        const filePath = path.join(CREDENTIALS_DIR, file)
-        try {
-          fs.unlinkSync(filePath)
-          console.log(`[bootstrap] Deleted: ${file}`)
-        } catch (err) {
-          console.error(`[bootstrap] Failed to delete ${file}:`, err)
-        }
+  for (const dir of dirsToClean) {
+    if (!fs.existsSync(dir)) {
+      continue
+    }
+
+    const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json'))
+    for (const file of files) {
+      const filePath = path.join(dir, file)
+      try {
+        fs.unlinkSync(filePath)
+        console.log(`[bootstrap] Deleted: ${file}`)
+      } catch (err) {
+        console.error(`[bootstrap] Failed to delete ${file}:`, err)
       }
     }
   }
