@@ -21,7 +21,10 @@ async function loadWorkflow(entry: string): Promise<object[]> {
       const module = await import(fullPath)
       const exported = module.default || module
       if (Array.isArray(exported)) {
-        return exported
+        return exported.filter(Boolean)
+      }
+      if (!exported) {
+        return []
       }
       return [exported]
     }
