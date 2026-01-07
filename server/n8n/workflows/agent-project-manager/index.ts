@@ -65,7 +65,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
     'Specialized agent for managing projects, tasks, team members, and tracking progress.',
   agentId: 'project-manager-agent',
   workflowName: 'Agent: Project Manager',
-  versionId: 'agent-project-manager-v2',
+  versionId: 'agent-project-manager-v3',
   credentialId: 'freecode-agent-project-manager-cred',
   credentialName: 'FreeCode API - agent-project-manager',
   systemMessagePath: path.join(__dirname, 'system-message.md'),
@@ -126,6 +126,14 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
       'tool-qa-engineer-agent',
       [448, 1312],
     ),
+    createAgentTool(
+      'gitlab_agent',
+      'GitLab Agent Tool',
+      'Get actual project information from GitLab Agent. This is your PRIMARY source for real project state: issues, boards, project status. Use when: (1) you need current project state, (2) you need to check issues or tasks in GitLab, (3) you need to verify what work is in progress. GitLab Agent provides authoritative information about the project.',
+      'Agent: GitLab',
+      'tool-gitlab-agent',
+      [448, 1472],
+    ),
   ],
   additionalConnections: {
     'Chat Agent Tool': {
@@ -144,6 +152,9 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
       ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
     'QA Engineer Tool': {
+      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
+    },
+    'GitLab Agent Tool': {
       ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
     },
   },
