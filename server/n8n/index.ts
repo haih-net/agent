@@ -21,6 +21,10 @@ export async function initN8n(): Promise<void> {
         ...process.env,
         N8N_USER_FOLDER: n8nConfig.n8nUserFolder,
         N8N_PORT: String(n8nConfig.port),
+        N8N_CUSTOM_EXTENSIONS: path.resolve(
+          PROJECT_DIR,
+          'server/n8n/custom-nodes',
+        ),
       },
       detached: true,
     })

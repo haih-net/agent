@@ -140,6 +140,19 @@ ${customSystemMessage}`
     },
     {
       parameters: {
+        messages:
+          '🔄 Processing request...\n📊 Loading context...\n🤖 Starting agent...',
+        delay: 200,
+        prefix: '',
+      },
+      id: `${agentId}-stream-test`,
+      name: 'Stream Test',
+      type: 'CUSTOM.streamTest',
+      typeVersion: 1,
+      position: [120, 304],
+    },
+    {
+      parameters: {
         options: {
           systemMessage,
           maxIterations,
@@ -149,7 +162,7 @@ ${customSystemMessage}`
       name: agentName,
       type: '@n8n/n8n-nodes-langchain.agent',
       typeVersion: 3.1,
-      position: [224, 304],
+      position: [280, 304],
     },
     {
       parameters: {
@@ -632,6 +645,9 @@ ${customSystemMessage}`
       main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
     },
     'Prepare Context': {
+      main: [[{ node: 'Stream Test', type: 'main', index: 0 }]],
+    },
+    'Stream Test': {
       main: [[{ node: agentName, type: 'main', index: 0 }]],
     },
   }

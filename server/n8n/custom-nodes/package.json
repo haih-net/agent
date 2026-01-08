@@ -1,0 +1,10 @@
+{
+  "name": "n8n-nodes-freecode-custom",
+  "version": "0.1.0",
+  "description": "Custom n8n nodes for FreeCode",
+  "n8n": {
+    "nodes": [
+      "StreamTest.node.js"
+    ]
+  }
+}
