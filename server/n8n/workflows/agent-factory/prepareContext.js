@@ -40,6 +40,8 @@ return [
       user: triggerData.user || null,
       agent: agentData,
       agentId: config.agentId,
+      currentDate: new Date().toISOString().split('T')[0],
+      currentDateTime: new Date().toISOString(),
     },
   },
 ]

@@ -2,9 +2,20 @@
   "name": "n8n-nodes-freecode-custom",
   "version": "0.1.0",
   "description": "Custom n8n nodes for FreeCode",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "n8n-workflow": "*"
+  },
   "n8n": {
     "nodes": [
-      "StreamTest.node.js"
+      "dist/nodes/AgentOrchestrator/AgentOrchestrator.node.js",
+      "dist/nodes/StreamTest/StreamTest.node.js"
     ]
   }
 }

@@ -7,33 +7,28 @@ import {
   USER_SCHEMA,
 } from '../helpers'
 
-const AGENT_NAME = 'Chat Agent'
-
 const { toolGraphqlRequest, agentWorkflow } = createAgent({
-  agentName: AGENT_NAME,
+  agentName: 'Chat Agent',
   agentDescription:
-    'Main chat agent (secretary) for user interactions. Delegates specialized tasks to other agents.',
+    'Main chat agent for freecode.academy. Handles user conversations and delegates to specialized agents.',
   agentId: 'chat-agent',
   workflowName: 'Agent: Chat',
-  versionId: 'agent-chat-v4',
+  versionId: 'agent-chat-v7',
   credentialId: 'freecode-agent-chat-cred',
   credentialName: 'FreeCode API - agent-chat',
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-chat-webhook',
   instanceId: 'narasim-dev-agent-chat',
-  hasWorkflowOutput: false,
+  hasWorkflowOutput: true,
   authFromToken: true,
-  workflowInputs: [
-    { name: 'chatInput', type: 'string' },
-    { name: 'sessionId', type: 'string' },
-    { name: 'user', type: 'object' },
-  ],
+  hasGraphqlTool: false,
+  agentNodeType: 'orchestrator',
   additionalNodes: [
     {
       parameters: {
         name: 'api_agent',
         description:
-          'Delegate API tasks to the API Agent — a specialized agent with deep knowledge of the GraphQL schema and API structure. Use when: (1) you need to fetch data but unsure which query to use, (2) you want the API Agent to construct complex queries for you, (3) you need help understanding available API operations. The API Agent executes requests on ITS OWN behalf (not yours). You can also ask it to explain how to construct a query if you want to execute it yourself via graphql_request.',
+          'Delegate API tasks to the API Agent — LAST RESORT. Use only for API schema questions or when specialized agents cannot help.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -43,7 +38,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           mappingMode: 'defineBelow',
           value: {
             chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe what you need: data to fetch, query to construct, or API operation to understand. The API Agent will help.`, 'string') }}",
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe what you need from the API.`, 'string') }}",
             sessionId: SESSION_ID_EXPRESSION,
           },
           matchingColumns: [],
@@ -73,7 +68,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
       parameters: {
         name: 'project_manager_agent',
         description:
-          'Delegate project and task management to the Project Manager Agent — a specialized agent for managing projects, tasks, team members, and tracking progress. Use when: (1) user asks about projects or tasks, (2) need to create/update/list projects or tasks, (3) need to manage team assignments, (4) need project status reports. The Project Manager Agent executes requests on ITS OWN behalf.',
+          'Delegate project and task management. Use for: projects, tasks, team, progress tracking.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -83,7 +78,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           mappingMode: 'defineBelow',
           value: {
             chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the project/task operation: list projects, create task, update status, assign members, etc.`, 'string') }}",
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the project/task operation.`, 'string') }}",
             sessionId: SESSION_ID_EXPRESSION,
             user: USER_EXPRESSION,
           },
@@ -115,7 +110,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
       parameters: {
         name: 'pr_manager_agent',
         description:
-          'Delegate content/publication management to the PR Manager Agent — a specialized agent for managing topics, articles, and publications. Use when: (1) user asks about topics, articles, or publications, (2) need to create/update/list content, (3) need to manage blog posts or educational materials. The PR Manager Agent executes requests on ITS OWN behalf.',
+          'Delegate content/publication management. Use for: topics, articles, publications, blog posts.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -125,7 +120,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
           mappingMode: 'defineBelow',
           value: {
             chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the content operation: list topics, create article, update publication, etc.`, 'string') }}",
+              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the content operation.`, 'string') }}",
             sessionId: SESSION_ID_EXPRESSION,
             user: USER_EXPRESSION,
           },
@@ -156,13 +151,13 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   ],
   additionalConnections: {
     'API Agent Tool': {
-      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
+      ai_tool: [[{ node: 'Chat Agent', type: 'ai_tool', index: 0 }]],
     },
     'Project Manager Agent Tool': {
-      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
+      ai_tool: [[{ node: 'Chat Agent', type: 'ai_tool', index: 0 }]],
     },
     'PR Manager Agent Tool': {
-      ai_tool: [[{ node: AGENT_NAME, type: 'ai_tool', index: 0 }]],
+      ai_tool: [[{ node: 'Chat Agent', type: 'ai_tool', index: 0 }]],
     },
   },
 })

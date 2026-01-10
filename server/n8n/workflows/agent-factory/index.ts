@@ -40,8 +40,10 @@ export interface AgentFactoryConfig {
   memorySize?: number | false
   canExecuteCode?: boolean
   authFromToken?: boolean
+  hasGraphqlTool?: boolean
   additionalNodes?: NodeType[]
   additionalConnections?: ConnectionsType
+  agentNodeType?: 'default' | 'orchestrator'
 }
 
 export interface AgentFactoryResult {
@@ -61,15 +63,21 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     systemMessagePath,
     webhookId,
     instanceId,
-    workflowInputs = [{ name: 'chatInput', type: 'string' }],
+    workflowInputs = [
+      { name: 'chatInput', type: 'string' },
+      { name: 'sessionId', type: 'string' },
+      { name: 'user', type: 'object' },
+    ],
     hasWorkflowOutput = true,
     model = 'anthropic/claude-sonnet-4',
     maxIterations = 20,
     memorySize = 10,
     canExecuteCode = false,
     authFromToken = false,
+    hasGraphqlTool = true,
     additionalNodes = [],
     additionalConnections = {},
+    agentNodeType = 'default',
   } = config
 
   const hasMemory = typeof memorySize === 'number' && memorySize > 0
@@ -138,32 +146,38 @@ ${customSystemMessage}`
       typeVersion: 2,
       position: [-16, 304],
     },
-    {
-      parameters: {
-        messages:
-          '🔄 Processing request...\n📊 Loading context...\n🤖 Starting agent...',
-        delay: 200,
-        prefix: '',
-      },
-      id: `${agentId}-stream-test`,
-      name: 'Stream Test',
-      type: 'CUSTOM.streamTest',
-      typeVersion: 1,
-      position: [120, 304],
-    },
-    {
-      parameters: {
-        options: {
-          systemMessage,
-          maxIterations,
+    agentNodeType === 'orchestrator'
+      ? {
+          parameters: {
+            mode: 'full',
+            options: {
+              systemMessage: `=${systemMessage}`,
+              assistantMessages: '[]',
+              maxIterations,
+              enableStreaming: true,
+              showToolCalls: true,
+              toolChoice: 'auto',
+            },
+          },
+          id: agentId,
+          name: agentName,
+          type: 'CUSTOM.agentOrchestrator',
+          typeVersion: 1,
+          position: [280, 304],
+        }
+      : {
+          parameters: {
+            options: {
+              systemMessage,
+              maxIterations,
+            },
+          },
+          id: agentId,
+          name: agentName,
+          type: '@n8n/n8n-nodes-langchain.agent',
+          typeVersion: 3.1,
+          position: [280, 304],
         },
-      },
-      id: agentId,
-      name: agentName,
-      type: '@n8n/n8n-nodes-langchain.agent',
-      typeVersion: 3.1,
-      position: [280, 304],
-    },
     {
       parameters: {
         model,
@@ -180,67 +194,6 @@ ${customSystemMessage}`
           name: 'OpenRouter',
         },
       },
-    },
-    {
-      parameters: {
-        name: 'graphql_request',
-        description: `Execute a GraphQL query or mutation against the API. IMPORTANT: All requests are authenticated as ${agentName}, not as the external user.`,
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', `Required! GraphQL query or mutation string`, 'string') }}",
-            variables:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', `Variables object for the query, use {} if no variables needed`, 'string') }}",
-            operationName:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('operationName', `Optional: GraphQL operation name to execute specific operation from document`, 'string') }}",
-          },
-          matchingColumns: ['query'],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-              removed: false,
-            },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              removed: false,
-            },
-            {
-              id: 'operationName',
-              displayName: 'operationName',
-              required: false,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-              removed: false,
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-tool-graphql`,
-      name: 'GraphQL Request Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [224, 512],
     },
     {
       parameters: {
@@ -412,7 +365,7 @@ ${customSystemMessage}`
       parameters: {
         name: 'create_mindlog',
         description:
-          'Create a MindLog entry. Types: Knowledge (useful new information worth remembering), Error (any error that occurred). Use Knowledge only for genuinely useful new facts/patterns. Use Error always when any error occurs.',
+          'Create a MindLog entry. Types: Identity (self-awareness, boundaries), Context (recent activity cache), Relationship (per-user info, requires relatedToUserId), Knowledge (useful facts), Error (error logs), Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -422,9 +375,9 @@ ${customSystemMessage}`
           mappingMode: 'defineBelow',
           value: {
             query:
-              'mutation createFreeCodeMindLog($data: FreeCodeMindLogCreateInput!) { response: createFreeCodeMindLog(data: $data) { success message data { id type data createdAt } } }',
+              'mutation createFreeCodeMindLog($data: FreeCodeMindLogCreateInput!) { response: createFreeCodeMindLog(data: $data) { success message data { id type data createdAt relatedToUserId } } }',
             variables:
-              "={{ JSON.stringify({ data: { type: $fromAI('type', 'Knowledge or Error', 'string'), data: $fromAI('data', 'Content to save', 'string') } }) }}",
+              "={{ JSON.stringify({ data: { type: $fromAI('type', 'MindLog type: Identity, Context, Relationship, Knowledge, Error, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction', 'string'), data: $fromAI('data', 'Content to save', 'string'), relatedToUserId: $fromAI('relatedToUserId', 'User ID for Relationship type (optional)', 'string') || undefined } }) }}",
           },
           matchingColumns: [],
           schema: [
@@ -461,7 +414,7 @@ ${customSystemMessage}`
       parameters: {
         name: 'search_mindlogs',
         description:
-          'Search MindLog entries. Filter by type: Knowledge or Error.',
+          'Search MindLog entries. Filter by type and/or relatedToUserId. Types: Identity, Context, Relationship, Knowledge, Error, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction.',
         workflowId: {
           __rl: true,
           mode: 'list',
@@ -471,9 +424,9 @@ ${customSystemMessage}`
           mappingMode: 'defineBelow',
           value: {
             query:
-              'query freeCodeMyMindLogs($where: FreeCodeMindLogWhereInput, $take: Int) { freeCodeMyMindLogs(where: $where, take: $take) { id type data createdAt } freeCodeMyMindLogsCount(where: $where) }',
+              'query freeCodeMyMindLogs($where: FreeCodeMindLogWhereInput, $take: Int) { freeCodeMyMindLogs(where: $where, take: $take) { id type data createdAt updatedAt relatedToUserId } freeCodeMyMindLogsCount(where: $where) }',
             variables:
-              "={{ JSON.stringify({ where: $fromAI('type', 'Filter by type (optional): Knowledge or Error', 'string') ? { type: $fromAI('type', '', 'string') } : undefined, take: $fromAI('limit', 'Max results (default 50)', 'number') || 50 }) }}",
+              "={{ (() => { const where = {}; const type = $fromAI('type', 'Filter by type (optional)', 'string'); const userId = $fromAI('relatedToUserId', 'Filter by user ID (optional)', 'string'); if (type) where.type = type; if (userId) where.relatedToUserId = userId; return JSON.stringify({ where: Object.keys(where).length ? where : undefined, take: $fromAI('limit', 'Max results (default 50)', 'number') || 50 }); })() }}",
           },
           matchingColumns: [],
           schema: [
@@ -506,6 +459,55 @@ ${customSystemMessage}`
       typeVersion: 2.2,
       position: [896, 512],
     },
+    {
+      parameters: {
+        name: 'update_mindlog',
+        description:
+          'Update an existing MindLog entry by ID. Use to update Identity, Context, Relationship or any other MindLog.',
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: `Tool: GraphQL Request (${agentName})`,
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            query:
+              'mutation updateFreeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!, $data: FreeCodeMindLogUpdateInput!) { response: updateFreeCodeMindLog(where: $where, data: $data) { success message data { id type data createdAt updatedAt relatedToUserId } } }',
+            variables:
+              "={{ JSON.stringify({ where: { id: $fromAI('id', 'MindLog ID to update', 'string') }, data: { data: $fromAI('data', 'New content', 'string') } }) }}",
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'query',
+              displayName: 'query',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'variables',
+              displayName: 'variables',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: `${agentId}-tool-update-mindlog`,
+      name: 'Update MindLog Tool',
+      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+      typeVersion: 2.2,
+      position: [1120, 512],
+    },
   ]
 
   const mindLogConnections: ConnectionsType = {
@@ -513,6 +515,9 @@ ${customSystemMessage}`
       ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
     },
     'Search MindLogs Tool': {
+      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+    },
+    'Update MindLog Tool': {
       ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
     },
   }
@@ -607,11 +612,86 @@ ${customSystemMessage}`
       }
     : {}
 
+  const graphqlToolNodes: NodeType[] = hasGraphqlTool
+    ? [
+        {
+          parameters: {
+            name: 'graphql_request',
+            description: `Execute a GraphQL query or mutation against the API. IMPORTANT: All requests are authenticated as ${agentName}, not as the external user.`,
+            workflowId: {
+              __rl: true,
+              mode: 'list',
+              value: `Tool: GraphQL Request (${agentName})`,
+            },
+            workflowInputs: {
+              mappingMode: 'defineBelow',
+              value: {
+                query:
+                  "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', `Required! GraphQL query or mutation string`, 'string') }}",
+                variables:
+                  "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', `Variables object for the query, use {} if no variables needed`, 'string') }}",
+                operationName:
+                  "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('operationName', `Optional: GraphQL operation name to execute specific operation from document`, 'string') }}",
+              },
+              matchingColumns: ['query'],
+              schema: [
+                {
+                  id: 'query',
+                  displayName: 'query',
+                  required: true,
+                  defaultMatch: false,
+                  display: true,
+                  canBeUsedToMatch: true,
+                  type: 'string',
+                  removed: false,
+                },
+                {
+                  id: 'variables',
+                  displayName: 'variables',
+                  required: true,
+                  defaultMatch: false,
+                  display: true,
+                  canBeUsedToMatch: true,
+                  removed: false,
+                },
+                {
+                  id: 'operationName',
+                  displayName: 'operationName',
+                  required: false,
+                  defaultMatch: false,
+                  display: true,
+                  canBeUsedToMatch: true,
+                  type: 'string',
+                  removed: false,
+                },
+              ],
+              attemptToConvertTypes: false,
+              convertFieldsToString: false,
+            },
+          },
+          id: `${agentId}-tool-graphql`,
+          name: 'GraphQL Request Tool',
+          type: '@n8n/n8n-nodes-langchain.toolWorkflow',
+          typeVersion: 2.2,
+          position: [224, 512],
+        },
+      ]
+    : []
+
+  const graphqlToolConnections: ConnectionsType = hasGraphqlTool
+    ? {
+        'GraphQL Request Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+      }
+    : {}
+
   const nodes: NodeType[] = [
     ...baseNodes,
     ...authNodes,
     ...mindLogNodes,
     ...codeExecutionNodes,
+    ...graphqlToolNodes,
     ...additionalNodes,
   ]
 
@@ -623,9 +703,6 @@ ${customSystemMessage}`
       ai_languageModel: [
         [{ node: agentName, type: 'ai_languageModel', index: 0 }],
       ],
-    },
-    'GraphQL Request Tool': {
-      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
     },
     'Execute Workflow Trigger': {
       main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
@@ -645,9 +722,6 @@ ${customSystemMessage}`
       main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
     },
     'Prepare Context': {
-      main: [[{ node: 'Stream Test', type: 'main', index: 0 }]],
-    },
-    'Stream Test': {
       main: [[{ node: agentName, type: 'main', index: 0 }]],
     },
   }
@@ -663,6 +737,7 @@ ${customSystemMessage}`
     ...authConnections,
     ...mindLogConnections,
     ...codeExecutionConnections,
+    ...graphqlToolConnections,
     ...additionalConnections,
   }
 

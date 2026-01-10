@@ -21,6 +21,7 @@ builder.mutationField('createFreeCodeMindLog', (t) =>
             type: data.type as GqlMindLogType,
             data: data.data,
             quality: data.quality,
+            relatedToUserId: data.relatedToUserId,
           },
         },
         ctx,

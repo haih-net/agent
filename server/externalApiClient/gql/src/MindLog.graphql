@@ -6,6 +6,7 @@ fragment MindLogNoNesting on MindLog {
   data
   quality
   createdById
+  relatedToUserId
 }
 
 query myMindLogs(

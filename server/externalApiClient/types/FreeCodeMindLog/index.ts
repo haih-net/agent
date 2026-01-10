@@ -10,6 +10,9 @@ const MIND_LOG_TYPE_VALUES = [
   'Evaluation',
   'Correction',
   'Knowledge',
+  'Identity',
+  'Context',
+  'Relationship',
 ] as const
 
 export const MindLogType = builder.enumType('MindLogType', {
@@ -23,6 +26,7 @@ export const FreeCodeMindLogCreateInput = builder.inputType(
       type: t.field({ type: MindLogType, required: true }),
       data: t.string({ required: true }),
       quality: t.float({ required: false }),
+      relatedToUserId: t.string({ required: false }),
     }),
   },
 )
@@ -55,6 +59,7 @@ export const FreeCodeMindLog = builder.simpleObject('FreeCodeMindLog', {
     data: t.string(),
     quality: t.float({ nullable: true }),
     createdById: t.string(),
+    relatedToUserId: t.string({ nullable: true }),
   }),
 })
 

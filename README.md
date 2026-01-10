@@ -111,6 +111,23 @@ AI agents and workflows for automation.
 - Agents: chat, api, project-manager, pr-manager, gitlab, techlead, senior-dev, middle-dev, junior-dev, qa-engineer
 - Tools: graphql-request, get-user-data, gitlab-projects, gitlab-issues, read-file, list-files
 
+#### n8n Expressions in Workflow Parameters
+
+When passing dynamic values to n8n node parameters (e.g., `systemMessage`), use the `=` prefix to mark the string as an expression:
+
+```typescript
+// ❌ Wrong — n8n treats {{ }} as literal text
+systemMessage: "Current date: {{ $json.currentDate }}"
+
+// ✅ Correct — = prefix tells n8n to process expressions
+systemMessage: `=${systemMessage}`  // where systemMessage contains {{ $json.xxx }}
+
+// ✅ Also correct — inline expression
+systemMessage: "=Current date: {{ $json.currentDate }}"
+```
+
+The `=` prefix is required for n8n to evaluate `{{ }}` placeholders. Without it, expressions are passed as plain text.
+
 ### Credentials (`credentials/`)
 Credentials are organized into two folders:
 - `system/` — n8n system credentials (GitLab, OpenRouter, Telegram, etc.) — all `.json` files auto-imported

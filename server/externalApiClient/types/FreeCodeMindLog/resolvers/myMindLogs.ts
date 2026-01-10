@@ -17,6 +17,7 @@ const FreeCodeMindLogWhereInput = builder.inputType(
   {
     fields: (t) => ({
       type: t.field({ type: MindLogType, required: false }),
+      relatedToUserId: t.string({ required: false }),
     }),
   },
 )
@@ -39,6 +40,9 @@ builder.queryField('freeCodeMyMindLogs', (t) =>
       const where: Record<string, unknown> = {}
       if (whereArg?.type) {
         where.type = { equals: whereArg.type }
+      }
+      if (whereArg?.relatedToUserId) {
+        where.relatedToUserId = { equals: whereArg.relatedToUserId }
       }
 
       const orderBy: Record<string, unknown> = {}
@@ -84,6 +88,9 @@ builder.queryField('freeCodeMyMindLogsCount', (t) =>
       const where: Record<string, unknown> = {}
       if (whereArg?.type) {
         where.type = { equals: whereArg.type }
+      }
+      if (whereArg?.relatedToUserId) {
+        where.relatedToUserId = { equals: whereArg.relatedToUserId }
       }
 
       const result = await ctx.externalApiQuery(
