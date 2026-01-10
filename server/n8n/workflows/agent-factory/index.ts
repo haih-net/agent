@@ -1,290 +1,51 @@
-import * as fs from 'fs'
-import * as path from 'path'
-import type { INodeParameters } from 'n8n-workflow'
-import { WorkflowBase } from '../interfaces'
 import { createToolGraphqlRequest } from '../tool-graphql-request/factory'
-
-const prepareContextTemplate = fs.readFileSync(
-  path.join(__dirname, 'prepareContext.js'),
-  'utf-8',
-)
-
-const baseSystemMessage = fs.readFileSync(
-  path.join(__dirname, 'base-system-message.md'),
-  'utf-8',
-)
-
-type NodeType = WorkflowBase['nodes'][number]
-type ConnectionsType = WorkflowBase['connections']
-
-export interface WorkflowInputValue {
-  name: string
-  type?: 'string' | 'object' | 'number' | 'boolean' | 'any'
-  default?: string | number | boolean
-}
-
-export interface AgentFactoryConfig {
-  agentName: string
-  agentDescription: string
-  agentId: string
-  workflowName: string
-  versionId: string
-  credentialId: string
-  credentialName: string
-  systemMessagePath: string
-  webhookId: string
-  instanceId: string
-  workflowInputs?: WorkflowInputValue[]
-  hasWorkflowOutput?: boolean
-  model?: string
-  maxIterations?: number
-  memorySize?: number | false
-  canExecuteCode?: boolean
-  authFromToken?: boolean
-  hasGraphqlTool?: boolean
-  additionalNodes?: NodeType[]
-  additionalConnections?: ConnectionsType
-  agentNodeType?: 'default' | 'orchestrator'
-  /**
-   * Enable streaming responses.
-   * WARNING: When enableStreaming=false, agent executes correctly but returns empty response.
-   * This is a known n8n issue with response waiting — affects both custom and native AI Agent nodes.
-   */
-  enableStreaming?: boolean
-}
-
-export interface AgentFactoryResult {
-  toolGraphqlRequest: WorkflowBase
-  agentWorkflow: WorkflowBase
-}
+import {
+  AgentFactoryConfig,
+  AgentFactoryResult,
+  ConnectionsType,
+  NodeType,
+} from './interfaces'
+import { getMindLogNodes } from './nodes/mindLogNodes'
+import { WorkflowBase } from '../interfaces'
+import { getBaseNodes } from './nodes/baseNodes'
 
 export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
   const {
+    agentId,
     agentName,
     agentDescription,
-    agentId,
     workflowName,
     versionId,
     credentialId,
     credentialName,
-    systemMessagePath,
-    webhookId,
     instanceId,
-    workflowInputs = [
-      { name: 'chatInput', type: 'string' },
-      { name: 'sessionId', type: 'string' },
-      { name: 'user', type: 'object' },
-    ],
     hasWorkflowOutput = true,
-    model = 'anthropic/claude-sonnet-4',
-    maxIterations = 20,
     memorySize = 10,
     canExecuteCode = false,
     authFromToken = false,
     hasGraphqlTool = true,
     additionalNodes = [],
     additionalConnections = {},
+    systemMessagePath,
+    webhookId,
+    model = 'anthropic/claude-sonnet-4',
+    maxIterations = 20,
     agentNodeType = 'default',
     enableStreaming = true,
+    workflowInputs = [
+      { name: 'chatInput', type: 'string' },
+      { name: 'sessionId', type: 'string' },
+      { name: 'user', type: 'object' },
+    ],
   } = config
 
   const hasMemory = typeof memorySize === 'number' && memorySize > 0
-
-  const customSystemMessage = fs.readFileSync(systemMessagePath, 'utf-8')
-  const systemMessage = `${baseSystemMessage}
-
-# Agent-Specific Instructions
-
-${customSystemMessage}`
-
-  const prepareContextCode = prepareContextTemplate.replace(
-    '$config',
-    JSON.stringify({ agentId }, null, 2),
-  )
 
   const toolGraphqlRequest = createToolGraphqlRequest({
     agentName,
     credentialId,
     credentialName,
   })
-
-  const baseNodes: NodeType[] = [
-    {
-      parameters: {
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              'query freeCodeMeUser($fullInfo: Boolean = true) { freeCodeMe { ...FreeCodeUserNoNesting } } fragment FreeCodeUserNoNesting on FreeCodeUser { id username fullname createdAt intro @include(if: $fullInfo) content @include(if: $fullInfo) }',
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-get-agent-data`,
-      name: 'Get Agent Data',
-      type: 'n8n-nodes-base.executeWorkflow',
-      typeVersion: 1.2,
-      position: [-224, 304],
-    },
-    {
-      parameters: {
-        jsCode: prepareContextCode,
-      },
-      id: `${agentId}-prepare-context`,
-      name: 'Prepare Context',
-      type: 'n8n-nodes-base.code',
-      typeVersion: 2,
-      position: [-16, 304],
-    },
-    (() => {
-      const agentNode: NodeType = {
-        parameters: {
-          options: {
-            systemMessage,
-            maxIterations,
-            enableStreaming: `={{ $json.enableStreaming === "false" ? false : ${enableStreaming} }}`,
-          },
-        },
-        id: agentId,
-        name: agentName,
-        type: '@n8n/n8n-nodes-langchain.agent',
-        typeVersion: 3.1,
-        position: [280, 304],
-      }
-
-      if (agentNodeType === 'orchestrator') {
-        agentNode.parameters.mode = 'full'
-
-        const additionalFields: INodeParameters = {
-          systemMessage: `=${systemMessage}`,
-          assistantMessages: '[]',
-          showToolCalls: true,
-          toolChoice: 'auto',
-        }
-
-        agentNode.parameters.options = Object.assign(
-          agentNode.parameters.options ?? {},
-          additionalFields,
-        )
-
-        agentNode.type = 'CUSTOM.agentOrchestrator'
-        agentNode.typeVersion = 1
-      }
-
-      return agentNode
-    })(),
-    {
-      parameters: {
-        model,
-        options: {},
-      },
-      id: `${agentId}-chat-model`,
-      name: 'Chat Model',
-      type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
-      typeVersion: 1,
-      position: [-64, 512],
-      credentials: {
-        openRouterApi: {
-          id: 'FsN0N48lU327xkz6',
-          name: 'OpenRouter',
-        },
-      },
-    },
-    {
-      parameters: {
-        workflowInputs: {
-          values: workflowInputs.map((input) => ({
-            name: input.name,
-            type: input.type || 'string',
-            ...(input.default !== undefined && { default: input.default }),
-          })),
-        },
-      },
-      id: `${agentId}-workflow-trigger`,
-      name: 'Execute Workflow Trigger',
-      type: 'n8n-nodes-base.executeWorkflowTrigger',
-      typeVersion: 1.1,
-      position: [-432, 304],
-    },
-    {
-      parameters: {
-        // public: true enables external webhook access (without it returns 404)
-        public: true,
-        // mode: 'webhook' for embedded chat / direct webhook calls (vs 'hostedChat' for n8n-served page)
-        mode: 'webhook',
-        availableInChat: true,
-        agentName,
-        agentDescription,
-        options: {
-          allowFileUploads: true,
-        },
-      },
-      type: '@n8n/n8n-nodes-langchain.chatTrigger',
-      typeVersion: 1.4,
-      position: [-432, 592],
-      id: `${agentId}-chat-trigger`,
-      name: 'When chat message received',
-      webhookId,
-    },
-  ]
-
-  if (hasMemory) {
-    baseNodes.push({
-      parameters: {
-        sessionIdType: 'customKey',
-        sessionKey: '={{ $json.sessionId }}',
-        contextWindowLength: memorySize,
-      },
-      id: `${agentId}-memory`,
-      name: 'Simple Memory',
-      type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
-      typeVersion: 1.3,
-      position: [320, 720],
-    })
-  }
-
-  if (hasWorkflowOutput) {
-    baseNodes.push({
-      parameters: {
-        mode: 'manual',
-        duplicateItem: false,
-        assignments: {
-          assignments: [
-            {
-              id: 'output',
-              name: 'output',
-              value: '={{ $json.output }}',
-              type: 'string',
-            },
-          ],
-        },
-        options: {},
-      },
-      id: `${agentId}-workflow-output`,
-      name: 'Workflow Output',
-      type: 'n8n-nodes-base.set',
-      typeVersion: 3.4,
-      position: [608, 304],
-    })
-  }
 
   const authNodes: NodeType[] = authFromToken
     ? [
@@ -320,7 +81,7 @@ ${customSystemMessage}`
           name: 'Get User By Token',
           type: 'n8n-nodes-base.executeWorkflow',
           typeVersion: 1.2,
-          position: [-224, 592],
+          position: [-432, 592],
         },
         {
           parameters: {
@@ -356,7 +117,7 @@ ${customSystemMessage}`
           name: 'Set Auth Context',
           type: 'n8n-nodes-base.set',
           typeVersion: 3.4,
-          position: [-16, 592],
+          position: [-224, 592],
         },
       ]
     : []
@@ -371,156 +132,6 @@ ${customSystemMessage}`
         },
       }
     : {}
-
-  const mindLogNodes: NodeType[] = [
-    {
-      parameters: {
-        name: 'create_mindlog',
-        description:
-          'Create a MindLog entry. Types: Identity (self-awareness, boundaries), Context (recent activity cache), Relationship (per-user info, requires relatedToUserId), Knowledge (useful facts), Error (error logs), Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              'mutation createFreeCodeMindLog($data: FreeCodeMindLogCreateInput!) { response: createFreeCodeMindLog(data: $data) { success message data { id type data createdAt relatedToUserId } } }',
-            variables:
-              "={{ JSON.stringify({ data: { type: $fromAI('type', 'MindLog type: Identity, Context, Relationship, Knowledge, Error, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction', 'string'), data: $fromAI('data', 'Content to save', 'string'), relatedToUserId: $fromAI('relatedToUserId', 'User ID for Relationship type (optional)', 'string') || undefined } }) }}",
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-tool-create-mindlog`,
-      name: 'Create MindLog Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [672, 512],
-    },
-    {
-      parameters: {
-        name: 'search_mindlogs',
-        description:
-          'Search MindLog entries. Filter by type and/or relatedToUserId. Types: Identity, Context, Relationship, Knowledge, Error, Stimulus, Reaction, Action, Result, Conclusion, Evaluation, Correction.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              'query freeCodeMyMindLogs($where: FreeCodeMindLogWhereInput, $take: Int) { freeCodeMyMindLogs(where: $where, take: $take) { id type data createdAt updatedAt relatedToUserId } freeCodeMyMindLogsCount(where: $where) }',
-            variables:
-              "={{ (() => { const where = {}; const type = $fromAI('type', 'Filter by type (optional)', 'string'); const userId = $fromAI('relatedToUserId', 'Filter by user ID (optional)', 'string'); if (type) where.type = type; if (userId) where.relatedToUserId = userId; return JSON.stringify({ where: Object.keys(where).length ? where : undefined, take: $fromAI('limit', 'Max results (default 50)', 'number') || 50 }); })() }}",
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-tool-search-mindlogs`,
-      name: 'Search MindLogs Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [896, 512],
-    },
-    {
-      parameters: {
-        name: 'update_mindlog',
-        description:
-          'Update an existing MindLog entry by ID. Use to update Identity, Context, Relationship or any other MindLog.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query:
-              'mutation updateFreeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!, $data: FreeCodeMindLogUpdateInput!) { response: updateFreeCodeMindLog(where: $where, data: $data) { success message data { id type data createdAt updatedAt relatedToUserId } } }',
-            variables:
-              "={{ JSON.stringify({ where: { id: $fromAI('id', 'MindLog ID to update', 'string') }, data: { data: $fromAI('data', 'New content', 'string') } }) }}",
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-tool-update-mindlog`,
-      name: 'Update MindLog Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
-      position: [1120, 512],
-    },
-  ]
 
   const mindLogConnections: ConnectionsType = {
     'Create MindLog Tool': {
@@ -698,6 +309,27 @@ ${customSystemMessage}`
       }
     : {}
 
+  const mindLogNodes = getMindLogNodes({
+    agentId,
+    agentName,
+  })
+
+  const baseNodes = getBaseNodes({
+    agentId,
+    agentName,
+    agentDescription,
+    agentNodeType,
+    enableStreaming,
+    hasMemory,
+    hasWorkflowOutput,
+    maxIterations,
+    memorySize,
+    model,
+    systemMessagePath,
+    webhookId,
+    workflowInputs,
+  })
+
   const nodes: NodeType[] = [
     ...baseNodes,
     ...authNodes,
@@ -734,6 +366,12 @@ ${customSystemMessage}`
       main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
     },
     'Prepare Context': {
+      main: [[{ node: 'Fetch MindLogs', type: 'main', index: 0 }]],
+    },
+    'Fetch MindLogs': {
+      main: [[{ node: 'Prepare MindLogs', type: 'main', index: 0 }]],
+    },
+    'Prepare MindLogs': {
       main: [[{ node: agentName, type: 'main', index: 0 }]],
     },
   }
