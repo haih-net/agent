@@ -32,6 +32,8 @@ if (!sessionId) {
   sessionId = 'unhandledSessionId'
 }
 
+const enableStreaming = triggerData.body?.enableStreaming ?? triggerData.enableStreaming
+
 return [
   {
     json: {
@@ -42,6 +44,7 @@ return [
       agentId: config.agentId,
       currentDate: new Date().toISOString().split('T')[0],
       currentDateTime: new Date().toISOString(),
+      enableStreaming,
     },
   },
 ]

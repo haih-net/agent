@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import type { INodeParameters } from 'n8n-workflow'
 import { WorkflowBase } from '../interfaces'
 import { createToolGraphqlRequest } from '../tool-graphql-request/factory'
 
@@ -44,6 +45,12 @@ export interface AgentFactoryConfig {
   additionalNodes?: NodeType[]
   additionalConnections?: ConnectionsType
   agentNodeType?: 'default' | 'orchestrator'
+  /**
+   * Enable streaming responses.
+   * WARNING: When enableStreaming=false, agent executes correctly but returns empty response.
+   * This is a known n8n issue with response waiting — affects both custom and native AI Agent nodes.
+   */
+  enableStreaming?: boolean
 }
 
 export interface AgentFactoryResult {
@@ -78,6 +85,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     additionalNodes = [],
     additionalConnections = {},
     agentNodeType = 'default',
+    enableStreaming = true,
   } = config
 
   const hasMemory = typeof memorySize === 'number' && memorySize > 0
@@ -146,38 +154,43 @@ ${customSystemMessage}`
       typeVersion: 2,
       position: [-16, 304],
     },
-    agentNodeType === 'orchestrator'
-      ? {
-          parameters: {
-            mode: 'full',
-            options: {
-              systemMessage: `=${systemMessage}`,
-              assistantMessages: '[]',
-              maxIterations,
-              enableStreaming: true,
-              showToolCalls: true,
-              toolChoice: 'auto',
-            },
+    (() => {
+      const agentNode: NodeType = {
+        parameters: {
+          options: {
+            systemMessage,
+            maxIterations,
+            enableStreaming: `={{ $json.enableStreaming === "false" ? false : ${enableStreaming} }}`,
           },
-          id: agentId,
-          name: agentName,
-          type: 'CUSTOM.agentOrchestrator',
-          typeVersion: 1,
-          position: [280, 304],
-        }
-      : {
-          parameters: {
-            options: {
-              systemMessage,
-              maxIterations,
-            },
-          },
-          id: agentId,
-          name: agentName,
-          type: '@n8n/n8n-nodes-langchain.agent',
-          typeVersion: 3.1,
-          position: [280, 304],
         },
+        id: agentId,
+        name: agentName,
+        type: '@n8n/n8n-nodes-langchain.agent',
+        typeVersion: 3.1,
+        position: [280, 304],
+      }
+
+      if (agentNodeType === 'orchestrator') {
+        agentNode.parameters.mode = 'full'
+
+        const additionalFields: INodeParameters = {
+          systemMessage: `=${systemMessage}`,
+          assistantMessages: '[]',
+          showToolCalls: true,
+          toolChoice: 'auto',
+        }
+
+        agentNode.parameters.options = Object.assign(
+          agentNode.parameters.options ?? {},
+          additionalFields,
+        )
+
+        agentNode.type = 'CUSTOM.agentOrchestrator'
+        agentNode.typeVersion = 1
+      }
+
+      return agentNode
+    })(),
     {
       parameters: {
         model,
@@ -222,7 +235,6 @@ ${customSystemMessage}`
         agentDescription,
         options: {
           allowFileUploads: true,
-          responseMode: 'streaming',
         },
       },
       type: '@n8n/n8n-nodes-langchain.chatTrigger',

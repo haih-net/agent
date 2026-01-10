@@ -128,6 +128,48 @@ systemMessage: "=Current date: {{ $json.currentDate }}"
 
 The `=` prefix is required for n8n to evaluate `{{ }}` placeholders. Without it, expressions are passed as plain text.
 
+#### Data Flow in Workflow Chains
+
+**IMPORTANT**: When building node parameters with expressions, always trace the full data flow through the workflow chain.
+
+Common mistake: assuming `$json` contains the original request data. In reality, each node transforms `$json`:
+
+```
+chatTrigger ($json.body.enableStreaming)
+    ↓
+Get Agent Data (transforms $json)
+    ↓
+Prepare Context (transforms $json again)
+    ↓
+AI Agent ($json now has completely different structure!)
+```
+
+**Rules:**
+1. **Trace the chain** — identify all nodes between trigger and target node
+2. **Check transformations** — each Code node or Set node changes `$json` structure
+3. **Propagate needed values** — if a parameter is needed downstream, explicitly pass it through intermediate nodes (e.g., in `prepareContext.js`)
+4. **Use correct references** — after `Prepare Context`, use `$json.enableStreaming`, not `$json.body.enableStreaming`
+
+Example fix in `prepareContext.js`:
+```javascript
+const enableStreaming = triggerData.body?.enableStreaming ?? triggerData.enableStreaming
+
+return [{
+  json: {
+    // ... other fields
+    enableStreaming,  // explicitly propagate to downstream nodes
+  }
+}]
+```
+
+#### Known Issue: enableStreaming=false Returns Empty Response
+
+**⚠️ WARNING**: When `enableStreaming=false`, the agent executes correctly but returns an **empty response**.
+
+This is a known n8n issue with response waiting — affects both custom `AgentOrchestrator` and native `@n8n/n8n-nodes-langchain.agent` nodes. The agent processes the request, tools execute, but the final response is not captured.
+
+**Current workaround**: Keep `enableStreaming=true` (default) for production use.
+
 ### Credentials (`credentials/`)
 Credentials are organized into two folders:
 - `system/` — n8n system credentials (GitLab, OpenRouter, Telegram, etc.) — all `.json` files auto-imported
