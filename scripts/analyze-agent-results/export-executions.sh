@@ -72,15 +72,15 @@ while IFS= read -r exec; do
   case "$workflow" in
     "Agent: Chat")
       INPUT=$(echo "$DATA_ARR" | jq -r '
-        def resolve($arr): if type == "string" and (. | test("^[0-9]+$")) then $arr[. | tonumber] else . end;
+        def resolve($arr): if type == "string" and (. | test("^[0-9]+$")) then $arr[. | tonumber] | resolve($arr) else . end;
         . as $arr | 
         (to_entries | map(select(.value | type == "object" and has("chatInput"))) | .[0].value.chatInput) as $idx |
         if $idx then ($idx | resolve($arr)) else null end
       ' 2>/dev/null)
       OUTPUT=$(echo "$DATA_ARR" | jq -r '
-        def resolve($arr): if type == "string" and (. | test("^[0-9]+$")) then $arr[. | tonumber] else . end;
+        def resolve($arr): if type == "string" and (. | test("^[0-9]+$")) then $arr[. | tonumber] | resolve($arr) elif type == "object" and has("output") then .output | resolve($arr) else . end;
         . as $arr | 
-        (to_entries | map(select(.value | type == "object" and has("output"))) | .[0].value.output) as $idx |
+        (to_entries | map(select(.value | type == "object" and has("action") and has("output"))) | .[0].value.output) as $idx |
         if $idx then ($idx | resolve($arr)) else null end
       ' 2>/dev/null)
       CHAT_DATA=$(jq -n --arg input "$INPUT" --arg output "$OUTPUT" '{input: $input, output: $output}')
@@ -88,20 +88,8 @@ while IFS= read -r exec; do
         '. += [{timestamp: $ts, workflow: $wf, status: $st, data: $data, execId: $execId, type: $type}]' "$TMP_FILE" > "${TMP_FILE}.new" && mv "${TMP_FILE}.new" "$TMP_FILE"
       ;;
     "Tool: GraphQL Request (Chat Agent)")
-      EXTRACTED=$(echo "$DATA_ARR" | jq -c '
-        . as $arr |
-        def resAll: if . == null then null elif type == "object" then with_entries(.value |= resAll) elif type == "array" then map(resAll) elif type == "string" and test("^[0-9]+$") then $arr[. | tonumber] | resAll else . end;
-        (to_entries | map(select(.value | type == "object" and has("query") and has("endpoint"))) | .[0].key) as $inputIdx |
-        (to_entries | map(select(.value | type == "object" and has("data") and (.value | keys | length == 1))) | .[-1].key) as $resultIdx |
-        (.[$inputIdx] | resAll) as $input |
-        (.[$resultIdx] | resAll) as $output |
-        {query: $input.query, variables: $input.variables, result: $output.data}
-      ' 2>/dev/null)
-      if [[ -z "$EXTRACTED" || "$EXTRACTED" == "null" ]]; then
-        EXTRACTED='{"query":null,"variables":null,"result":null}'
-      fi
-      jq --arg ts "$started" --arg wf "$workflow" --arg st "$status" --argjson data "$EXTRACTED" --arg execId "$exec_id" --arg type "graphql" \
-        '. += [{timestamp: $ts, workflow: $wf, status: $st, data: $data, execId: $execId, type: $type}]' "$TMP_FILE" > "${TMP_FILE}.new" && mv "${TMP_FILE}.new" "$TMP_FILE"
+      jq --arg ts "$started" --arg wf "$workflow" --arg st "$status" --arg execId "$exec_id" --arg type "graphql" \
+        '. += [{timestamp: $ts, workflow: $wf, status: $st, data: "[GraphQL - skipped]", execId: $execId, type: $type}]' "$TMP_FILE" > "${TMP_FILE}.new" && mv "${TMP_FILE}.new" "$TMP_FILE"
       ;;
     *)
       jq --arg ts "$started" --arg wf "$workflow" --arg st "$status" --arg execId "$exec_id" --arg type "unknown" \
@@ -145,23 +133,7 @@ jq -c 'sort_by(.execId | tonumber) | .[]' "$TMP_FILE" 2>/dev/null | while IFS= r
     echo "$output_text" >> "$OUTPUT_FILE"
     echo '```' >> "$OUTPUT_FILE"
   elif [[ "$item_type" == "graphql" ]]; then
-    query_text=$(echo "$data" | jq -r '.query // ""')
-    variables_text=$(echo "$data" | jq -c '.variables // {}')
-    result_text=$(echo "$data" | jq -c '.result // {}')
-    echo "### Query" >> "$OUTPUT_FILE"
-    echo '```graphql' >> "$OUTPUT_FILE"
-    echo "$query_text" >> "$OUTPUT_FILE"
-    echo '```' >> "$OUTPUT_FILE"
-    echo "" >> "$OUTPUT_FILE"
-    echo "### Variables" >> "$OUTPUT_FILE"
-    echo '```json' >> "$OUTPUT_FILE"
-    echo "$variables_text" >> "$OUTPUT_FILE"
-    echo '```' >> "$OUTPUT_FILE"
-    echo "" >> "$OUTPUT_FILE"
-    echo "### Result" >> "$OUTPUT_FILE"
-    echo '```json' >> "$OUTPUT_FILE"
-    echo "$result_text" >> "$OUTPUT_FILE"
-    echo '```' >> "$OUTPUT_FILE"
+    echo "*[GraphQL workflow - skipped]*" >> "$OUTPUT_FILE"
   else
     echo '```json' >> "$OUTPUT_FILE"
     echo "$data" >> "$OUTPUT_FILE"
