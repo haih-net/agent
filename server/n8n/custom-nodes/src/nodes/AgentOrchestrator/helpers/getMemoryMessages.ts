@@ -1,5 +1,20 @@
 import { ExecuteContext, Message } from './types'
 
+interface MemoryInstance {
+  loadMemoryVariables: (
+    values: Record<string, unknown>,
+  ) => Promise<Record<string, unknown>>
+  saveContext: (
+    inputValues: Record<string, unknown>,
+    outputValues: Record<string, unknown>,
+  ) => Promise<void>
+}
+
+interface LangChainMessage {
+  _getType?: () => string
+  content?: string | unknown
+}
+
 export const getMemoryMessages = async (
   ctx: ExecuteContext,
 ): Promise<Message[]> => {
@@ -9,28 +24,28 @@ export const getMemoryMessages = async (
       return []
     }
 
-    const memoryInstance = Array.isArray(memory) ? memory[0] : memory
+    const memoryInstance = (
+      Array.isArray(memory) ? memory[0] : memory
+    ) as MemoryInstance
 
     if (
       memoryInstance &&
       typeof memoryInstance === 'object' &&
-      'chatHistory' in memoryInstance
+      typeof memoryInstance.loadMemoryVariables === 'function'
     ) {
-      const chatHistory = memoryInstance.chatHistory
-      if (chatHistory && typeof chatHistory.getMessages === 'function') {
-        const messages = await chatHistory.getMessages()
-        return messages.map(
-          (msg: { _getType?: () => string; content?: string }) => ({
-            role:
-              msg._getType?.() === 'human'
-                ? 'user'
-                : msg._getType?.() === 'ai'
-                  ? 'assistant'
-                  : 'user',
-            content: msg.content || '',
-          }),
-        )
-      }
+      const memoryVariables = await memoryInstance.loadMemoryVariables({})
+      const chatHistory =
+        (memoryVariables['chat_history'] as LangChainMessage[]) || []
+
+      return chatHistory.map((msg) => ({
+        role:
+          msg._getType?.() === 'human'
+            ? 'user'
+            : msg._getType?.() === 'ai'
+              ? 'assistant'
+              : 'user',
+        content: (msg.content as string) || '',
+      }))
     }
 
     return []
@@ -46,28 +61,25 @@ export const saveToMemory = async (
 ): Promise<void> => {
   try {
     const memory = await ctx.getInputConnectionData('ai_memory', 0)
-    if (!memory) {
+    if (!memory || !assistantMessage) {
       return
     }
 
-    const memoryInstance = Array.isArray(memory) ? memory[0] : memory
+    const memoryInstance = (
+      Array.isArray(memory) ? memory[0] : memory
+    ) as MemoryInstance
 
     if (
       memoryInstance &&
       typeof memoryInstance === 'object' &&
-      'chatHistory' in memoryInstance
+      typeof memoryInstance.saveContext === 'function'
     ) {
-      const chatHistory = memoryInstance.chatHistory
-      if (chatHistory && typeof chatHistory.addMessages === 'function') {
-        const { HumanMessage, AIMessage } =
-          await import('@langchain/core/messages')
-        await chatHistory.addMessages([
-          new HumanMessage(userMessage),
-          new AIMessage(assistantMessage),
-        ])
-      }
+      await memoryInstance.saveContext(
+        { input: userMessage },
+        { output: assistantMessage },
+      )
     }
-  } catch {
-    // Ignore memory save errors
+  } catch (error) {
+    console.error('[AgentOrchestrator] saveToMemory error:', error)
   }
 }
