@@ -11,7 +11,15 @@ if ($('Execute Workflow Trigger').isExecuted) {
 
 const agentData = $('Get Agent Data').first().json.data?.freeCodeMe || null
 
-const userId = triggerData.user?.id || null
+// @ts-expect-error isExecuted is a valid boolean property in n8n runtime
+let userData = null
+if ($('Set Auth Context').isExecuted) {
+  userData = $('Set Auth Context').first().json.user || null
+} else {
+  userData = triggerData.user || null
+}
+
+const userId = userData?.id || null
 const callerAgentId = triggerData.callerAgentId || null
 
 let sessionId = ''
@@ -32,14 +40,15 @@ if (!sessionId) {
   sessionId = 'unhandledSessionId'
 }
 
-const enableStreaming = triggerData.body?.enableStreaming ?? triggerData.enableStreaming
+const enableStreaming =
+  triggerData.body?.enableStreaming ?? triggerData.enableStreaming
 
 return [
   {
     json: {
       chatInput: triggerData.chatInput || '',
       sessionId,
-      user: triggerData.user || null,
+      user: userData,
       agent: agentData,
       agentId: config.agentId,
       currentDate: new Date().toISOString().split('T')[0],

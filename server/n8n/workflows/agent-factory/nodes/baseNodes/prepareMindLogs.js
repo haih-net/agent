@@ -26,9 +26,7 @@ const sections = [
 ].filter(Boolean)
 
 const assistantMessage =
-  sections.length > 0
-    ? `# My Memory\n\n${sections.join('\n\n')}`
-    : ''
+  sections.length > 0 ? `# My Memory\n\n${sections.join('\n\n')}` : ''
 
 return [
   {

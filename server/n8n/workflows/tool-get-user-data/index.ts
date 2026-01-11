@@ -149,8 +149,10 @@ const toolGetUserData: WorkflowBase = {
   pinData: {},
   settings: {
     executionOrder: 'v1',
-    saveDataErrorExecution: 'none',
-    saveDataSuccessExecution: 'none',
+    saveDataErrorExecution:
+      process.env.NODE_ENV === 'development' ? 'all' : 'none',
+    saveDataSuccessExecution:
+      process.env.NODE_ENV === 'development' ? 'all' : 'none',
     saveManualExecutions: false,
     saveExecutionProgress: true,
   },

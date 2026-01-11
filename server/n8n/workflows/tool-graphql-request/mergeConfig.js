@@ -1,19 +1,21 @@
-const config = $config;
+const config = $config
 
-let triggerData = {};
+let triggerData = {}
 
 if ($('Parse Input').isExecuted) {
-  triggerData = $('Parse Input').first().json;
+  triggerData = $('Parse Input').first().json
 } else if ($('Set Test Input').isExecuted) {
-  triggerData = $('Set Test Input').first().json;
+  triggerData = $('Set Test Input').first().json
 }
 
-return [{
-  json: {
-    query: triggerData.query || '',
-    variables: triggerData.variables || {},
-    operationName: triggerData.operationName || '',
-    endpoint: config.GRAPHQL_ENDPOINT,
-    token: triggerData.token || '',
-  }
-}];
+return [
+  {
+    json: {
+      query: triggerData.query || '',
+      variables: triggerData.variables || {},
+      operationName: triggerData.operationName || '',
+      endpoint: config.GRAPHQL_ENDPOINT,
+      token: triggerData.token || '',
+    },
+  },
+]

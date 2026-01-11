@@ -59,7 +59,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
             workflowInputs: {
               mappingMode: 'defineBelow',
               value: {
-                token: '={{ $json.body.token }}',
+                token: '={{ $json.token }}',
               },
               matchingColumns: [],
               schema: [

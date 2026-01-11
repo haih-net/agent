@@ -64,6 +64,24 @@ const toolGetUserByToken: WorkflowBase = {
     },
     {
       parameters: {
+        jsCode: `let token = '';
+// @ts-ignore isExecuted is a valid boolean property in n8n runtime
+if ($('Execute Workflow Trigger').isExecuted) {
+  token = $('Execute Workflow Trigger').first().json.token || '';
+// @ts-ignore isExecuted is a valid boolean property in n8n runtime
+} else if ($('Set Test Input').isExecuted) {
+  token = $('Set Test Input').first().json.token || '';
+}
+return { token };`,
+      },
+      id: 'prepare-input',
+      name: 'Prepare Input',
+      type: 'n8n-nodes-base.code',
+      typeVersion: 2,
+      position: [-200, 200],
+    },
+    {
+      parameters: {
         conditions: {
           options: {
             caseSensitive: true,
@@ -168,12 +186,15 @@ const toolGetUserByToken: WorkflowBase = {
   ],
   connections: {
     'Execute Workflow Trigger': {
-      main: [[{ node: 'Has Token?', type: 'main', index: 0 }]],
+      main: [[{ node: 'Prepare Input', type: 'main', index: 0 }]],
     },
     'Manual Trigger': {
       main: [[{ node: 'Set Test Input', type: 'main', index: 0 }]],
     },
     'Set Test Input': {
+      main: [[{ node: 'Prepare Input', type: 'main', index: 0 }]],
+    },
+    'Prepare Input': {
       main: [[{ node: 'Has Token?', type: 'main', index: 0 }]],
     },
     'Has Token?': {
@@ -189,8 +210,10 @@ const toolGetUserByToken: WorkflowBase = {
   pinData: {},
   settings: {
     executionOrder: 'v1',
-    saveDataErrorExecution: 'none',
-    saveDataSuccessExecution: 'none',
+    saveDataErrorExecution:
+      process.env.NODE_ENV === 'development' ? 'all' : 'none',
+    saveDataSuccessExecution:
+      process.env.NODE_ENV === 'development' ? 'all' : 'none',
     saveManualExecutions: false,
     saveExecutionProgress: true,
   },
