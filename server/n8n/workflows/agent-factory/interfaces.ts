@@ -28,6 +28,7 @@ export interface AgentFactoryConfig {
   canExecuteCode?: boolean
   authFromToken?: boolean
   hasGraphqlTool?: boolean
+  hasTools?: boolean
   additionalNodes?: NodeType[]
   additionalConnections?: ConnectionsType
   agentNodeType?: 'default' | 'orchestrator'

@@ -24,6 +24,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     canExecuteCode = false,
     authFromToken = false,
     hasGraphqlTool = true,
+    hasTools = true,
     additionalNodes = [],
     additionalConnections = {},
     systemMessagePath,
@@ -133,17 +134,19 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       }
     : {}
 
-  const mindLogConnections: ConnectionsType = {
-    'Create MindLog Tool': {
-      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-    },
-    'Search MindLogs Tool': {
-      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-    },
-    'Update MindLog Tool': {
-      ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-    },
-  }
+  const mindLogConnections: ConnectionsType = hasTools
+    ? {
+        'Create MindLog Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'Search MindLogs Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'Update MindLog Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+      }
+    : {}
 
   const codeExecutionNodes: NodeType[] = canExecuteCode
     ? [
@@ -309,10 +312,12 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       }
     : {}
 
-  const mindLogNodes = getMindLogNodes({
-    agentId,
-    agentName,
-  })
+  const mindLogNodes = hasTools
+    ? getMindLogNodes({
+        agentId,
+        agentName,
+      })
+    : []
 
   const baseNodes = getBaseNodes({
     agentId,
@@ -321,6 +326,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     agentNodeType,
     enableStreaming,
     hasMemory,
+    hasTools,
     hasWorkflowOutput,
     maxIterations,
     memorySize,
@@ -367,15 +373,23 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     'Get Agent Data': {
       main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
     },
-    'Prepare Context': {
-      main: [[{ node: 'Fetch MindLogs', type: 'main', index: 0 }]],
-    },
-    'Fetch MindLogs': {
-      main: [[{ node: 'Prepare MindLogs', type: 'main', index: 0 }]],
-    },
-    'Prepare MindLogs': {
-      main: [[{ node: agentName, type: 'main', index: 0 }]],
-    },
+    ...(hasTools
+      ? {
+          'Prepare Context': {
+            main: [[{ node: 'Fetch MindLogs', type: 'main', index: 0 }]],
+          },
+          'Fetch MindLogs': {
+            main: [[{ node: 'Prepare MindLogs', type: 'main', index: 0 }]],
+          },
+          'Prepare MindLogs': {
+            main: [[{ node: agentName, type: 'main', index: 0 }]],
+          },
+        }
+      : {
+          'Prepare Context': {
+            main: [[{ node: agentName, type: 'main', index: 0 }]],
+          },
+        }),
   }
 
   if (hasMemory) {

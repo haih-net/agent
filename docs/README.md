@@ -47,13 +47,16 @@ Located in `server/n8n/workflows/agent-factory/`:
 - Dynamically generates n8n workflows from TypeScript definitions
 - Supports multiple agent types (default, orchestrator)
 - Manages tool connections and credentials
+- `hasTools` flag — disable all tools for models that don't support them (e.g., Perplexity)
 
 ### Agent System
 Multi-agent architecture with specialized agents:
-- **Chat Agent** — Main user interface
+- **Chat Agent** — Main user interface, delegates to specialized agents
 - **Project Manager Agent** — Project and task management
 - **PR Manager Agent** — Content and publications
-- **API Agent** — GraphQL operations
+- **Web Search Agent** — Internet search using Perplexity Sonar (authenticated users only)
+- **Marketing Director Agent** — Marketing strategy and research (authenticated users only)
+- **API Agent** — GraphQL operations (last resort)
 
 ## Quick Start
 

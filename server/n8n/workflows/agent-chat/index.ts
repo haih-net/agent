@@ -27,7 +27,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
         'Delegate API tasks to the API Agent — LAST RESORT. Use only for API schema questions or when specialized agents cannot help.',
       workflowName: 'Agent: API',
       nodeId: 'tool-api-agent',
-      position: [448, 512],
+      position: [700, 512],
       includeUser: false,
     }),
     createAgentTool({
@@ -37,7 +37,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
         'Delegate project and task management. Use for: projects, tasks, team, progress tracking.',
       workflowName: 'Agent: Project Manager',
       nodeId: 'tool-project-manager-agent',
-      position: [448, 672],
+      position: [880, 512],
     }),
     createAgentTool({
       name: 'pr_manager_agent',
@@ -46,7 +46,25 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
         'Delegate content/publication management. Use for: topics, articles, publications, blog posts.',
       workflowName: 'Agent: PR Manager',
       nodeId: 'tool-pr-manager-agent',
-      position: [448, 832],
+      position: [1060, 512],
+    }),
+    createAgentTool({
+      name: 'web_search_agent',
+      toolName: 'Web Search Agent Tool',
+      description:
+        'Delegate web search and research tasks. Use for: internet search, current information, fact-checking, news, fetching web pages. ONLY FOR AUTHENTICATED USERS.',
+      workflowName: 'Agent: Web Search',
+      nodeId: 'tool-web-search-agent',
+      position: [1240, 512],
+    }),
+    createAgentTool({
+      name: 'marketing_director_agent',
+      toolName: 'Marketing Director Agent Tool',
+      description:
+        'Delegate marketing strategy and research tasks. Use for: market research, competitor analysis, promotional strategies, content strategy. ONLY FOR AUTHENTICATED USERS.',
+      workflowName: 'Agent: Marketing Director',
+      nodeId: 'tool-marketing-director-agent',
+      position: [1420, 512],
     }),
   ],
   additionalConnections: {
@@ -57,6 +75,12 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
       ai_tool: [[{ node: 'Chat Agent', type: 'ai_tool', index: 0 }]],
     },
     'PR Manager Agent Tool': {
+      ai_tool: [[{ node: 'Chat Agent', type: 'ai_tool', index: 0 }]],
+    },
+    'Web Search Agent Tool': {
+      ai_tool: [[{ node: 'Chat Agent', type: 'ai_tool', index: 0 }]],
+    },
+    'Marketing Director Agent Tool': {
       ai_tool: [[{ node: 'Chat Agent', type: 'ai_tool', index: 0 }]],
     },
   },

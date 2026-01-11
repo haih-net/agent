@@ -110,6 +110,8 @@ for (const tc of toolCalls) {
 
 ## Debug Logging
 
+Debug logs are only enabled in development mode (`NODE_ENV !== 'production'`).
+
 When streaming is enabled, debug logs are sent to frontend:
 
 ```

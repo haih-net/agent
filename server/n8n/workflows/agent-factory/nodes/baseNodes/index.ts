@@ -13,6 +13,7 @@ type getBaseNodesProps = {
   agentId: string
   agentName: string
   hasMemory: boolean
+  hasTools: boolean
   systemMessagePath: string
   memorySize: AgentFactoryConfig['memorySize']
   hasWorkflowOutput: AgentFactoryConfig['hasWorkflowOutput']
@@ -29,6 +30,7 @@ export function getBaseNodes({
   agentId,
   agentName,
   hasMemory,
+  hasTools,
   systemMessagePath,
   memorySize,
   hasWorkflowOutput,
@@ -118,60 +120,64 @@ ${customSystemMessage}`
       typeVersion: 2,
       position: [-224, 304],
     },
-    {
-      parameters: {
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            query: freeCodeMyMindLogsQuery,
-            variables: '={{ JSON.stringify({ take: 100 }) }}',
+    ...(hasTools
+      ? [
+          {
+            parameters: {
+              workflowId: {
+                __rl: true,
+                mode: 'list',
+                value: `Tool: GraphQL Request (${agentName})`,
+              },
+              workflowInputs: {
+                mappingMode: 'defineBelow',
+                value: {
+                  query: freeCodeMyMindLogsQuery,
+                  variables: '={{ JSON.stringify({ take: 100 }) }}',
+                },
+                matchingColumns: [],
+                schema: [
+                  {
+                    id: 'query',
+                    displayName: 'query',
+                    required: true,
+                    defaultMatch: false,
+                    display: true,
+                    canBeUsedToMatch: true,
+                    type: 'string',
+                  },
+                  {
+                    id: 'variables',
+                    displayName: 'variables',
+                    required: true,
+                    defaultMatch: false,
+                    display: true,
+                    canBeUsedToMatch: true,
+                    type: 'string',
+                  },
+                ],
+                attemptToConvertTypes: false,
+                convertFieldsToString: false,
+              },
+            },
+            id: `${agentId}-fetch-mindlogs`,
+            name: 'Fetch MindLogs',
+            type: 'n8n-nodes-base.executeWorkflow',
+            typeVersion: 1.2,
+            position: [-16, 304] as [number, number],
           },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'query',
-              displayName: 'query',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
+          {
+            parameters: {
+              jsCode: prepareMindLogsCode,
             },
-            {
-              id: 'variables',
-              displayName: 'variables',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: `${agentId}-fetch-mindlogs`,
-      name: 'Fetch MindLogs',
-      type: 'n8n-nodes-base.executeWorkflow',
-      typeVersion: 1.2,
-      position: [-16, 304],
-    },
-    {
-      parameters: {
-        jsCode: prepareMindLogsCode,
-      },
-      id: `${agentId}-prepare-mindlogs`,
-      name: 'Prepare MindLogs',
-      type: 'n8n-nodes-base.code',
-      typeVersion: 2,
-      position: [192, 304],
-    },
+            id: `${agentId}-prepare-mindlogs`,
+            name: 'Prepare MindLogs',
+            type: 'n8n-nodes-base.code',
+            typeVersion: 2,
+            position: [192, 304] as [number, number],
+          },
+        ]
+      : []),
     (() => {
       const agentNode: NodeType = {
         parameters: {
