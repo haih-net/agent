@@ -17,10 +17,35 @@ interface AgentOptions {
   assistantMessages?: string
 }
 
+const IS_DEVELOPMENT = process.env.NODE_ENV !== 'production'
+
+const debugLog = (
+  ctx: ExecuteContext,
+  isStreamingAvailable: boolean,
+  message: string,
+) => {
+  if (IS_DEVELOPMENT && isStreamingAvailable) {
+    ctx.sendChunk('item', 0, `\n[DEBUG] ${message}\n`)
+  }
+}
+
+interface OpenRouterCredentials {
+  apiKey: string
+  url: string
+}
+
 export const executeFullMode = async (
   ctx: ExecuteContext,
   items: INodeExecutionData[],
 ): Promise<INodeExecutionData[][]> => {
+  const credentials = (await ctx.getCredentials(
+    'openRouterApi',
+  )) as unknown as OpenRouterCredentials
+  const model = ctx.getNodeParameter(
+    'model',
+    0,
+    'anthropic/claude-sonnet-4',
+  ) as string
   const options = ctx.getNodeParameter('options', 0, {}) as AgentOptions
   const systemMessage = options.systemMessage || ''
   const assistantMessagesJson = options.assistantMessages || '[]'
@@ -43,6 +68,17 @@ export const executeFullMode = async (
     ctx.sendChunk('begin', 0)
   }
 
+  debugLog(
+    ctx,
+    isStreamingAvailable,
+    `Starting agent loop. Tools available: ${tools.length}, toolChoice: ${toolChoice}`,
+  )
+  debugLog(
+    ctx,
+    isStreamingAvailable,
+    `Tools: ${tools.map((t) => (t as { function?: { name?: string } }).function?.name || 'unknown').join(', ')}`,
+  )
+
   const messages = buildMessages(systemMessage, userInput, [
     ...memoryMessages,
     ...assistantMessages,
@@ -53,22 +89,45 @@ export const executeFullMode = async (
 
   while (iterations < maxIterations) {
     iterations++
-
-    const response = await callLLM(
+    debugLog(
       ctx,
+      isStreamingAvailable,
+      `Iteration ${iterations}/${maxIterations}`,
+    )
+
+    const response = await callLLM({
+      ctx,
+      credentials,
+      model,
       messages,
       tools,
       toolChoice,
+      streaming: isStreamingAvailable,
+    })
+
+    debugLog(
+      ctx,
       isStreamingAvailable,
+      `LLM response received. Content length: ${response.content?.length || 0}, thinking length: ${response.thinking?.length || 0}, tool_calls: ${response.tool_calls?.length || 0}`,
     )
+
+    if (response.thinking) {
+      debugLog(ctx, isStreamingAvailable, `[THINKING] ${response.thinking}`)
+    }
 
     if (response.content) {
       finalOutput += response.content
     }
 
     const toolCalls = extractToolCalls(response)
+    debugLog(
+      ctx,
+      isStreamingAvailable,
+      `Extracted tool calls: ${toolCalls?.length || 0}`,
+    )
 
     if (!toolCalls || toolCalls.length === 0) {
+      debugLog(ctx, isStreamingAvailable, `No tool calls, breaking loop`)
       break
     }
 
@@ -76,7 +135,8 @@ export const executeFullMode = async (
 
     if (isStreamingAvailable && showToolCalls) {
       for (const tc of toolCalls) {
-        ctx.sendChunk('item', 0, `\n🔧 Calling: ${tc.name}...\n`)
+        const toolDisplayName = tc.name.replace(/_/g, ' ').replace(/ Tool$/, '')
+        ctx.sendChunk('item', 0, `\n\n⏳ *Calling ${toolDisplayName}...*\n\n`)
       }
     }
 
@@ -87,7 +147,19 @@ export const executeFullMode = async (
     })
 
     for (const tc of toolCalls) {
-      const toolResult = await executeTool(ctx, tc)
+      debugLog(
+        ctx,
+        isStreamingAvailable,
+        `Executing tool: ${tc.name} with args: ${JSON.stringify(tc.arguments)}`,
+      )
+      const toolDebugLog = (msg: string) =>
+        debugLog(ctx, isStreamingAvailable, msg)
+      const toolResult = await executeTool(ctx, tc, toolDebugLog)
+      debugLog(
+        ctx,
+        isStreamingAvailable,
+        `Tool ${tc.name} result: ${typeof toolResult === 'string' ? toolResult.substring(0, 200) : JSON.stringify(toolResult).substring(0, 200)}`,
+      )
       messages.push({
         role: 'tool',
         tool_call_id: tc.id,
@@ -98,6 +170,12 @@ export const executeFullMode = async (
       })
     }
   }
+
+  debugLog(
+    ctx,
+    isStreamingAvailable,
+    `Agent loop finished. Total iterations: ${iterations}, total tool calls: ${allToolCalls.length}, output length: ${finalOutput.length}`,
+  )
 
   if (isStreamingAvailable) {
     ctx.sendChunk('end', 0)

@@ -8,6 +8,9 @@
     "watch": "tsc --watch",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "openai": "^6.15.0"
+  },
   "devDependencies": {
     "typescript": "^5.3.0",
     "n8n-workflow": "*"

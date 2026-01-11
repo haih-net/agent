@@ -162,6 +162,40 @@ return [{
 }]
 ```
 
+#### Custom Nodes Debugging
+
+Custom nodes are in `server/n8n/custom-nodes/`. After changes, rebuild with:
+```bash
+cd server/n8n/custom-nodes && npm run build
+```
+
+**Debugging methods:**
+
+1. **throw Error** — throws exception with debug info, visible in n8n execution logs and webhook response:
+```typescript
+async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+  const mode = this.getNodeParameter('mode', 0, 'full') as string
+  throw new Error(`[DEBUG] mode=${mode}, keys=${Object.keys(this).join(', ')}`)
+  // ...
+}
+```
+
+2. **Stream debug messages** — send debug info to frontend via streaming (only works when streaming is enabled):
+```typescript
+if (isStreamingAvailable) {
+  ctx.sendChunk('item', 0, `\n[DEBUG] Tools: ${tools.length}\n`)
+}
+```
+
+3. **this.logger** — n8n's built-in logger (available in IExecuteFunctions context):
+```typescript
+this.logger.debug('Executing agent')
+this.logger.info('Tool called', { toolName })
+this.logger.error('Failed', { error })
+```
+
+**Note**: `console.log` inside n8n nodes is captured by n8n and may not appear in stdout. Use `throw Error` or `this.logger` for reliable debugging.
+
 #### Known Issue: enableStreaming=false Returns Empty Response
 
 **⚠️ WARNING**: When `enableStreaming=false`, the agent executes correctly but returns an **empty response**.

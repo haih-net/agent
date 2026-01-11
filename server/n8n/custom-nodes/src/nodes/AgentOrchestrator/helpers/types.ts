@@ -5,3 +5,5 @@ export type {
   ChatModel,
   ExecuteContext,
 } from '../../../helpers'
+
+export { IS_DEVELOPMENT } from '../../../helpers'

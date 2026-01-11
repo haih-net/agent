@@ -1,5 +1,7 @@
 import { IExecuteFunctions } from 'n8n-workflow'
 
+export const IS_DEVELOPMENT = process.env.NODE_ENV !== 'production'
+
 /**
  * Represents a tool call from LLM response.
  */
@@ -15,6 +17,7 @@ export interface ToolCall {
  */
 export interface LLMResponse {
   content: string
+  thinking?: string
   tool_calls?: Array<{
     id: string
     name?: string

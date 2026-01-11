@@ -9,6 +9,10 @@ import { executeValidatorMode } from './helpers/executeValidatorMode'
 import { executeFullMode } from './helpers/executeFullMode'
 
 export class AgentOrchestrator implements INodeType {
+  // constructor() {
+  //   throw new Error(`[DEBUG] AgentOrchestrator constructor! this keys: ${Object.keys(this).join(', ')}`)
+  // }
+
   description: INodeTypeDescription = {
     displayName: 'Agent Orchestrator',
     name: 'agentOrchestrator',
@@ -22,14 +26,14 @@ export class AgentOrchestrator implements INodeType {
       name: 'Agent Orchestrator',
       color: '#404040',
     },
+    credentials: [
+      {
+        name: 'openRouterApi',
+        required: true,
+      },
+    ],
     inputs: [
       'main',
-      {
-        type: 'ai_languageModel',
-        displayName: 'Chat Model',
-        required: true,
-        maxConnections: 1,
-      },
       {
         type: 'ai_memory',
         displayName: 'Memory',
@@ -44,6 +48,14 @@ export class AgentOrchestrator implements INodeType {
     ],
     outputs: ['main'],
     properties: [
+      {
+        displayName: 'Model',
+        name: 'model',
+        type: 'string',
+        default: 'anthropic/claude-sonnet-4',
+        description:
+          'OpenRouter model name (e.g., anthropic/claude-sonnet-4, openai/gpt-4o)',
+      },
       {
         displayName: 'Mode',
         name: 'mode',

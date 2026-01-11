@@ -343,11 +343,13 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     [agentName]: hasWorkflowOutput
       ? { main: [[{ node: 'Workflow Output', type: 'main', index: 0 }]] }
       : { main: [] },
-    'Chat Model': {
-      ai_languageModel: [
-        [{ node: agentName, type: 'ai_languageModel', index: 0 }],
-      ],
-    },
+    ...(agentNodeType !== 'orchestrator' && {
+      'Chat Model': {
+        ai_languageModel: [
+          [{ node: agentName, type: 'ai_languageModel', index: 0 }],
+        ],
+      },
+    }),
     'Execute Workflow Trigger': {
       main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
     },

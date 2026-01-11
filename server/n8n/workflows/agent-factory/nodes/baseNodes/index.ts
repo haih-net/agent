@@ -190,6 +190,7 @@ ${customSystemMessage}`
 
       if (agentNodeType === 'orchestrator') {
         agentNode.parameters.mode = 'full'
+        agentNode.parameters.model = model
 
         const additionalFields: INodeParameters = {
           systemMessage: `=${systemMessage}`,
@@ -205,27 +206,37 @@ ${customSystemMessage}`
 
         agentNode.type = 'CUSTOM.agentOrchestrator'
         agentNode.typeVersion = 1
+        agentNode.credentials = {
+          openRouterApi: {
+            id: 'FsN0N48lU327xkz6',
+            name: 'OpenRouter',
+          },
+        }
       }
 
       return agentNode
     })(),
-    {
-      parameters: {
-        model,
-        options: {},
-      },
-      id: `${agentId}-chat-model`,
-      name: 'Chat Model',
-      type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
-      typeVersion: 1,
-      position: [-64, 512],
-      credentials: {
-        openRouterApi: {
-          id: 'FsN0N48lU327xkz6',
-          name: 'OpenRouter',
-        },
-      },
-    },
+    ...(agentNodeType !== 'orchestrator'
+      ? [
+          {
+            parameters: {
+              model,
+              options: {},
+            },
+            id: `${agentId}-chat-model`,
+            name: 'Chat Model',
+            type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
+            typeVersion: 1,
+            position: [-64, 512] as [number, number],
+            credentials: {
+              openRouterApi: {
+                id: 'FsN0N48lU327xkz6',
+                name: 'OpenRouter',
+              },
+            },
+          },
+        ]
+      : []),
     {
       parameters: {
         workflowInputs: {
