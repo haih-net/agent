@@ -1,11 +1,6 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
-import {
-  SESSION_ID_EXPRESSION,
-  SESSION_ID_SCHEMA,
-  USER_EXPRESSION,
-  USER_SCHEMA,
-} from '../helpers'
+import { createAgentTool } from '../helpers'
 
 const AGENT_NAME = 'Tech Lead'
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -31,48 +26,15 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
     { name: 'user', type: 'object' },
   ],
   additionalNodes: [
-    {
-      parameters: {
-        name: 'gitlab_agent',
-        description:
-          'Get actual project information from GitLab Agent. This is your PRIMARY source for real project state: issues, boards, project status. Use when: (1) you need current project state, (2) you need to check issues or tasks in GitLab, (3) you need to verify what work is in progress. GitLab Agent provides authoritative information about the project.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: 'Agent: GitLab',
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', `Request to GitLab Agent`, 'string') }}",
-            sessionId: SESSION_ID_EXPRESSION,
-            user: USER_EXPRESSION,
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'chatInput',
-              displayName: 'message',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            SESSION_ID_SCHEMA,
-            USER_SCHEMA,
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: 'techlead-tool-gitlab-agent',
-      name: 'GitLab Agent Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
+    createAgentTool({
+      name: 'gitlab_agent',
+      toolName: 'GitLab Agent Tool',
+      description:
+        'Get actual project information from GitLab Agent. This is your PRIMARY source for real project state: issues, boards, project status. Use when: (1) you need current project state, (2) you need to check issues or tasks in GitLab, (3) you need to verify what work is in progress. GitLab Agent provides authoritative information about the project.',
+      workflowName: 'Agent: GitLab',
+      nodeId: 'techlead-tool-gitlab-agent',
       position: [448, 512],
-    },
+    }),
   ],
   additionalConnections: {
     'GitLab Agent Tool': {

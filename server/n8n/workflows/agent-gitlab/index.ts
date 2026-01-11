@@ -1,11 +1,6 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
-import {
-  SESSION_ID_EXPRESSION,
-  SESSION_ID_SCHEMA,
-  USER_EXPRESSION,
-  USER_SCHEMA,
-} from '../helpers'
+import { createAgentTool } from '../helpers'
 import { WorkflowBase } from '../interfaces'
 
 const AGENT_NAME = 'GitLab Agent'
@@ -349,90 +344,24 @@ const gitlabToolNodes: NodeType[] = [
 ]
 
 const agentToolNodes: NodeType[] = [
-  {
-    parameters: {
-      name: 'techlead_agent',
-      description:
-        'Delegate technical tasks or report project status to the Tech Lead. Use when: (1) you need to report current project state from GitLab, (2) you need technical decisions on issues, (3) you need to escalate technical problems.',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: 'Agent: Tech Lead',
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          chatInput:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', `Message to send to Tech Lead`, 'string') }}",
-          sessionId: SESSION_ID_EXPRESSION,
-          user: USER_EXPRESSION,
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'chatInput',
-            displayName: 'message',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          SESSION_ID_SCHEMA,
-          USER_SCHEMA,
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-techlead-agent`,
-    name: 'Tech Lead Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+  createAgentTool({
+    name: 'techlead_agent',
+    toolName: 'Tech Lead Tool',
+    description:
+      'Delegate technical tasks or report project status to the Tech Lead. Use when: (1) you need to report current project state from GitLab, (2) you need technical decisions on issues, (3) you need to escalate technical problems.',
+    workflowName: 'Agent: Tech Lead',
+    nodeId: `${agentId}-tool-techlead-agent`,
     position: [2240, 512],
-  },
-  {
-    parameters: {
-      name: 'project_manager_agent',
-      description:
-        'Report project status or escalate issues to the Project Manager. Use when: (1) you need to report overall project state, (2) you need project-level decisions, (3) you need to escalate non-technical issues.',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: 'Agent: Project Manager',
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          chatInput:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', `Message to send to Project Manager`, 'string') }}",
-          sessionId: SESSION_ID_EXPRESSION,
-          user: USER_EXPRESSION,
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'chatInput',
-            displayName: 'message',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          SESSION_ID_SCHEMA,
-          USER_SCHEMA,
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-project-manager-agent`,
-    name: 'Project Manager Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+  }),
+  createAgentTool({
+    name: 'project_manager_agent',
+    toolName: 'Project Manager Tool',
+    description:
+      'Report project status or escalate issues to the Project Manager. Use when: (1) you need to report overall project state, (2) you need project-level decisions, (3) you need to escalate non-technical issues.',
+    workflowName: 'Agent: Project Manager',
+    nodeId: `${agentId}-tool-project-manager-agent`,
     position: [2464, 512],
-  },
+  }),
 ]
 
 const { toolGraphqlRequest, agentWorkflow } = createAgent({

@@ -170,6 +170,29 @@ This is a known n8n issue with response waiting — affects both custom `AgentOr
 
 **Current workaround**: Keep `enableStreaming=true` (default) for production use.
 
+#### Agent Tool Schema Export
+
+**Problem**: When agents call other agents via `toolWorkflow`, the LLM didn't see parameter schemas — only `{"type": "object"}` without `properties`. This caused LLMs to guess parameter names (e.g., `message` vs `request`).
+
+**Root cause**: n8n's `toolWorkflow` uses LangChain's `DynamicStructuredTool` with Zod schemas, but our custom `AgentOrchestrator` wasn't converting Zod to JSON Schema.
+
+**Solution** (`server/n8n/custom-nodes/src/nodes/AgentOrchestrator/helpers/getConnectedTools.ts`):
+```typescript
+import { zodToJsonSchema } from 'zod-to-json-schema'
+
+const convertSchemaToJsonSchema = (schema) => {
+  if (schema && '_def' in schema) {
+    return zodToJsonSchema(schema)
+  }
+  return schema || { type: 'object', properties: {} }
+}
+```
+
+**Standardization** (`server/n8n/workflows/helpers.ts`):
+- Created `createAgentTool()` helper for consistent agent-to-agent tool definitions
+- All agent tools now use `message` as the standardized parameter name
+- Single point of change for all agent tool configurations
+
 ### Credentials (`credentials/`)
 Credentials are organized into two folders:
 - `system/` — n8n system credentials (GitLab, OpenRouter, Telegram, etc.) — all `.json` files auto-imported

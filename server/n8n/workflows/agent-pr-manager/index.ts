@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
-import { SESSION_ID_EXPRESSION, SESSION_ID_SCHEMA } from '../helpers'
+import { createAgentTool } from '../helpers'
 
 const AGENT_NAME = 'PR Manager Agent'
 
@@ -22,46 +22,16 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
     { name: 'user', type: 'object' },
   ],
   additionalNodes: [
-    {
-      parameters: {
-        name: 'chat_agent',
-        description:
-          'Send a message to the Chat Agent for assistance. Use when you need help with user communication, general questions, or tasks outside content management scope.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: 'Agent: Chat',
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message', `Message to send to Chat Agent for assistance`, 'string') }}",
-            sessionId: SESSION_ID_EXPRESSION,
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'chatInput',
-              displayName: 'message',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            SESSION_ID_SCHEMA,
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: 'tool-chat-agent',
-      name: 'Chat Agent Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
+    createAgentTool({
+      name: 'chat_agent',
+      toolName: 'Chat Agent Tool',
+      description:
+        'Send a message to the Chat Agent for assistance. Use when you need help with user communication, general questions, or tasks outside content management scope.',
+      workflowName: 'Agent: Chat',
+      nodeId: 'tool-chat-agent',
       position: [448, 512],
-    },
+      includeUser: false,
+    }),
   ],
   additionalConnections: {
     'Chat Agent Tool': {

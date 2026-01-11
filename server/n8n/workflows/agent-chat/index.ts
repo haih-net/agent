@@ -1,11 +1,6 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
-import {
-  SESSION_ID_EXPRESSION,
-  SESSION_ID_SCHEMA,
-  USER_EXPRESSION,
-  USER_SCHEMA,
-} from '../helpers'
+import { createAgentTool } from '../helpers'
 
 const { toolGraphqlRequest, agentWorkflow } = createAgent({
   agentName: 'Chat Agent',
@@ -25,130 +20,34 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   hasGraphqlTool: false,
   agentNodeType: 'orchestrator',
   additionalNodes: [
-    {
-      parameters: {
-        name: 'api_agent',
-        description:
-          'Delegate API tasks to the API Agent — LAST RESORT. Use only for API schema questions or when specialized agents cannot help.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: 'Agent: API',
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe what you need from the API.`, 'string') }}",
-            sessionId: SESSION_ID_EXPRESSION,
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'chatInput',
-              displayName: 'request',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            SESSION_ID_SCHEMA,
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: 'tool-api-agent',
-      name: 'API Agent Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
+    createAgentTool({
+      name: 'api_agent',
+      toolName: 'API Agent Tool',
+      description:
+        'Delegate API tasks to the API Agent — LAST RESORT. Use only for API schema questions or when specialized agents cannot help.',
+      workflowName: 'Agent: API',
+      nodeId: 'tool-api-agent',
       position: [448, 512],
-    },
-    {
-      parameters: {
-        name: 'project_manager_agent',
-        description:
-          'Delegate project and task management. Use for: projects, tasks, team, progress tracking.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: 'Agent: Project Manager',
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the project/task operation.`, 'string') }}",
-            sessionId: SESSION_ID_EXPRESSION,
-            user: USER_EXPRESSION,
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'chatInput',
-              displayName: 'request',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            SESSION_ID_SCHEMA,
-            USER_SCHEMA,
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: 'tool-project-manager-agent',
-      name: 'Project Manager Agent Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
+      includeUser: false,
+    }),
+    createAgentTool({
+      name: 'project_manager_agent',
+      toolName: 'Project Manager Agent Tool',
+      description:
+        'Delegate project and task management. Use for: projects, tasks, team, progress tracking.',
+      workflowName: 'Agent: Project Manager',
+      nodeId: 'tool-project-manager-agent',
       position: [448, 672],
-    },
-    {
-      parameters: {
-        name: 'pr_manager_agent',
-        description:
-          'Delegate content/publication management. Use for: topics, articles, publications, blog posts.',
-        workflowId: {
-          __rl: true,
-          mode: 'list',
-          value: 'Agent: PR Manager',
-        },
-        workflowInputs: {
-          mappingMode: 'defineBelow',
-          value: {
-            chatInput:
-              "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('request', `Describe the content operation.`, 'string') }}",
-            sessionId: SESSION_ID_EXPRESSION,
-            user: USER_EXPRESSION,
-          },
-          matchingColumns: [],
-          schema: [
-            {
-              id: 'chatInput',
-              displayName: 'request',
-              required: true,
-              defaultMatch: false,
-              display: true,
-              canBeUsedToMatch: true,
-              type: 'string',
-            },
-            SESSION_ID_SCHEMA,
-            USER_SCHEMA,
-          ],
-          attemptToConvertTypes: false,
-          convertFieldsToString: false,
-        },
-      },
-      id: 'tool-pr-manager-agent',
-      name: 'PR Manager Agent Tool',
-      type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-      typeVersion: 2.2,
+    }),
+    createAgentTool({
+      name: 'pr_manager_agent',
+      toolName: 'PR Manager Agent Tool',
+      description:
+        'Delegate content/publication management. Use for: topics, articles, publications, blog posts.',
+      workflowName: 'Agent: PR Manager',
+      nodeId: 'tool-pr-manager-agent',
       position: [448, 832],
-    },
+    }),
   ],
   additionalConnections: {
     'API Agent Tool': {
