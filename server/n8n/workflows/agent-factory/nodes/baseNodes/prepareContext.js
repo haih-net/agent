@@ -12,9 +12,12 @@ if ($('Execute Workflow Trigger').isExecuted) {
 const agentData = $('Get Agent Data').first().json.data?.freeCodeMe || null
 
 let userData = null
+let authSessionId = null
 try {
   if ($('Set Auth Context').isExecuted) {
-    userData = $('Set Auth Context').first().json.user || null
+    const authContext = $('Set Auth Context').first().json
+    userData = authContext.user || null
+    authSessionId = authContext.sessionId || null
   } else {
     userData = triggerData.user || null
   }
@@ -32,6 +35,8 @@ if (userId && callerAgentId) {
   sessionId = 'user_' + userId
 } else if (callerAgentId) {
   sessionId = 'agent_' + callerAgentId
+} else if (authSessionId) {
+  sessionId = authSessionId
 } else if (triggerData.sessionId) {
   sessionId = triggerData.sessionId
 }

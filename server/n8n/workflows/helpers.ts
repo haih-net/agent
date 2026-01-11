@@ -11,7 +11,7 @@ export function readN8nTemplate(filePath: string): string {
 }
 
 export const SESSION_ID_EXPRESSION =
-  "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('sessionId', 'Session ID for conversation context', 'string') }}"
+  "={{ $('Prepare Context').first().json.sessionId }}"
 
 export const SESSION_ID_SCHEMA = {
   id: 'sessionId',
