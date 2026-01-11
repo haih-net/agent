@@ -11,11 +11,14 @@ if ($('Execute Workflow Trigger').isExecuted) {
 
 const agentData = $('Get Agent Data').first().json.data?.freeCodeMe || null
 
-// @ts-expect-error isExecuted is a valid boolean property in n8n runtime
 let userData = null
-if ($('Set Auth Context').isExecuted) {
-  userData = $('Set Auth Context').first().json.user || null
-} else {
+try {
+  if ($('Set Auth Context').isExecuted) {
+    userData = $('Set Auth Context').first().json.user || null
+  } else {
+    userData = triggerData.user || null
+  }
+} catch {
   userData = triggerData.user || null
 }
 
