@@ -1,0 +1,7 @@
+/.env
+node_modules
+generated
+.n8n
+/docker
+/shared
+/uploads

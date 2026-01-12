@@ -1,0 +1,18 @@
+/node_modules
+/storybook-static
+/package-lock.json
+
+/shared
+/uploads
+
+# next
+next-env.d.ts
+.next
+tsconfig.tsbuildinfo
+dist
+next-env.d.ts
+
+# codegen
+generated
+
+.n8n

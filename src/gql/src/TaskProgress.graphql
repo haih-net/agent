@@ -1,0 +1,40 @@
+query taskProgressList($where: TaskProgressWhereInput, $skip: Int, $take: Int) {
+  response: taskProgressList(where: $where, skip: $skip, take: $take) {
+    ...TaskProgress_
+  }
+}
+
+query taskProgress($where: TaskProgressWhereUniqueInput!) {
+  response: taskProgress(where: $where) {
+    ...TaskProgress_
+  }
+}
+
+mutation createTaskProgress($data: TaskProgressCreateInput!) {
+  response: createTaskProgress(data: $data) {
+    ...TaskProgressResponse_
+  }
+}
+
+mutation deleteTaskProgress($where: TaskProgressWhereUniqueInput!) {
+  response: deleteTaskProgress(where: $where) {
+    ...TaskProgressResponse_
+  }
+}
+
+fragment TaskProgress_ on TaskProgress {
+  ...TaskProgressNoNesting
+}
+
+fragment TaskProgressNoNesting on TaskProgress {
+  id
+  createdAt
+  content
+  taskId
+  createdById
+}
+
+fragment TaskProgressResponse_ on TaskProgressResponse {
+  success
+  message
+}

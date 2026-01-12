@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build
+dist/
+
+# Environment
+.env
+.env.test
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/migrations/*_migration.sql
+
+# Storybook
+storybook-static/
+
+# Shared (uploads, not tracked)
+/shared/*
+!/shared/.gitkeep
+
+/uploads/*
+!/uploads/.gitkeep
+
+# Generated
+generated
+
+tsconfig.tsbuildinfo
+
+.n8n

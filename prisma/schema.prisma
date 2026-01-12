@@ -1,0 +1,155 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+generator pothos {
+  provider = "prisma-pothos-types"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  active
+  blocked
+}
+
+model User {
+  id        String     @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime   @default(now()) @db.Timestamp(3)
+  updatedAt DateTime   @default(now()) @updatedAt @db.Timestamp(3)
+  status    UserStatus @default(active)
+  username  String?
+  password  String?    @db.VarChar(72)
+  email     String?
+  phone     String?
+  fullname  String?
+  image     String?    @db.Text
+  sudo      Boolean    @default(false)
+  data      Json?
+  intro     String?    @db.Text
+  content   String?    @db.Text
+
+  Tokens Token[]
+
+  MindLogs      MindLog[]      @relation(name: "MindLogCreatedBy")
+  TasksCreated  Task[]         @relation(name: "TaskCreatedBy")
+  TasksAssigned Task[]         @relation(name: "TaskAssignee")
+  TaskProgress  TaskProgress[] @relation(name: "TaskProgressCreatedBy")
+
+  @@unique([email])
+  @@unique([username])
+}
+
+model Token {
+  id        String    @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime  @default(now()) @db.Timestamp(3)
+  expiredAt DateTime? @db.Timestamp(3)
+  userId    String?   @db.VarChar(36)
+  User      User?     @relation(fields: [userId], references: [id])
+
+  @@index(createdAt)
+}
+
+enum MindLogType {
+  // Initial reaction to a stimulus – associations, emotions, spontaneous hypotheses and internal response.
+  Stimulus
+
+  // Internal or analytical reaction to a stimulus, conscious first assessment.
+  Reaction
+
+  // Chosen action or strategy in response to the reaction (specific step, decision).
+  Action
+
+  // Error log in case of request execution.
+  Error
+
+  // Objective recording of the result of actions taken (what actually happened).
+  Result
+
+  // Main conclusion – integration of the experience gained, formulation of a lesson or rule for future cases.
+  Conclusion
+
+  // External assessment – feedback or review from the user/expert regarding the result and applied solution.
+  Evaluation
+
+  // Correction – record of changing/reinforcing the weight of knowledge or strategy based on external assessment.
+  Correction
+
+  // Record of knowledge or pattern: description, usefulness, history of application and corrections.
+  Knowledge
+
+  // Agent self-awareness: who I am, why I exist, my boundaries and limitations, communication style, purpose. Global log without user binding.
+  Identity
+
+  // Cache of recent activity (2-3 hours): who I communicated with, what I did, current situation. Sliding window for quick context understanding.
+  Context
+
+  // Information about relationship with a specific user: who they are, interaction history, expectations, communication style with them. Bound to relatedToUserId.
+  Relationship
+}
+
+model MindLog {
+  id        String      @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime    @default(now()) @db.Timestamp(3)
+  updatedAt DateTime    @default(now()) @updatedAt @db.Timestamp(3)
+  type      MindLogType
+  data      String      @db.Text
+  quality   Float?
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade, name: "MindLogCreatedBy")
+
+  relatedToUserId String? @db.VarChar(36)
+
+  @@index([type])
+  @@index([relatedToUserId])
+}
+
+enum TaskStatus {
+  New
+  Rejected
+  Progress
+  Done
+}
+
+model Task {
+  id               String     @id @default(cuid()) @db.VarChar(36)
+  createdAt        DateTime   @default(now()) @db.Timestamp(3)
+  updatedAt        DateTime   @default(now()) @updatedAt @db.Timestamp(3)
+  title            String     @db.Text
+  description      String?    @db.Text
+  content          String?    @db.Text
+  status           TaskStatus @default(value: New)
+  startDatePlaning DateTime?
+  endDatePlaning   DateTime?
+  startDate        DateTime?
+  endDate          DateTime?
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade, name: "TaskCreatedBy")
+
+  assigneeId String? @db.VarChar(36)
+  Assignee   User?   @relation(fields: [assigneeId], references: [id], onDelete: Cascade, name: "TaskAssignee")
+
+  parentId String? @db.VarChar(36)
+  Parent   Task?   @relation(fields: [parentId], references: [id], onDelete: Cascade, name: "TaskChildren")
+  Children Task[]  @relation(name: "TaskChildren")
+
+  Progress TaskProgress[]
+}
+
+model TaskProgress {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  content   String   @db.Text
+
+  taskId String @db.VarChar(36)
+  Task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade, name: "TaskProgressCreatedBy")
+}

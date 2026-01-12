@@ -1,0 +1,23 @@
+version: '3.7'
+
+services:
+  traefik:
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+
+  app:
+    restart: unless-stopped
+    build:
+      args:
+        - ENV_MODE=production
+    environment:
+      ENV_MODE: production
+      # Credential files inside the container will be deleted after import.
+      # These files are used to create agents and service access credentials in n8n.
+      N8N_DELETE_CREDENTIALS_AFTER_IMPORT: true
+    command: 'npm run start'
+
+  supabase:
+    restart: unless-stopped

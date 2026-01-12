@@ -1,0 +1,39 @@
+FROM node:22-alpine
+
+ARG ENV_MODE
+ENV ENV_MODE $ENV_MODE
+
+ARG JWT_SECRET
+ENV JWT_SECRET $JWT_SECRET
+
+ARG DATABASE_URL
+ENV DATABASE_URL $DATABASE_URL
+
+ARG GRAPHQL_ENDPOINT
+ENV GRAPHQL_ENDPOINT $GRAPHQL_ENDPOINT
+
+ARG N8N_ENCRYPTION_KEY
+ENV N8N_ENCRYPTION_KEY $N8N_ENCRYPTION_KEY
+
+# ARG GRAPHQL_API_ENDPOINT
+# ENV GRAPHQL_API_ENDPOINT $GRAPHQL_API_ENDPOINT
+
+RUN apk update
+RUN apk add curl
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy source
+COPY . .
+
+RUN npm run prisma:deploy
+RUN npm run generate
+
+RUN if [ "$ENV_MODE" = "production" ] ; then yarn build ; fi
+
+# Expose ports
+EXPOSE 3000 4000

@@ -1,0 +1,76 @@
+query mindLogs($where: MindLogWhereInput, $skip: Int, $take: Int) {
+  response: mindLogs(where: $where, skip: $skip, take: $take) {
+    ...MindLog_
+  }
+}
+
+query mindLogsCount($where: MindLogWhereInput) {
+  response: mindLogsCount(where: $where)
+}
+
+query mindLogsWithCount($where: MindLogWhereInput, $skip: Int, $take: Int) {
+  mindLogs(where: $where, skip: $skip, take: $take) {
+    ...MindLog_
+  }
+  mindLogsCount(where: $where)
+}
+
+query myMindLogs($where: MindLogWhereInput, $skip: Int, $take: Int) {
+  response: myMindLogs(where: $where, skip: $skip, take: $take) {
+    ...MindLog_
+  }
+}
+
+query myMindLogsCount($where: MindLogWhereInput) {
+  response: myMindLogsCount(where: $where)
+}
+
+query myMindLog($where: MindLogWhereUniqueInput!) {
+  response: myMindLog(where: $where) {
+    ...MindLog_
+  }
+}
+
+query mindLog($where: MindLogWhereUniqueInput!) {
+  response: mindLog(where: $where) {
+    ...MindLog_
+  }
+}
+
+mutation createMindLog($data: MindLogCreateInput!) {
+  response: createMindLog(data: $data) {
+    ...MindLogResponse_
+  }
+}
+
+mutation updateMindLog($where: MindLogWhereUniqueInput!, $data: MindLogUpdateInput!) {
+  response: updateMindLog(where: $where, data: $data) {
+    ...MindLogResponse_
+  }
+}
+
+mutation deleteMindLog($where: MindLogWhereUniqueInput!) {
+  response: deleteMindLog(where: $where) {
+    ...MindLogResponse_
+  }
+}
+
+fragment MindLog_ on MindLog {
+  ...MindLogNoNesting
+}
+
+fragment MindLogNoNesting on MindLog {
+  id
+  createdAt
+  updatedAt
+  type
+  data
+  quality
+  createdById
+  relatedToUserId
+}
+
+fragment MindLogResponse_ on MindLogResponse {
+  success
+  message
+}

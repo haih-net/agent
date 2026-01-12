@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  traefik:
+    ports:
+      - 2015:80
+      - 8080:8080
+  app:
+    environment:
+      N8N_SECURE_COOKIE: false
+    volumes:
+      - ../package.json:/app/package.json
+      - ../next.config.js:/app/next.config.js
+      - ../prisma:/app/prisma
+      - ../src:/app/src
+      - ../server:/app/server
+    command: 'npm run dev:n8n'
+    ports:
+      - 3000:3000
+      - 4000:4000
+      - 5678:5678
+
+  supabase:
+    ports:
+      - 5432:5432

@@ -1,0 +1,54 @@
+version: '3.7'
+
+services:
+  app:
+    tty: true
+    build:
+      context: ../
+      network: ${NETWORK_NAME:-agicms-default}
+      args:
+        - ENV_MODE=development
+        - JWT_SECRET=${JWT_SECRET}
+        - DATABASE_URL=${DATABASE_URL}
+        - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    volumes:
+      - ../public:/app/public
+      - ../shared:/app/shared
+      - ../uploads:/app/uploads
+    environment:
+      - ENV_MODE=development
+    env_file:
+      - .env
+
+  supabase:
+    image: supabase/postgres:15.1.0.147
+    volumes:
+      - ./supabase/data:/var/lib/postgresql/data
+      # - ./supabase/init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+    environment:
+      - POSTGRES_PASSWORD=${SUPABASE_DB_PASSWORD:-your_supabase_password}
+      - POSTGRES_DB=${SUPABASE_DB_NAME:-postgres}
+    env_file:
+      - .env
+    healthcheck:
+      test: pg_isready -U postgres -h localhost
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  traefik:
+    image: traefik:v3.3.6
+    command:
+      - '--providers.docker.network=${NETWORK_NAME:-agicms-default}'
+    volumes:
+      - ${TRAEFIK_STATIC_CONFIG:-./traefik/traefik.yml}:/etc/traefik/traefik.yml:ro
+      - ${TRAEFIK_DYNAMIC_DIR:-./traefik/dynamic/local}:/etc/traefik/dynamic:ro
+      - ./traefik/logs:/var/log/traefik
+      - ./traefik/certs:/etc/traefik/certs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - 'traefik.enable=true'
+
+networks:
+  default:
+    name: ${NETWORK_NAME:-agicms-default}

@@ -1,0 +1,40 @@
+http:
+  routers:
+    n8n-webhook:
+      rule: 'PathPrefix(`/webhook`)'
+      entryPoints:
+        - web
+      service: n8n
+      priority: 100
+
+    n8n-webhook-test:
+      rule: 'PathPrefix(`/webhook-test`)'
+      entryPoints:
+        - web
+      service: n8n
+      priority: 100
+
+    n8n-mcp:
+      rule: 'PathPrefix(`/mcp`)'
+      entryPoints:
+        - web
+      service: n8n
+      priority: 100
+
+    app:
+      rule: 'PathPrefix(`/`)'
+      entryPoints:
+        - web
+      service: app
+      priority: 1
+
+  services:
+    app:
+      loadBalancer:
+        servers:
+          - url: 'http://app:3000'
+
+    n8n:
+      loadBalancer:
+        servers:
+          - url: 'http://app:5678'

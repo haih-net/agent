@@ -1,0 +1,76 @@
+query myTasks($where: TaskWhereInput, $skip: Int, $take: Int) {
+  response: myTasks(where: $where, skip: $skip, take: $take) {
+    ...Task_
+  }
+}
+
+query tasks($where: TaskWhereInput, $orderBy: TaskOrderByInput, $skip: Int, $take: Int) {
+  response: tasks(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...Task_
+  }
+}
+
+query myTasksCount($where: TaskWhereInput) {
+  response: myTasksCount(where: $where)
+}
+
+query tasksCount($where: TaskWhereInput) {
+  response: tasksCount(where: $where)
+}
+
+query tasksWithCount($where: TaskWhereInput, $orderBy: TaskOrderByInput, $skip: Int, $take: Int) {
+  tasks(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...Task_
+  }
+  tasksCount(where: $where)
+}
+
+query task($where: TaskWhereUniqueInput!) {
+  response: task(where: $where) {
+    ...Task_
+  }
+}
+
+mutation createTask($data: TaskCreateInput!) {
+  response: createTask(data: $data) {
+    ...TaskResponse_
+  }
+}
+
+mutation updateTask($where: TaskWhereUniqueInput!, $data: TaskUpdateInput!) {
+  response: updateTask(where: $where, data: $data) {
+    ...TaskResponse_
+  }
+}
+
+mutation deleteTask($where: TaskWhereUniqueInput!) {
+  response: deleteTask(where: $where) {
+    ...TaskResponse_
+  }
+}
+
+fragment Task_ on Task {
+  ...TaskNoNesting
+}
+
+fragment TaskNoNesting on Task {
+  id
+  createdAt
+  updatedAt
+  title
+  description
+  content
+  status
+  startDatePlaning
+  endDatePlaning
+  startDate
+  endDate
+  createdById
+  assigneeId
+  parentId
+}
+
+fragment TaskResponse_ on TaskResponse {
+  success
+  message
+}
