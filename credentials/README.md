@@ -1,6 +1,6 @@
 # Credentials
 
-Credentials are organized into two folders for automatic import during bootstrap.
+Credentials are organized into folders for automatic import during bootstrap.
 
 ## Folder Structure
 
@@ -10,9 +10,12 @@ credentials/
 │   ├── gitlab.json
 │   ├── openrouter.json
 │   └── telegram.json
-├── agents/           # Agent credentials (FreeCode API auth)
+├── agents/           # Agent configs (triggers wallet generation)
 │   ├── agent-chat.json
-│   └── agent-gitlab.json
+│   └── agent-api.json
+├── wallets/          # Auto-generated EVM wallets (gitignored)
+│   ├── agent-chat.json
+│   └── agent-api.json
 ├── bootstrap.env     # n8n owner setup
 └── README.md
 ```
@@ -98,24 +101,33 @@ All `.json` files in `system/` are imported as n8n credentials.
 ]
 ```
 
-## agents/ — Agent Credentials
+## agents/ — Agent Configs
 
-All `.json` files in `agents/` are used to authenticate agents with FreeCode API.
+Each `.json` file in `agents/` triggers EVM wallet generation for that agent.
 
 ### Format
 
 ```json
 {
-  "username": "agent-name",
-  "password": "secure-password",
-  "email": "agent@example.com",
-  "fullname": "Agent Display Name"
+  "name": "API Agent",
+  "description": "Agent for API operations"
 }
 ```
 
 Bootstrap will:
-1. Sign in or register the agent in FreeCode
-2. Create n8n `httpHeaderAuth` credential with the JWT token
+1. Generate EVM wallet (private key, public key, address) if not exists
+2. Store wallet in `wallets/{agent-name}.json`
+3. Create n8n credential with agent's blockchain address
+
+### Generated Wallet Format (wallets/)
+
+```json
+{
+  "address": "0x...",
+  "publicKey": "0x...",
+  "privateKey": "0x..."
+}
+```
 
 ## bootstrap.env
 
@@ -132,4 +144,5 @@ N8N_BOOTSTRAP_OWNER_LASTNAME=User
 
 - Always specify `id` to enable updates on re-import
 - All credential files are gitignored by default
+- Wallet private keys are stored locally and never transmitted
 - Files are deleted after successful import (configurable)

@@ -228,9 +228,21 @@ const convertSchemaToJsonSchema = (schema) => {
 - Single point of change for all agent tool configurations
 
 ### Credentials (`credentials/`)
-Credentials are organized into two folders:
+Credentials are organized into folders:
 - `system/` — n8n system credentials (GitLab, OpenRouter, Telegram, etc.) — all `.json` files auto-imported
-- `agents/` — Agent credentials (username/password for FreeCode API auth)
+- `agents/` — Agent config files (triggers EVM wallet generation)
+- `wallets/` — Auto-generated EVM wallets (gitignored)
+
+#### Agent Blockchain Identity
+
+Each agent has a unique EVM wallet (private key, public key, address) generated on first bootstrap.
+Wallets are stored in `credentials/wallets/{agent-name}.json` and used for blockchain identity.
+
+Bootstrap process:
+1. Reads agent configs from `agents/*.json`
+2. Generates EVM wallet if not exists (using ethers.js)
+3. Stores wallet in `wallets/`
+4. Creates n8n credential with agent's blockchain address
 
 See `credentials/README.md` for details.
 

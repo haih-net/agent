@@ -2,12 +2,6 @@ import { print } from 'graphql'
 import { TypedDocumentNode } from '@graphql-typed-document-node/core'
 import { PrismaContext } from 'server/context/interfaces'
 
-if (!process.env.GRAPHQL_API_ENDPOINT) {
-  throw new Error('GRAPHQL_API_ENDPOINT environment variable is required')
-}
-
-const GRAPHQL_API_ENDPOINT = process.env.GRAPHQL_API_ENDPOINT
-
 type GraphQLResponse<T> = {
   data?: T
   errors?: Array<{ message: string; path?: string[] }>
@@ -18,6 +12,11 @@ export async function externalApiQuery<TData, TVariables>(
   variables: TVariables | null,
   ctx: PrismaContext,
 ): Promise<GraphQLResponse<TData>> {
+  if (!process.env.GRAPHQL_API_ENDPOINT) {
+    throw new Error('GRAPHQL_API_ENDPOINT environment variable is required')
+  }
+  const GRAPHQL_API_ENDPOINT = process.env.GRAPHQL_API_ENDPOINT
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
