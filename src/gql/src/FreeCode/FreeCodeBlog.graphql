@@ -1,0 +1,24 @@
+query freeCodeBlogs($take: Int = 10, $skip: Int, $where: FreeCodeBlogWhereInput) {
+  freeCodeBlogs(take: $take, skip: $skip, where: $where) {
+    ...FreeCodeBlog_
+  }
+}
+
+query freeCodeBlogsCount($where: FreeCodeBlogWhereInput) {
+  freeCodeBlogsCount(where: $where)
+}
+
+query freeCodeBlog($where: FreeCodeBlogWhereUniqueInput!) {
+  freeCodeBlog(where: $where) {
+    ...FreeCodeBlog_
+  }
+}
+
+fragment FreeCodeBlog_ on FreeCodeBlog {
+  id
+  createdAt
+  updatedAt
+  name
+  longtitle
+  uri
+}

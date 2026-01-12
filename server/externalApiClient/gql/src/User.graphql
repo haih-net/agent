@@ -1,0 +1,62 @@
+query users(
+  $take: Int = 10
+  $where: UserWhereInput
+  $orderBy: [UserOrderByWithRelationInput!]
+  $fullInfo: Boolean = false
+) {
+  users(take: $take, where: $where, orderBy: $orderBy) {
+    ...User_
+  }
+}
+
+query user($where: UserWhereUniqueInput!, $fullInfo: Boolean = true) {
+  object: user(where: $where) {
+    ...User_
+  }
+}
+
+query usersCount($where: UserWhereInput) {
+  usersCount(where: $where)
+}
+
+query meUser($fullInfo: Boolean = true) {
+  me {
+    ...User_
+  }
+}
+
+mutation signin(
+  $data: UserSigninDataInput!
+  $where: UserWhereUniqueInput!
+  $fullInfo: Boolean = true
+) {
+  signin(data: $data, where: $where) {
+    success
+    message
+    token
+    data {
+      ...User_
+    }
+  }
+}
+
+mutation signup($data: UserSignupDataInput!) {
+  signup(data: $data) {
+    success
+    message
+    token
+  }
+}
+
+fragment User_ on User {
+  id
+  username
+  fullname
+  createdAt
+  rating
+  isMentor
+  ... on User @include(if: $fullInfo) {
+    intro
+    content
+  }
+}

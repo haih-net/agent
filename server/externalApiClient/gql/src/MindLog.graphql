@@ -1,0 +1,70 @@
+fragment MindLogNoNesting on MindLog {
+  id
+  createdAt
+  updatedAt
+  type
+  data
+  quality
+  createdById
+  relatedToUserId
+}
+
+query myMindLogs(
+  $where: MindLogWhereInput
+  $orderBy: [MindLogOrderByWithRelationInput!] = { createdAt: desc }
+  $skip: Int
+  $first: Int = 50
+) {
+  myMindLogsCount(where: $where)
+  myMindLogs(where: $where, orderBy: $orderBy, skip: $skip, take: $first) {
+    ...MindLogNoNesting
+  }
+}
+
+query mindLog($where: MindLogWhereUniqueInput!) {
+  mindLog(where: $where) {
+    ...MindLogNoNesting
+  }
+}
+
+mutation createMindLog($data: MindLogCreateInput!) {
+  response: createMindLog(data: $data) {
+    success
+    message
+    errors {
+      key
+      message
+    }
+    data {
+      ...MindLogNoNesting
+    }
+  }
+}
+
+mutation updateMindLog($where: MindLogWhereUniqueInput!, $data: MindLogUpdateInput!) {
+  response: updateMindLog(where: $where, data: $data) {
+    success
+    message
+    errors {
+      key
+      message
+    }
+    data {
+      ...MindLogNoNesting
+    }
+  }
+}
+
+mutation deleteMindLog($where: MindLogWhereUniqueInput!) {
+  response: deleteMindLog(where: $where) {
+    success
+    message
+    errors {
+      key
+      message
+    }
+    data {
+      id
+    }
+  }
+}

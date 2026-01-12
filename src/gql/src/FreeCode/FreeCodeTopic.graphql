@@ -1,0 +1,46 @@
+query freeCodeTopics($take: Int = 10, $skip: Int, $where: FreeCodeTopicWhereInput) {
+  freeCodeTopics(take: $take, skip: $skip, where: $where) {
+    ...FreeCodeTopic_
+  }
+}
+
+query freeCodeTopicsCount($where: FreeCodeTopicWhereInput) {
+  freeCodeTopicsCount(where: $where)
+}
+
+query freeCodeTopic($where: FreeCodeTopicWhereUniqueInput!) {
+  freeCodeTopic(where: $where) {
+    ...FreeCodeTopic_
+  }
+}
+
+mutation createFreeCodeTopic($data: FreeCodeTopicCreateInput!) {
+  createFreeCodeTopic(data: $data) {
+    success
+    message
+    data {
+      ...FreeCodeTopic_
+    }
+  }
+}
+
+mutation updateFreeCodeTopic($where: FreeCodeTopicWhereUniqueInput!, $data: FreeCodeTopicUpdateInput!) {
+  updateFreeCodeTopic(where: $where, data: $data) {
+    success
+    message
+    data {
+      ...FreeCodeTopic_
+    }
+  }
+}
+
+fragment FreeCodeTopic_ on FreeCodeTopic {
+  id
+  createdAt
+  updatedAt
+  name
+  longtitle
+  intro
+  contentV2
+  uri
+}

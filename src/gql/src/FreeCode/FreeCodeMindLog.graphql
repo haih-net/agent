@@ -1,0 +1,68 @@
+query freeCodeMyMindLogs(
+  $where: FreeCodeMindLogWhereInput
+  $orderBy: FreeCodeMindLogOrderByInput
+  $take: Int = 50
+  $skip: Int
+) {
+  freeCodeMyMindLogs(where: $where, orderBy: $orderBy, take: $take, skip: $skip) {
+    ...FreeCodeMindLog_
+  }
+}
+
+query freeCodeMyMindLogsCount($where: FreeCodeMindLogWhereInput) {
+  freeCodeMyMindLogsCount(where: $where)
+}
+
+query freeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!) {
+  freeCodeMindLog(where: $where) {
+    ...FreeCodeMindLog_
+  }
+}
+
+mutation createFreeCodeMindLog($data: FreeCodeMindLogCreateInput!) {
+  createFreeCodeMindLog(data: $data) {
+    success
+    message
+    data {
+      ...FreeCodeMindLog_
+    }
+  }
+}
+
+mutation updateFreeCodeMindLog(
+  $where: FreeCodeMindLogWhereUniqueInput!
+  $data: FreeCodeMindLogUpdateInput!
+) {
+  updateFreeCodeMindLog(where: $where, data: $data) {
+    success
+    message
+    data {
+      ...FreeCodeMindLog_
+    }
+  }
+}
+
+mutation deleteFreeCodeMindLog($where: FreeCodeMindLogWhereUniqueInput!) {
+  deleteFreeCodeMindLog(where: $where) {
+    success
+    message
+    data {
+      id
+    }
+  }
+}
+
+fragment FreeCodeMindLogNoNesting on FreeCodeMindLog {
+  id
+  createdAt
+  updatedAt
+  type
+  data
+  quality
+  createdById
+  relatedToUserId
+}
+
+fragment FreeCodeMindLog_ on FreeCodeMindLog {
+  ...FreeCodeMindLogNoNesting
+}

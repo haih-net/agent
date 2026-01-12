@@ -1,0 +1,50 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+generator pothos {
+  provider = "prisma-pothos-types"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  active
+  blocked
+}
+
+model User {
+  id        String     @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime   @default(now()) @db.Date()
+  updatedAt DateTime   @default(now()) @updatedAt @db.Date()
+  status    UserStatus @default(active)
+  username  String?
+  password  String?    @db.VarChar(72)
+  email     String?
+  phone     String?
+  fullname  String?
+  image     String?    @db.Text
+  sudo      Boolean    @default(false)
+  data      Json?
+  intro     String?    @db.Text
+  content   String?    @db.Text
+
+  Tokens Token[]
+
+  @@unique([email])
+  @@unique([username])
+}
+
+model Token {
+  id        String    @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime  @default(now()) @db.Date()
+  expiredAt DateTime? @db.Date()
+  userId    String?   @db.VarChar(36)
+  User      User?     @relation(fields: [userId], references: [id])
+
+  @@index(createdAt)
+}

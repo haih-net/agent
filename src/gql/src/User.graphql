@@ -1,0 +1,57 @@
+query me {
+  me {
+    ...meUser
+  }
+}
+
+query user($where: UserWhereUniqueInput!) {
+  object: user(where: $where) {
+    ...User_
+  }
+}
+
+query usersConnection($where: UserWhereInput, $skip: Int, $first: Int = 10) {
+  usersCount(where: $where)
+  users(where: $where, skip: $skip, take: $first) {
+    ...User_
+  }
+}
+
+mutation updateCurrentUser($data: CurrentUserUpdateInput!) {
+  response: updateCurrentUser(data: $data) {
+    ...User_
+  }
+}
+
+mutation signin($where: UserWhereUniqueInput!, $data: UserSigninDataInput!) {
+  response: signin(where: $where, data: $data) {
+    success
+    message
+    token
+  }
+}
+
+mutation signup($data: UserSignupDataInput!) {
+  response: signup(data: $data) {
+    success
+    message
+    token
+  }
+}
+
+fragment meUser on User {
+  ...User_
+}
+
+fragment User_ on User {
+  ...UserNoNesting
+}
+
+fragment UserNoNesting on User {
+  id
+  createdAt
+  username
+  fullname
+  image
+  content
+}

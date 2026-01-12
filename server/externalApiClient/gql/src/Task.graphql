@@ -1,0 +1,64 @@
+fragment TaskNoNesting on Task {
+  id
+  name
+  description
+  content
+  status
+  projectId
+  startDatePlaning
+  endDatePlaning
+  startDate
+  endDate
+  needHelp
+  createdAt
+  updatedAt
+}
+
+query tasks(
+  $where: TaskWhereInput
+  $take: Int = 10
+  $skip: Int
+  $orderBy: [TaskOrderByWithRelationInput!] = { createdAt: desc }
+) {
+  tasksCount(where: $where)
+  tasks(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
+    ...TaskNoNesting
+  }
+}
+
+query task($where: TaskWhereUniqueInput!) {
+  object: task(where: $where) {
+    ...TaskNoNesting
+  }
+}
+
+mutation createTaskProcessor($data: TaskCreateInput!) {
+  response: createTaskProcessor(data: $data) {
+    success
+    message
+    errors {
+      key
+      message
+    }
+    data {
+      ...TaskNoNesting
+    }
+  }
+}
+
+mutation updateTaskProcessor(
+  $data: TaskUpdateInput!
+  $where: TaskWhereUniqueInput!
+) {
+  response: updateTaskProcessor(data: $data, where: $where) {
+    success
+    message
+    errors {
+      key
+      message
+    }
+    data {
+      ...TaskNoNesting
+    }
+  }
+}

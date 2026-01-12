@@ -1,0 +1,58 @@
+query freeCodeTasks($take: Int = 10, $fullInfo: Boolean = false) {
+  freeCodeTasks(take: $take) {
+    ...FreeCodeTask_
+  }
+}
+
+query freeCodeTask($where: FreeCodeTaskWhereUniqueInput!, $fullInfo: Boolean = false) {
+  freeCodeTask(where: $where) {
+    ...FreeCodeTask_
+  }
+}
+
+query freeCodeTasksCount($where: FreeCodeTaskWhereInput) {
+  freeCodeTasksCount(where: $where)
+}
+
+mutation createFreeCodeTask($data: FreeCodeTaskCreateInput!, $fullInfo: Boolean = true) {
+  createFreeCodeTask(data: $data) {
+    success
+    message
+    data {
+      ...FreeCodeTask_
+    }
+  }
+}
+
+mutation updateFreeCodeTask(
+  $data: FreeCodeTaskUpdateInput!
+  $where: FreeCodeTaskUpdateWhereInput!
+  $fullInfo: Boolean = true
+) {
+  updateFreeCodeTask(data: $data, where: $where) {
+    success
+    message
+    data {
+      ...FreeCodeTask_
+    }
+  }
+}
+
+fragment FreeCodeTaskNoNesting on FreeCodeTask {
+  id
+  name
+  status
+  projectId
+  createdAt
+  updatedAt
+  description @include(if: $fullInfo)
+  content @include(if: $fullInfo)
+  startDatePlaning @include(if: $fullInfo)
+  endDatePlaning @include(if: $fullInfo)
+  startDate @include(if: $fullInfo)
+  endDate @include(if: $fullInfo)
+}
+
+fragment FreeCodeTask_ on FreeCodeTask {
+  ...FreeCodeTaskNoNesting
+}

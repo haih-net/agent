@@ -1,0 +1,58 @@
+fragment ProjectNoNesting on Project {
+  id
+  name
+  description
+  url
+  status
+  createdAt
+  updatedAt
+}
+
+query projects(
+  $where: ProjectWhereInput
+  $take: Int = 10
+  $skip: Int
+  $orderBy: [ProjectOrderByWithRelationInput!] = { createdAt: desc }
+) {
+  projectsCount(where: $where)
+  projects(where: $where, take: $take, skip: $skip, orderBy: $orderBy) {
+    ...ProjectNoNesting
+  }
+}
+
+query project($where: ProjectWhereUniqueInput!) {
+  project(where: $where) {
+    ...ProjectNoNesting
+  }
+}
+
+mutation createProjectProcessor($data: ProjectCreateInput!) {
+  response: createProjectProcessor(data: $data) {
+    success
+    message
+    errors {
+      key
+      message
+    }
+    data {
+      ...ProjectNoNesting
+    }
+  }
+}
+
+mutation updateProjectProcessor(
+  $data: ProjectUpdateInput!
+  $where: ProjectWhereUniqueInput!
+) {
+  response: updateProjectProcessor(data: $data, where: $where) {
+    success
+    message
+    errors {
+      key
+      message
+    }
+    data {
+      ...ProjectNoNesting
+    }
+  }
+}
