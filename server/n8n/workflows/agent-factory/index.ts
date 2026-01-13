@@ -23,7 +23,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     memorySize = 10,
     canExecuteCode = false,
     authFromToken = false,
-    hasGraphqlTool = true,
+    hasGraphqlTool = false,
     hasTools = true,
     additionalNodes = [],
     additionalConnections = {},

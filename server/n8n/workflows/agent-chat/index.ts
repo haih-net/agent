@@ -17,7 +17,6 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   model: 'anthropic/claude-opus-4.5',
   hasWorkflowOutput: true,
   authFromToken: true,
-  hasGraphqlTool: false,
   agentNodeType: 'orchestrator',
   additionalNodes: [
     createAgentTool({

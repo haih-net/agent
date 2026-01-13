@@ -15,6 +15,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-api-chat',
   instanceId: 'narasim-dev-api',
+  hasGraphqlTool: true,
   additionalNodes: [
     {
       parameters: {

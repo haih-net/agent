@@ -56,7 +56,7 @@ const gitlabToolNodes: NodeType[] = [
     name: 'GitLab Get Projects Tool',
     type: '@n8n/n8n-nodes-langchain.toolWorkflow',
     typeVersion: 2.2,
-    position: [1120, 512],
+    position: [672, 720],
   },
   {
     parameters: {
