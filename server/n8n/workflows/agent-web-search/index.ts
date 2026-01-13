@@ -16,7 +16,6 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   webhookId: 'agent-web-search-chat',
   instanceId: 'narasim-dev-web-search',
   model: 'perplexity/sonar-reasoning-pro',
-  hasGraphqlTool: false,
   hasTools: false,
   memorySize: 0,
   workflowInputs: [

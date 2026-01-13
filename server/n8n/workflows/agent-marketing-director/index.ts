@@ -17,7 +17,6 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   webhookId: 'agent-marketing-director-chat',
   instanceId: 'narasim-dev-marketing-director',
   model: 'anthropic/claude-sonnet-4',
-  hasGraphqlTool: false,
   workflowInputs: [
     { name: 'chatInput', type: 'string' },
     { name: 'sessionId', type: 'string' },
