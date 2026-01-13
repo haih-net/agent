@@ -192,7 +192,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-gitlab-chat',
   instanceId: 'freecode-agent-gitlab',
-  model: 'anthropic/claude-opus-4.5',
+  model: process.env.AGENT_GITLAB_MODEL || 'anthropic/claude-opus-4.5',
   workflowInputs: [
     { name: 'chatInput', type: 'string' },
     { name: 'sessionId', type: 'string' },

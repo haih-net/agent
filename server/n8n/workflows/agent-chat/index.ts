@@ -14,7 +14,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-chat-webhook',
   instanceId: 'narasim-dev-agent-chat',
-  model: 'anthropic/claude-opus-4.5',
+  model: process.env.AGENT_CHAT_MODEL || 'anthropic/claude-opus-4.5',
   hasWorkflowOutput: true,
   authFromToken: true,
   agentNodeType: 'orchestrator',

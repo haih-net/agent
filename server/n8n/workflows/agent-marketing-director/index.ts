@@ -16,7 +16,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-marketing-director-chat',
   instanceId: 'narasim-dev-marketing-director',
-  model: 'anthropic/claude-sonnet-4',
+  model:
+    process.env.AGENT_MARKETING_DIRECTOR_MODEL || 'anthropic/claude-sonnet-4',
   workflowInputs: [
     { name: 'chatInput', type: 'string' },
     { name: 'sessionId', type: 'string' },
