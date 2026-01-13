@@ -12,13 +12,20 @@ server/n8n/workflows/
 │   └── nodes/
 │       ├── baseNodes/       # Common nodes for all agents
 │       └── mindLogNodes/    # MindLog tool nodes
+├── helpers/                 # Tool creation helpers
+│   └── index.ts             # createTool(), createAgentTool(), etc.
 ├── agent-chat/              # Chat Agent workflow
+├── agent-gitlab/            # GitLab Agent workflow
 ├── agent-project-manager/   # Project Manager Agent
 ├── agent-pr-manager/        # PR Manager Agent
 ├── agent-web-search/        # Web Search Agent (Perplexity)
 ├── agent-marketing-director/ # Marketing Director Agent
 └── agent-api/               # API Agent
 ```
+
+## Related
+
+- [Workflow Helpers](./helpers/README.md) — `createTool()`, `createAgentTool()` functions
 
 ## AgentFactoryConfig
 

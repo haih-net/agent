@@ -1,349 +1,165 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
-import { createAgentTool } from '../helpers'
-import { WorkflowBase } from '../interfaces'
+import { createAgentTool, createTool, createToolInputs } from '../helpers'
 
 const AGENT_NAME = 'GitLab Agent'
-
-type NodeType = WorkflowBase['nodes'][number]
-
 const agentId = 'gitlab-agent'
 
-const gitlabToolNodes: NodeType[] = [
-  {
-    parameters: {
-      name: 'gitlab_get_projects',
-      description:
-        'Get list of GitLab projects. Supports pagination with limit (default 10) and page (default 1).',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: 'Tool: GitLab Projects',
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          limit:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('limit', `Number of projects to return (default 10)`, 'number') }}",
-          page: "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('page', `Page number (default 1)`, 'number') }}",
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'limit',
-            displayName: 'limit',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'number',
-          },
-          {
-            id: 'page',
-            displayName: 'page',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'number',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-gitlab-projects`,
-    name: 'GitLab Get Projects Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+const gitlabToolNodes = [
+  createTool({
+    name: 'gitlab_get_projects',
+    toolName: 'GitLab Get Projects Tool',
+    description:
+      'Get list of GitLab projects. Supports pagination with limit (default 10) and page (default 1).',
+    workflowName: 'Tool: GitLab Projects',
+    nodeId: `${agentId}-tool-gitlab-projects`,
     position: [672, 720],
-  },
-  {
-    parameters: {
-      name: 'gitlab_get_issues',
-      description:
-        'Get issues from GitLab project. Project path is required (format: owner/repo or group/project). Can filter by state and assignee.',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: 'Tool: GitLab Issues',
+    inputs: createToolInputs([
+      {
+        name: 'limit',
+        description: 'Number of projects to return (default 10)',
+        type: 'number',
       },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          project:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('project', `Project path in format owner/repo (required)`, 'string') }}",
-          state:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('state', `Issue state: opened, closed, all (default: opened)`, 'string') }}",
-          assignee:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('assignee', `Filter by assignee username (optional)`, 'string') }}",
-          limit:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('limit', `Number of issues to return (default 10)`, 'number') }}",
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'project',
-            displayName: 'project',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'state',
-            displayName: 'state',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'assignee',
-            displayName: 'assignee',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'limit',
-            displayName: 'limit',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'number',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-gitlab-issues`,
-    name: 'GitLab Get Issues Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+      { name: 'page', description: 'Page number (default 1)', type: 'number' },
+    ]),
+  }),
+  createTool({
+    name: 'gitlab_get_issues',
+    toolName: 'GitLab Get Issues Tool',
+    description:
+      'Get issues from GitLab project. Project path is required (format: owner/repo or group/project). Can filter by state and assignee.',
+    workflowName: 'Tool: GitLab Issues',
+    nodeId: `${agentId}-tool-gitlab-issues`,
     position: [1344, 512],
-  },
-  {
-    parameters: {
-      name: 'gitlab_get_board_lists',
-      description:
-        'Get board lists from GitLab board. Returns columns/lists of a board with their labels.',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: 'Tool: GitLab Board Lists',
+    inputs: createToolInputs([
+      {
+        name: 'project',
+        description: 'Project path in format owner/repo (required)',
+        type: 'string',
+        required: true,
       },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          fullPath:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fullPath', `Group or project path (required)`, 'string') }}",
-          boardId:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('boardId', `Board ID in format gid://gitlab/Board/{id} (required)`, 'string') }}",
-          isGroup:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('isGroup', `True if fullPath is a group, false if project`, 'boolean') }}",
-          assignee:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('assignee', `Filter by assignee username (optional)`, 'string') }}",
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'fullPath',
-            displayName: 'fullPath',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'boardId',
-            displayName: 'boardId',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'isGroup',
-            displayName: 'isGroup',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'boolean',
-          },
-          {
-            id: 'assignee',
-            displayName: 'assignee',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
+      {
+        name: 'state',
+        description: 'Issue state: opened, closed, all (default: opened)',
+        type: 'string',
       },
-    },
-    id: `${agentId}-tool-gitlab-board-lists`,
-    name: 'GitLab Get Board Lists Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+      {
+        name: 'assignee',
+        description: 'Filter by assignee username (optional)',
+        type: 'string',
+      },
+      {
+        name: 'limit',
+        description: 'Number of issues to return (default 10)',
+        type: 'number',
+      },
+    ]),
+  }),
+  createTool({
+    name: 'gitlab_get_board_lists',
+    toolName: 'GitLab Get Board Lists Tool',
+    description:
+      'Get board lists from GitLab board. Returns columns/lists of a board with their labels.',
+    workflowName: 'Tool: GitLab Board Lists',
+    nodeId: `${agentId}-tool-gitlab-board-lists`,
     position: [1568, 512],
-  },
-  {
-    parameters: {
-      name: 'gitlab_get_issue_detail',
-      description:
-        'Get detailed information about a specific issue/work item by its IID.',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: 'Tool: GitLab Issue Detail',
+    inputs: createToolInputs([
+      {
+        name: 'fullPath',
+        description: 'Group or project path (required)',
+        type: 'string',
+        required: true,
       },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          fullPath:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fullPath', `Project path in format owner/repo (required)`, 'string') }}",
-          iid: "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('iid', `Issue IID number (required)`, 'string') }}",
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'fullPath',
-            displayName: 'fullPath',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'iid',
-            displayName: 'iid',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
+      {
+        name: 'boardId',
+        description: 'Board ID in format gid://gitlab/Board/{id} (required)',
+        type: 'string',
+        required: true,
       },
-    },
-    id: `${agentId}-tool-gitlab-issue-detail`,
-    name: 'GitLab Get Issue Detail Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+      {
+        name: 'isGroup',
+        description: 'True if fullPath is a group, false if project',
+        type: 'boolean',
+        required: true,
+      },
+      {
+        name: 'assignee',
+        description: 'Filter by assignee username (optional)',
+        type: 'string',
+      },
+    ]),
+  }),
+  createTool({
+    name: 'gitlab_get_issue_detail',
+    toolName: 'GitLab Get Issue Detail Tool',
+    description:
+      'Get detailed information about a specific issue/work item by its IID.',
+    workflowName: 'Tool: GitLab Issue Detail',
+    nodeId: `${agentId}-tool-gitlab-issue-detail`,
     position: [1792, 512],
-  },
-  {
-    parameters: {
-      name: 'gitlab_get_board_issues',
-      description:
-        'Get issues from a specific board column (list). Use after getting board lists to fetch issues in each column.',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: 'Tool: GitLab Board Issues',
+    inputs: createToolInputs([
+      {
+        name: 'fullPath',
+        description: 'Project path in format owner/repo (required)',
+        type: 'string',
+        required: true,
       },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          fullPath:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fullPath', `Group or project path (required)`, 'string') }}",
-          boardId:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('boardId', `Board ID in format gid://gitlab/Board/{id} (required)`, 'string') }}",
-          listId:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('listId', `List ID in format gid://gitlab/List/{id} (required)`, 'string') }}",
-          isGroup:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('isGroup', `True if fullPath is a group, false if project`, 'boolean') }}",
-          assignee:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('assignee', `Filter by assignee username (optional)`, 'string') }}",
-          first:
-            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('first', `Number of issues to return (default 10)`, 'number') }}",
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'fullPath',
-            displayName: 'fullPath',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'boardId',
-            displayName: 'boardId',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'listId',
-            displayName: 'listId',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'isGroup',
-            displayName: 'isGroup',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'boolean',
-          },
-          {
-            id: 'assignee',
-            displayName: 'assignee',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'first',
-            displayName: 'first',
-            required: false,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'number',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
+      {
+        name: 'iid',
+        description: 'Issue IID number (required)',
+        type: 'string',
+        required: true,
       },
-    },
-    id: `${agentId}-tool-gitlab-board-issues`,
-    name: 'GitLab Get Board Issues Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+    ]),
+  }),
+  createTool({
+    name: 'gitlab_get_board_issues',
+    toolName: 'GitLab Get Board Issues Tool',
+    description:
+      'Get issues from a specific board column (list). Use after getting board lists to fetch issues in each column.',
+    workflowName: 'Tool: GitLab Board Issues',
+    nodeId: `${agentId}-tool-gitlab-board-issues`,
     position: [2016, 512],
-  },
+    inputs: createToolInputs([
+      {
+        name: 'fullPath',
+        description: 'Group or project path (required)',
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'boardId',
+        description: 'Board ID in format gid://gitlab/Board/{id} (required)',
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'listId',
+        description: 'List ID in format gid://gitlab/List/{id} (required)',
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'isGroup',
+        description: 'True if fullPath is a group, false if project',
+        type: 'boolean',
+        required: true,
+      },
+      {
+        name: 'assignee',
+        description: 'Filter by assignee username (optional)',
+        type: 'string',
+      },
+      {
+        name: 'first',
+        description: 'Number of issues to return (default 10)',
+        type: 'number',
+      },
+    ]),
+  }),
 ]
 
-const agentToolNodes: NodeType[] = [
+const agentToolNodes = [
   createAgentTool({
     name: 'techlead_agent',
     toolName: 'Tech Lead Tool',

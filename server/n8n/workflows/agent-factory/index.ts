@@ -8,6 +8,7 @@ import {
 import { getMindLogNodes } from './nodes/mindLogNodes'
 import { WorkflowBase } from '../interfaces'
 import { getBaseNodes } from './nodes/baseNodes'
+import { createTool, createToolInputs } from '../helpers'
 
 export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
   const {
@@ -150,80 +151,41 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
 
   const codeExecutionNodes: NodeType[] = canExecuteCode
     ? [
-        {
-          parameters: {
-            name: 'read_file',
-            description:
-              'Read a file from the project source code. Returns file content (max 500 lines).',
-            workflowId: {
-              __rl: true,
-              mode: 'list',
-              value: 'Tool: Read File',
-            },
-            workflowInputs: {
-              mappingMode: 'defineBelow',
-              value: {
-                path: "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('path', `File path to read, e.g. 'src/index.ts' or 'package.json'`, 'string') }}",
-              },
-              matchingColumns: [],
-              schema: [
-                {
-                  id: 'path',
-                  displayName: 'path',
-                  required: true,
-                  defaultMatch: false,
-                  display: true,
-                  canBeUsedToMatch: true,
-                  type: 'string',
-                },
-              ],
-              attemptToConvertTypes: false,
-              convertFieldsToString: false,
-            },
-          },
-          id: `${agentId}-tool-read-file`,
-          name: 'Read File Tool',
-          type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-          typeVersion: 2.2,
+        createTool({
+          name: 'read_file',
+          toolName: 'Read File Tool',
+          description:
+            'Read a file from the project source code. Returns file content (max 500 lines).',
+          workflowName: 'Tool: Read File',
+          nodeId: `${agentId}-tool-read-file`,
           position: [1568, 512],
-        },
-        {
-          parameters: {
-            name: 'list_files',
-            description:
-              'List files and directories in a given path. Returns ls -la output.',
-            workflowId: {
-              __rl: true,
-              mode: 'list',
-              value: 'Tool: List Files',
+          inputs: createToolInputs([
+            {
+              name: 'path',
+              description:
+                "File path to read, e.g. 'src/index.ts' or 'package.json'",
+              type: 'string',
+              required: true,
             },
-            workflowInputs: {
-              mappingMode: 'defineBelow',
-              value: {
-                path: "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('path', `Directory path to list, e.g. '.' or 'src'`, 'string') }}",
-              },
-              matchingColumns: [],
-              schema: [
-                {
-                  id: 'path',
-                  displayName: 'path',
-                  required: true,
-                  defaultMatch: false,
-                  display: true,
-                  canBeUsedToMatch: true,
-                  type: 'string',
-                },
-              ],
-              attemptToConvertTypes: false,
-              convertFieldsToString: false,
-            },
-          },
-          id: `${agentId}-tool-list-files`,
-          name: 'List Files Tool',
-          type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-          typeVersion: 2.2,
+          ]),
+        }),
+        createTool({
+          name: 'list_files',
+          toolName: 'List Files Tool',
+          description:
+            'List files and directories in a given path. Returns ls -la output.',
+          workflowName: 'Tool: List Files',
+          nodeId: `${agentId}-tool-list-files`,
           position: [1792, 512],
-        },
+          inputs: createToolInputs([
+            {
+              name: 'path',
+              description: "Directory path to list, e.g. '.' or 'src'",
+              type: 'string',
+              required: true,
+            },
+          ]),
+        }),
       ]
     : []
 
@@ -240,67 +202,35 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
 
   const graphqlToolNodes: NodeType[] = hasGraphqlTool
     ? [
-        {
-          parameters: {
-            name: 'graphql_request',
-            description: `Execute a GraphQL query or mutation against the API. IMPORTANT: All requests are authenticated as ${agentName}, not as the external user.`,
-            workflowId: {
-              __rl: true,
-              mode: 'list',
-              value: `Tool: GraphQL Request (${agentName})`,
-            },
-            workflowInputs: {
-              mappingMode: 'defineBelow',
-              value: {
-                query:
-                  "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', `Required! GraphQL query or mutation string`, 'string') }}",
-                variables:
-                  "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', `Variables object for the query, use {} if no variables needed`, 'string') }}",
-                operationName:
-                  "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('operationName', `Optional: GraphQL operation name to execute specific operation from document`, 'string') }}",
-              },
-              matchingColumns: ['query'],
-              schema: [
-                {
-                  id: 'query',
-                  displayName: 'query',
-                  required: true,
-                  defaultMatch: false,
-                  display: true,
-                  canBeUsedToMatch: true,
-                  type: 'string',
-                  removed: false,
-                },
-                {
-                  id: 'variables',
-                  displayName: 'variables',
-                  required: true,
-                  defaultMatch: false,
-                  display: true,
-                  canBeUsedToMatch: true,
-                  removed: false,
-                },
-                {
-                  id: 'operationName',
-                  displayName: 'operationName',
-                  required: false,
-                  defaultMatch: false,
-                  display: true,
-                  canBeUsedToMatch: true,
-                  type: 'string',
-                  removed: false,
-                },
-              ],
-              attemptToConvertTypes: false,
-              convertFieldsToString: false,
-            },
-          },
-          id: `${agentId}-tool-graphql`,
-          name: 'GraphQL Request Tool',
-          type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-          typeVersion: 2.2,
+        createTool({
+          name: 'graphql_request',
+          toolName: 'GraphQL Request Tool',
+          description: `Execute a GraphQL query or mutation against the API. IMPORTANT: All requests are authenticated as ${agentName}, not as the external user.`,
+          workflowName: `Tool: GraphQL Request (${agentName})`,
+          nodeId: `${agentId}-tool-graphql`,
           position: [224, 512],
-        },
+          inputs: createToolInputs([
+            {
+              name: 'query',
+              description: 'Required! GraphQL query or mutation string',
+              type: 'string',
+              required: true,
+            },
+            {
+              name: 'variables',
+              description:
+                'Variables object for the query, use {} if no variables needed',
+              type: 'string',
+              required: true,
+            },
+            {
+              name: 'operationName',
+              description:
+                'Optional: GraphQL operation name to execute specific operation from document',
+              type: 'string',
+            },
+          ]),
+        }),
       ]
     : []
 

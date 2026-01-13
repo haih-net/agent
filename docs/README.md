@@ -8,6 +8,7 @@ This documentation covers the custom n8n integration for freecode.academy.
 - [Custom Nodes](./custom-nodes/README.md)
 - [Agent System](./agents/README.md)
 - [Workflows](./workflows/README.md)
+- [Helpers](./helpers/README.md)
 - [Testing & Debugging](./testing/README.md)
 
 ## Architecture Overview
