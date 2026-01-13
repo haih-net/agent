@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import { NodeType } from '../agent-factory/interfaces'
 
 export function readN8nTemplate(filePath: string): string {
   const content = fs.readFileSync(filePath, 'utf-8')
@@ -45,6 +46,92 @@ export const REQUEST_SCHEMA = {
   type: 'string',
 } as const
 
+export interface SchemaItem {
+  id: string
+  displayName: string
+  required: boolean
+  defaultMatch: boolean
+  display: boolean
+  canBeUsedToMatch: boolean
+  type: 'string' | 'number' | 'boolean' | 'object'
+}
+
+export type InputType = 'string' | 'number' | 'boolean' | 'object'
+
+export interface ToolInputDef {
+  name: string
+  description: string
+  type: InputType
+  required?: boolean
+}
+
+export interface StaticInputDef {
+  name: string
+  value: string
+  type: InputType
+  required?: boolean
+}
+
+export function createStaticInputs(inputs: StaticInputDef[]): {
+  value: Record<string, string>
+  schema: SchemaItem[]
+} {
+  const value: Record<string, string> = {}
+  const schema: SchemaItem[] = []
+
+  for (const input of inputs) {
+    value[input.name] = input.value
+    schema.push({
+      id: input.name,
+      displayName: input.name,
+      required: input.required ?? false,
+      defaultMatch: false,
+      display: true,
+      canBeUsedToMatch: true,
+      type: input.type,
+    })
+  }
+
+  return { value, schema }
+}
+
+export function createToolInputs(inputs: ToolInputDef[]): {
+  value: Record<string, string>
+  schema: SchemaItem[]
+} {
+  const value: Record<string, string> = {}
+  const schema: SchemaItem[] = []
+
+  for (const input of inputs) {
+    value[input.name] =
+      `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('${input.name}', \`${input.description}\`, '${input.type}') }}`
+    schema.push({
+      id: input.name,
+      displayName: input.name,
+      required: input.required ?? false,
+      defaultMatch: false,
+      display: true,
+      canBeUsedToMatch: true,
+      type: input.type,
+    })
+  }
+
+  return { value, schema }
+}
+
+export interface CreateToolConfig {
+  name: string
+  toolName: string
+  description: string
+  workflowName: string
+  nodeId: string
+  position: [number, number]
+  inputs?: {
+    value: Record<string, string>
+    schema: SchemaItem[]
+  }
+}
+
 export interface CreateAgentToolConfig {
   name: string
   toolName: string
@@ -55,17 +142,44 @@ export interface CreateAgentToolConfig {
   includeUser?: boolean
 }
 
-interface SchemaItem {
-  id: string
-  displayName: string
-  required: boolean
-  defaultMatch: boolean
-  display: boolean
-  canBeUsedToMatch: boolean
-  type: 'string' | 'number' | 'boolean' | 'object'
+export function createTool(config: CreateToolConfig): NodeType {
+  const {
+    name,
+    toolName,
+    description,
+    workflowName,
+    nodeId,
+    position,
+    inputs,
+  } = config
+
+  return {
+    parameters: {
+      name,
+      description,
+      workflowId: {
+        __rl: true,
+        mode: 'list' as const,
+        value: workflowName,
+      },
+      workflowInputs: {
+        mappingMode: 'defineBelow' as const,
+        value: inputs?.value ?? {},
+        matchingColumns: [],
+        schema: inputs?.schema ?? [],
+        attemptToConvertTypes: false,
+        convertFieldsToString: false,
+      },
+    },
+    id: nodeId,
+    name: toolName,
+    type: '@n8n/n8n-nodes-langchain.toolWorkflow' as const,
+    typeVersion: 2.2,
+    position,
+  }
 }
 
-export function createAgentTool(config: CreateAgentToolConfig) {
+export function createAgentTool(config: CreateAgentToolConfig): NodeType {
   const {
     name,
     toolName,
@@ -88,28 +202,13 @@ export function createAgentTool(config: CreateAgentToolConfig) {
     schema.push(USER_SCHEMA)
   }
 
-  return {
-    parameters: {
-      name,
-      description,
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: workflowName,
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value,
-        matchingColumns: [],
-        schema,
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: nodeId,
-    name: toolName,
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+  return createTool({
+    name,
+    toolName,
+    description,
+    workflowName,
+    nodeId,
     position,
-  }
+    inputs: { value, schema },
+  })
 }
