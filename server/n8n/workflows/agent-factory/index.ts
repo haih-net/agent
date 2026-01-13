@@ -30,7 +30,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     additionalConnections = {},
     systemMessagePath,
     webhookId,
-    model = 'anthropic/claude-sonnet-4',
+    model = process.env.AGENT_DEFAULT_MODEL || 'anthropic/claude-sonnet-4',
     maxIterations = 20,
     agentNodeType = 'default',
     enableStreaming = true,

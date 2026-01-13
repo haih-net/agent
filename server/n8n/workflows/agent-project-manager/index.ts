@@ -16,7 +16,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-project-manager-chat',
   instanceId: 'narasim-dev-project-manager',
-  model: 'anthropic/claude-opus-4.5',
+  model: process.env.AGENT_PROJECT_MANAGER_MODEL || 'anthropic/claude-opus-4.5',
   workflowInputs: [
     { name: 'chatInput', type: 'string' },
     { name: 'sessionId', type: 'string' },

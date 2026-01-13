@@ -16,7 +16,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-junior-dev-webhook',
   instanceId: 'narasim-dev-agent-junior-dev',
-  model: 'anthropic/claude-3.5-sonnet',
+  model: process.env.AGENT_JUNIOR_DEV_MODEL || 'anthropic/claude-3.5-sonnet',
   hasWorkflowOutput: true,
   canExecuteCode: isDevelopment,
   workflowInputs: [

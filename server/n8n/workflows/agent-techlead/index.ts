@@ -17,7 +17,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-techlead-webhook',
   instanceId: 'narasim-dev-agent-techlead',
-  model: 'anthropic/claude-opus-4.5',
+  model: process.env.AGENT_TECHLEAD_MODEL || 'anthropic/claude-opus-4.5',
   hasWorkflowOutput: true,
   canExecuteCode: isDevelopment,
   workflowInputs: [
