@@ -55,6 +55,9 @@ export const executeFullMode = async (
   const toolChoice = options.toolChoice || 'auto'
 
   const userInput = (items[0]?.json?.chatInput as string) || ''
+  if (!userInput) {
+    throw new Error('chatInput is required but was empty or not provided')
+  }
   const tools = await getConnectedTools(ctx)
   const assistantMessages = parseJson<Message[]>(assistantMessagesJson, [])
   const memoryMessages = await getMemoryMessages(ctx)
