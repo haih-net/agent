@@ -32,7 +32,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     webhookId,
     model = process.env.AGENT_DEFAULT_MODEL || 'anthropic/claude-sonnet-4',
     maxIterations = 20,
-    agentNodeType = 'default',
+    agentNodeType = 'orchestrator',
     enableStreaming = true,
     workflowInputs = [
       { name: 'chatInput', type: 'string' },

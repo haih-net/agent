@@ -72,6 +72,10 @@ npm run build
 npm run start
 ```
 
+## n8n Source Code
+
+Original n8n source code is located at `/www/n8n/n8n` for reference when debugging or extending functionality.
+
 ## Related Documentation
 
 - [Custom Nodes Development](./custom-nodes/README.md)
