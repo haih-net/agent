@@ -1,6 +1,10 @@
 /* eslint-disable */
 import OpenAI from 'openai'
 import { ExecuteContext, LLMResponse, Message } from './types'
+import {
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+} from 'openai/resources/index'
 
 interface OpenRouterCredentials {
   apiKey: string
@@ -68,15 +72,21 @@ export const callLLM = async (
   const thinking = ''
   let toolCalls: LLMResponse['tool_calls'] = []
 
+  const requestParams:
+    | ChatCompletionCreateParamsStreaming
+    | ChatCompletionCreateParamsNonStreaming = {
+    model,
+    messages: openAIMessages as OpenAI.ChatCompletionMessageParam[],
+    tools: openAITools.length > 0 ? openAITools : undefined,
+    tool_choice:
+      openAITools.length > 0
+        ? (toolChoice as OpenAI.ChatCompletionToolChoiceOption)
+        : undefined,
+  }
+
   if (streaming) {
     const stream = await client.chat.completions.create({
-      model,
-      messages: openAIMessages as OpenAI.ChatCompletionMessageParam[],
-      tools: openAITools.length > 0 ? openAITools : undefined,
-      tool_choice:
-        openAITools.length > 0
-          ? (toolChoice as OpenAI.ChatCompletionToolChoiceOption)
-          : undefined,
+      ...requestParams,
       stream: true,
     })
 
@@ -125,13 +135,7 @@ export const callLLM = async (
     }
   } else {
     const response = await client.chat.completions.create({
-      model,
-      messages: openAIMessages as OpenAI.ChatCompletionMessageParam[],
-      tools: openAITools.length > 0 ? openAITools : undefined,
-      tool_choice:
-        openAITools.length > 0
-          ? (toolChoice as OpenAI.ChatCompletionToolChoiceOption)
-          : undefined,
+      ...requestParams,
       stream: false,
     })
 

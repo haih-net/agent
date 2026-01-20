@@ -15,7 +15,7 @@ server/n8n/custom-nodes/
 Full AI agent with tool execution loop. See [detailed documentation](./agent-orchestrator.md).
 
 - Direct OpenAI SDK integration
-- Streaming support
+- Streaming support (can be disabled for server-to-server requests)
 - Multi-iteration tool execution
 - Credentials: `openRouterApi`
 

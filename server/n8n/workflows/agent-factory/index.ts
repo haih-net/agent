@@ -288,6 +288,14 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     [agentName]: hasWorkflowOutput
       ? { main: [[{ node: 'Workflow Output', type: 'main', index: 0 }]] }
       : { main: [] },
+    ...(hasWorkflowOutput && {
+      'Workflow Output': {
+        main: [[{ node: 'If Not Streaming', type: 'main', index: 0 }]],
+      },
+      'If Not Streaming': {
+        main: [[{ node: 'Respond to Webhook', type: 'main', index: 0 }], []],
+      },
+    }),
     ...(agentNodeType !== 'orchestrator' && {
       'Chat Model': {
         ai_languageModel: [

@@ -123,6 +123,38 @@ When streaming is enabled, debug logs are sent to frontend:
 [DEBUG] Tool Web_Search_Agent_Tool result: ...
 ```
 
+## Streaming Control
+
+The `enableStreaming` parameter controls whether responses are streamed to the client.
+
+### Usage
+
+```bash
+# With streaming (default)
+curl -X POST http://localhost:5678/webhook/agent-chat-webhook/chat \
+  -H "Content-Type: application/json" \
+  -d '{"chatInput": "hello", "sessionId": "test"}'
+
+# Without streaming (for server-to-server requests)
+curl -X POST http://localhost:5678/webhook/agent-chat-webhook/chat \
+  -H "Content-Type: application/json" \
+  -d '{"chatInput": "hello", "sessionId": "test", "enableStreaming": false}'
+```
+
+### When to disable streaming
+
+- **Server-to-server requests** — when another service calls the agent and needs to wait for complete response
+- **Batch processing** — when processing multiple requests where streaming overhead is unnecessary
+- **Integration with external systems** — when the calling system doesn't support streaming
+
+### How it works
+
+1. `enableStreaming` is passed via request body
+2. Captured in `prepareContext.js` from `body.enableStreaming`
+3. Passed to AgentOrchestrator node options
+4. Controls whether `stream: true/false` in OpenAI API call
+5. When disabled, `Respond to Webhook` node returns complete JSON response
+
 ## Testing
 
 ### Via curl

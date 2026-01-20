@@ -140,7 +140,7 @@ ${customSystemMessage}`
           options: {
             systemMessage,
             maxIterations,
-            enableStreaming: `={{ $json.enableStreaming === "false" ? false : ${enableStreaming} }}`,
+            enableStreaming: `={{ $json.enableStreaming === false || $json.enableStreaming === "false" ? false : ${enableStreaming} }}`,
           },
         },
         id: agentId,
@@ -274,6 +274,49 @@ ${customSystemMessage}`
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
       position: [728, 304],
+    })
+
+    baseNodes.push({
+      parameters: {
+        conditions: {
+          options: {
+            caseSensitive: true,
+            leftValue: '',
+            typeValidation: 'strict',
+          },
+          conditions: [
+            {
+              id: 'check-streaming',
+              leftValue:
+                "={{ $('Prepare Context').first().json.enableStreaming }}",
+              rightValue: false,
+              operator: {
+                type: 'boolean',
+                operation: 'equals',
+              },
+            },
+          ],
+          combinator: 'and',
+        },
+        options: {},
+      },
+      id: `${agentId}-if-not-streaming`,
+      name: 'If Not Streaming',
+      type: 'n8n-nodes-base.if',
+      typeVersion: 2.2,
+      position: [944, 304],
+    })
+
+    baseNodes.push({
+      parameters: {
+        respondWith: 'allIncomingItems',
+        options: {},
+      },
+      id: `${agentId}-respond-webhook`,
+      name: 'Respond to Webhook',
+      type: 'n8n-nodes-base.respondToWebhook',
+      typeVersion: 1.1,
+      position: [1160, 304],
     })
   }
 
