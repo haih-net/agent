@@ -25,7 +25,8 @@ export interface AgentFactoryConfig {
   model?: string
   maxIterations?: number
   memorySize?: number | false
-  canExecuteCode?: boolean
+  canAccessFileSystem?: boolean
+  canExecuteFetch?: boolean
   authFromToken?: boolean
   hasGraphqlTool?: boolean
   hasTools?: boolean

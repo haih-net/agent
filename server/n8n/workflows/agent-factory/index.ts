@@ -10,7 +10,19 @@ import { getTaskNodes } from './nodes/taskNodes'
 import { getTaskProgressNodes } from './nodes/taskProgressNodes'
 import { WorkflowBase } from '../interfaces'
 import { getBaseNodes } from './nodes/baseNodes'
-import { createTool, createToolInputs, createAgentTool } from '../helpers'
+import {
+  getCodeExecutionNodes,
+  getCodeExecutionConnections,
+} from './tools/codeExecution'
+import {
+  getFetchRequestNodes,
+  getFetchRequestConnections,
+} from './tools/fetchRequest'
+import { getGraphqlToolNodes, getGraphqlToolConnections } from './tools/graphql'
+import {
+  getWebSearchAgentNodes,
+  getWebSearchAgentConnections,
+} from './tools/webSearchAgent'
 
 export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
   const {
@@ -23,8 +35,11 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     credentialName,
     instanceId,
     hasWorkflowOutput = true,
-    memorySize = 10,
-    canExecuteCode = false,
+    memorySize = process.env.AGENT_MEMORY_SIZE === 'false'
+      ? false
+      : parseInt(process.env.AGENT_MEMORY_SIZE || '5'),
+    canAccessFileSystem = false,
+    canExecuteFetch = false,
     authFromToken = false,
     hasGraphqlTool = false,
     hasTools = true,
@@ -186,122 +201,37 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       }
     : {}
 
-  const codeExecutionNodes: NodeType[] = canExecuteCode
-    ? [
-        createTool({
-          name: 'read_file',
-          toolName: 'Read File Tool',
-          description:
-            'Read a file from the project source code. Returns file content (max 500 lines).',
-          workflowName: 'Tool: Read File',
-          nodeId: `${agentId}-tool-read-file`,
-          position: [1568, 512],
-          inputs: createToolInputs([
-            {
-              name: 'path',
-              description:
-                "File path to read, e.g. 'src/index.ts' or 'package.json'",
-              type: 'string',
-              required: true,
-            },
-          ]),
-        }),
-        createTool({
-          name: 'list_files',
-          toolName: 'List Files Tool',
-          description:
-            'List files and directories in a given path. Returns ls -la output.',
-          workflowName: 'Tool: List Files',
-          nodeId: `${agentId}-tool-list-files`,
-          position: [1792, 512],
-          inputs: createToolInputs([
-            {
-              name: 'path',
-              description: "Directory path to list, e.g. '.' or 'src'",
-              type: 'string',
-              required: true,
-            },
-          ]),
-        }),
-      ]
+  const codeExecutionNodes: NodeType[] = canAccessFileSystem
+    ? getCodeExecutionNodes({ agentId, agentName })
     : []
 
-  const codeExecutionConnections: ConnectionsType = canExecuteCode
-    ? {
-        'Read File Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'List Files Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-      }
+  const codeExecutionConnections: ConnectionsType = canAccessFileSystem
+    ? getCodeExecutionConnections({ agentId, agentName })
+    : {}
+
+  const fetchRequestNodes: NodeType[] = canExecuteFetch
+    ? getFetchRequestNodes({ agentId, agentName })
+    : []
+
+  const fetchRequestConnections: ConnectionsType = canExecuteFetch
+    ? getFetchRequestConnections({ agentId, agentName })
     : {}
 
   const graphqlToolNodes: NodeType[] = hasGraphqlTool
-    ? [
-        createTool({
-          name: 'graphql_request',
-          toolName: 'GraphQL Request Tool',
-          description: `Execute a GraphQL query or mutation against the API. IMPORTANT: All requests are authenticated as ${agentName}, not as the external user.`,
-          workflowName: `Tool: GraphQL Request (${agentName})`,
-          nodeId: `${agentId}-tool-graphql`,
-          position: [224, 512],
-          inputs: createToolInputs([
-            {
-              name: 'query',
-              description: 'Required! GraphQL query or mutation string',
-              type: 'string',
-              required: true,
-            },
-            {
-              name: 'variables',
-              description:
-                'Variables object for the query, use {} if no variables needed',
-              type: 'string',
-              required: true,
-            },
-            {
-              name: 'operationName',
-              description:
-                'Optional: GraphQL operation name to execute specific operation from document',
-              type: 'string',
-            },
-          ]),
-        }),
-      ]
+    ? getGraphqlToolNodes({ agentId, agentName })
     : []
 
   const graphqlToolConnections: ConnectionsType = hasGraphqlTool
-    ? {
-        'GraphQL Request Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-      }
+    ? getGraphqlToolConnections({ agentId, agentName })
     : {}
 
-  const defaultAgentNodes: NodeType[] = [
-    ...(hasWebSearchAgent
-      ? [
-          createAgentTool({
-            name: 'web_search_agent',
-            toolName: 'Web Search Agent Tool',
-            description:
-              'Delegate web search and research tasks. Use for: internet search, current information, fact-checking, news, fetching web pages. ONLY FOR AUTHENTICATED USERS.',
-            workflowName: 'Agent: Web Search',
-            nodeId: `${agentId}-tool-web-search-agent`,
-            position: [800, 736],
-          }),
-        ]
-      : []),
-  ]
+  const webSearchAgentNodes: NodeType[] = hasWebSearchAgent
+    ? getWebSearchAgentNodes({ agentId, agentName })
+    : []
 
-  const defaultAgentConnections: ConnectionsType = {
-    ...(hasWebSearchAgent && {
-      'Web Search Agent Tool': {
-        ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-      },
-    }),
-  }
+  const webSearchAgentConnections: ConnectionsType = hasWebSearchAgent
+    ? getWebSearchAgentConnections({ agentId, agentName })
+    : {}
 
   const mindLogNodes = hasTools
     ? getMindLogNodes({
@@ -347,8 +277,9 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...mindLogNodes,
     ...taskNodes,
     ...taskProgressNodes,
-    ...defaultAgentNodes,
+    ...webSearchAgentNodes,
     ...codeExecutionNodes,
+    ...fetchRequestNodes,
     ...graphqlToolNodes,
     ...additionalNodes,
   ]
@@ -412,8 +343,9 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...mindLogConnections,
     ...taskConnections,
     ...taskProgressConnections,
-    ...defaultAgentConnections,
+    ...webSearchAgentConnections,
     ...codeExecutionConnections,
+    ...fetchRequestConnections,
     ...graphqlToolConnections,
     ...additionalConnections,
   }

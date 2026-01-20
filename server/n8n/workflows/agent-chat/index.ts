@@ -17,6 +17,8 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   authFromToken: true,
   agentNodeType: 'orchestrator',
   hasWebSearchAgent: true,
+  canExecuteFetch: true,
+  canAccessFileSystem: true,
 })
 
 export default [toolGraphqlRequest, agentWorkflow]

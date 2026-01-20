@@ -18,6 +18,23 @@ server/n8n/workflows/
 - `memorySize` — conversation memory size, `0` to disable
 - `authFromToken` — authenticate users from JWT token
 
+## Best Practices
+
+### Code Node Input Access
+
+In n8n Code nodes, use `$input.first()` to access input data:
+
+```javascript
+const item = $input.first().json
+
+const url = item.url || ''
+const method = item.method || 'GET'
+```
+
+**Do NOT use:**
+- `$json` — only available in "Run Once for Each Item" mode
+- `$input.all()[0]` — use `$input.first()` instead
+
 ## Agents
 
 | Agent | Model | hasTools |
