@@ -4,8 +4,9 @@ import { Markdown } from './index'
 const meta = {
   title: 'Components/Markdown',
   component: Markdown,
-
-  tags: ['autodocs'],
+  parameters: {
+    // layout: 'centered',
+  },
   args: {
     children: '',
   },
@@ -28,61 +29,61 @@ export const EmptyField: Story = {
 
 export const WithFormattedText: Story = {
   args: {
-    children: `# Formatted Text
+    children: `# Форматированный текст
 
-**Bold text**, *italic* and ~~strikethrough text~~.
+**Жирный текст**, *курсив* и ~~зачеркнутый текст~~.
 
-## Lists
+## Списки
 
-### Bulleted list:
-- Item 1
-- Item 2
-  - Nested item
-- Item 3
+### Маркированный список:
+- Пункт 1
+- Пункт 2
+  - Вложенный пункт
+- Пункт 3
 
-### Numbered list:
-1. First item
-2. Second item
-3. Third item
+### Нумерованный список:
+1. Первый пункт
+2. Второй пункт
+3. Третий пункт
 `,
   },
 }
 
 export const WithLinks: Story = {
   args: {
-    children: `# Links
+    children: `# Ссылки
 
-[Regular link](https://example.com)
+[Обычная ссылка](https://example.com)
 
-[Link with hover text](https://example.com "Example tooltip")
+[Ссылка с текстом при наведении](https://example.com "Пример подсказки")
 
-## Special links:
+## Специальные ссылки:
 
-Phone: [+7 (999) 123-45-67](tel:+79991234567)
+Телефон: [+7 (999) 123-45-67](tel:+79991234567)
 
 Email: [example@example.com](mailto:example@example.com)
 
-## Internal links:
+## Внутренние ссылки:
 
-[Link to another page](/about)
+[Ссылка на другую страницу](/about)
 `,
   },
 }
 
 export const WithCustomDirectives: Story = {
   args: {
-    children: `# Custom Directives
+    children: `# Пользовательские директивы
 
 :::note
-This is a note with important information
+Это примечание с важной информацией
 :::
 
 :::warning
-Warning! Pay attention to this.
+Предупреждение! Обратите внимание на это.
 :::
 
 :::info
-Useful information for the user.
+Полезная информация для пользователя.
 :::
 `,
   },
@@ -90,42 +91,44 @@ Useful information for the user.
 
 export const WithReactComponents: Story = {
   args: {
-    children: `# With React components
+    children: `# С React-компонентами
  
 `,
   },
 }
 
-export const BrokenHtmlLikeTagsCrashes: Story = {
-  args: {
-    children:
-      '# Broken HTML-like tags\n\n' +
-      'This is intentionally invalid to reproduce the crash:\n\n' +
-      '<script>alert("xss")</script>\n\n' +
-      '<unknown-tag>unknown-tag</unknown-tag>\n\n' +
-      'No closing tag above.',
-  },
-}
-
 export const ComplexExample: Story = {
   args: {
-    children: `# Complex Example
+    children: `# Комплексный пример
 
-## Text and formatting
+## Текст и форматирование
 
-This is regular text with **bold** and *italic* formatting.
+Это обычный текст с **жирным** и *курсивным* форматированием.
 
-> This is a quote with a [link](https://example.com)
+> Это цитата с [ссылкой](https://example.com)
 
-## Table (via GFM)
+## Таблица (через GFM)
 
-| Name | Age | City |
+| Имя | Возраст | Город |
 | --- | ------- | ----- |
-| Alex | 25 | Berlin |
-| John | 30 | London |
-| Sarah | 27 | Paris |
+| Анна | 25 | Москва |
+| Иван | 30 | Санкт-Петербург |
+| Мария | 27 | Казань |
 
-## Code
+## Код
+
+NPS >40
+
+< tag
+<tag
+
+{ test }
+
+{
+
+some text
+
+}
 
 \`\`\`javascript
 function hello() {
@@ -133,12 +136,15 @@ function hello() {
 }
 \`\`\`
 
+## Изображение
 
-## Task list
+![Пример изображения](https://via.placeholder.com/150)
 
-- [x] Task 1 completed
-- [ ] Task 2 in progress
-- [ ] Task 3 not started
+## Список с задачами
+
+- [x] Задача 1 выполнена
+- [ ] Задача 2 в процессе
+- [ ] Задача 3 не начата
 
 `,
   },
