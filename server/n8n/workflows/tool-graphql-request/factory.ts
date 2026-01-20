@@ -50,7 +50,7 @@ export function createToolGraphqlRequest(
               },
               {
                 name: 'variables',
-                type: 'any',
+                type: 'object',
               },
               {
                 name: 'operationName',

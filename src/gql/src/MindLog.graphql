@@ -39,19 +39,19 @@ query mindLog($where: MindLogWhereUniqueInput!) {
 
 mutation createMindLog($data: MindLogCreateInput!) {
   response: createMindLog(data: $data) {
-    ...MindLogResponse_
+    ...MindLog_
   }
 }
 
 mutation updateMindLog($where: MindLogWhereUniqueInput!, $data: MindLogUpdateInput!) {
   response: updateMindLog(where: $where, data: $data) {
-    ...MindLogResponse_
+    ...MindLog_
   }
 }
 
 mutation deleteMindLog($where: MindLogWhereUniqueInput!) {
   response: deleteMindLog(where: $where) {
-    ...MindLogResponse_
+    ...MindLog_
   }
 }
 
@@ -70,7 +70,3 @@ fragment MindLogNoNesting on MindLog {
   relatedToUserId
 }
 
-fragment MindLogResponse_ on MindLogResponse {
-  success
-  message
-}

@@ -42,10 +42,3 @@ export const MindLogUpdateInput = builder.inputType('MindLogUpdateInput', {
     quality: t.float(),
   }),
 })
-
-export const MindLogResponse = builder.simpleObject('MindLogResponse', {
-  fields: (t) => ({
-    success: t.boolean({ nullable: false }),
-    message: t.string({ nullable: false }),
-  }),
-})

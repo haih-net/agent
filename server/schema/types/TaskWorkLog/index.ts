@@ -1,7 +1,7 @@
 import { builder } from '../../builder'
 
-// TaskProgress object type
-builder.prismaObject('TaskProgress', {
+// TaskWorkLog object type
+builder.prismaObject('TaskWorkLog', {
   fields: (t) => ({
     id: t.exposeID('id'),
     createdAt: t.expose('createdAt', { type: 'DateTime' }),
@@ -17,7 +17,7 @@ builder.prismaObject('TaskProgress', {
 import './inputs'
 
 // Import resolvers
-import './resolvers/taskProgress'
-import './resolvers/taskProgressList'
-import './resolvers/createTaskProgress'
-import './resolvers/deleteTaskProgress'
+import './resolvers/taskWorkLog'
+import './resolvers/taskWorkLogList'
+import './resolvers/createTaskWorkLog'
+import './resolvers/deleteTaskWorkLog'

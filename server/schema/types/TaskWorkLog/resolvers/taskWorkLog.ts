@@ -1,19 +1,19 @@
 import { builder } from '../../../builder'
-import { TaskProgressWhereUniqueInput } from '../inputs'
+import { TaskWorkLogWhereUniqueInput } from '../inputs'
 
-builder.queryField('taskProgress', (t) =>
+builder.queryField('taskWorkLog', (t) =>
   t.prismaField({
-    type: 'TaskProgress',
+    type: 'TaskWorkLog',
     nullable: true,
     args: {
-      where: t.arg({ type: TaskProgressWhereUniqueInput, required: true }),
+      where: t.arg({ type: TaskWorkLogWhereUniqueInput, required: true }),
     },
     resolve: async (query, _root, args, ctx) => {
       if (!ctx.currentUser) {
         return null
       }
 
-      return ctx.prisma.taskProgress.findFirst({
+      return ctx.prisma.taskWorkLog.findFirst({
         ...query,
         where: {
           id: args.where.id,

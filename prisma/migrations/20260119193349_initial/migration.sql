@@ -72,14 +72,14 @@ CREATE TABLE "Task" (
 );
 
 -- CreateTable
-CREATE TABLE "TaskProgress" (
+CREATE TABLE "TaskWorkLog" (
     "id" VARCHAR(36) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "content" TEXT NOT NULL,
     "taskId" VARCHAR(36) NOT NULL,
     "createdById" VARCHAR(36) NOT NULL,
 
-    CONSTRAINT "TaskProgress_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "TaskWorkLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -113,7 +113,7 @@ ALTER TABLE "Task" ADD CONSTRAINT "Task_assigneeId_fkey" FOREIGN KEY ("assigneeI
 ALTER TABLE "Task" ADD CONSTRAINT "Task_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TaskProgress" ADD CONSTRAINT "TaskProgress_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TaskWorkLog" ADD CONSTRAINT "TaskWorkLog_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TaskProgress" ADD CONSTRAINT "TaskProgress_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TaskWorkLog" ADD CONSTRAINT "TaskWorkLog_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

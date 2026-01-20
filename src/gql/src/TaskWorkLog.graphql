@@ -1,0 +1,36 @@
+query taskWorkLogList($where: TaskWorkLogWhereInput, $skip: Int, $take: Int) {
+  response: taskWorkLogList(where: $where, skip: $skip, take: $take) {
+    ...TaskWorkLog_
+  }
+}
+
+query taskWorkLog($where: TaskWorkLogWhereUniqueInput!) {
+  response: taskWorkLog(where: $where) {
+    ...TaskWorkLog_
+  }
+}
+
+mutation createTaskWorkLog($data: TaskWorkLogCreateInput!) {
+  response: createTaskWorkLog(data: $data) {
+    ...TaskWorkLog_
+  }
+}
+
+mutation deleteTaskWorkLog($where: TaskWorkLogWhereUniqueInput!) {
+  response: deleteTaskWorkLog(where: $where) {
+    ...TaskWorkLog_
+  }
+}
+
+fragment TaskWorkLog_ on TaskWorkLog {
+  ...TaskWorkLogNoNesting
+}
+
+fragment TaskWorkLogNoNesting on TaskWorkLog {
+  id
+  createdAt
+  content
+  taskId
+  createdById
+}
+

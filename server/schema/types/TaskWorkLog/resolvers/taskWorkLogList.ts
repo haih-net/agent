@@ -1,11 +1,11 @@
 import { builder } from '../../../builder'
-import { TaskProgressWhereInput } from '../inputs'
+import { TaskWorkLogWhereInput } from '../inputs'
 
-builder.queryField('taskProgressList', (t) =>
+builder.queryField('taskWorkLogList', (t) =>
   t.prismaField({
-    type: ['TaskProgress'],
+    type: ['TaskWorkLog'],
     args: {
-      where: t.arg({ type: TaskProgressWhereInput }),
+      where: t.arg({ type: TaskWorkLogWhereInput }),
       skip: t.arg.int(),
       take: t.arg.int(),
     },
@@ -14,7 +14,7 @@ builder.queryField('taskProgressList', (t) =>
         return []
       }
 
-      return ctx.prisma.taskProgress.findMany({
+      return ctx.prisma.taskWorkLog.findMany({
         ...query,
         where: {
           createdById: ctx.currentUser.id,

@@ -33,19 +33,19 @@ query task($where: TaskWhereUniqueInput!) {
 
 mutation createTask($data: TaskCreateInput!) {
   response: createTask(data: $data) {
-    ...TaskResponse_
+    ...Task_
   }
 }
 
 mutation updateTask($where: TaskWhereUniqueInput!, $data: TaskUpdateInput!) {
   response: updateTask(where: $where, data: $data) {
-    ...TaskResponse_
+    ...Task_
   }
 }
 
 mutation deleteTask($where: TaskWhereUniqueInput!) {
   response: deleteTask(where: $where) {
-    ...TaskResponse_
+    ...Task_
   }
 }
 
@@ -70,7 +70,3 @@ fragment TaskNoNesting on Task {
   parentId
 }
 
-fragment TaskResponse_ on TaskResponse {
-  success
-  message
-}

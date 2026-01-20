@@ -1,22 +1,18 @@
 import { builder } from '../../../builder'
-import { MindLogWhereUniqueInput } from '../inputs'
+import { TaskWorkLogWhereUniqueInput } from '../inputs'
 
-builder.mutationField('deleteMindLog', (t) =>
+builder.mutationField('deleteTaskWorkLog', (t) =>
   t.prismaField({
-    type: 'MindLog',
+    type: 'TaskWorkLog',
     args: {
-      where: t.arg({ type: MindLogWhereUniqueInput, required: true }),
+      where: t.arg({ type: TaskWorkLogWhereUniqueInput, required: true }),
     },
     resolve: async (query, _root, args, ctx) => {
       if (!ctx.currentUser) {
         throw new Error('Not authenticated')
       }
 
-      if (!args.where.id) {
-        throw new Error('MindLog id is empty')
-      }
-
-      const existing = await ctx.prisma.mindLog.findFirst({
+      const existing = await ctx.prisma.taskWorkLog.findFirst({
         where: {
           id: args.where.id,
           createdById: ctx.currentUser.id,
@@ -24,10 +20,10 @@ builder.mutationField('deleteMindLog', (t) =>
       })
 
       if (!existing) {
-        throw new Error('MindLog not found')
+        throw new Error('TaskWorkLog not found')
       }
 
-      return ctx.prisma.mindLog.delete({
+      return ctx.prisma.taskWorkLog.delete({
         ...query,
         where: { id: args.where.id },
       })

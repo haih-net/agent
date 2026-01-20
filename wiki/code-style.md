@@ -89,3 +89,50 @@ For standalone component `MindLogCard`:
 export const MindLogCardStyled = styled.div``
 export const MindLogCardTitleStyled = styled.strong``
 ```
+
+## GraphQL Mutation Return Types
+
+**GraphQL mutations must return the full entity object, not a generic response.**
+
+Mutations (create, update, delete) should return the actual entity type so clients can use the returned data directly without making additional queries.
+
+### Bad
+
+```typescript
+// Generic response that hides the actual data
+export const TaskResponse = builder.simpleObject('TaskResponse', {
+  fields: (t) => ({
+    success: t.boolean({ nullable: false }),
+    message: t.string({ nullable: false }),
+  }),
+})
+
+builder.mutationField('createTask', (t) =>
+  t.field({
+    type: TaskResponse,
+    resolve: async (_root, args, ctx) => {
+      await ctx.prisma.task.create({ data: { ... } })
+      return { success: true, message: 'Task created' }
+    },
+  }),
+)
+```
+
+### Good
+
+```typescript
+// Return the actual entity
+builder.mutationField('createTask', (t) =>
+  t.prismaField({
+    type: 'Task',
+    resolve: async (query, _root, args, ctx) => {
+      return ctx.prisma.task.create({
+        ...query,
+        data: { ... },
+      })
+    },
+  }),
+)
+```
+
+For delete operations, return the deleted entity before deletion or return `nullable: true` and return `null` on error.

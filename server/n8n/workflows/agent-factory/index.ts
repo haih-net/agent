@@ -7,7 +7,7 @@ import {
 } from './interfaces'
 import { getMindLogNodes } from './nodes/mindLogNodes'
 import { getTaskNodes } from './nodes/taskNodes'
-import { getTaskProgressNodes } from './nodes/taskProgressNodes'
+import { getTaskWorkLogNodes } from './nodes/taskWorkLogNodes'
 import { WorkflowBase } from '../interfaces'
 import { getBaseNodes } from './nodes/baseNodes'
 import {
@@ -187,15 +187,15 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       }
     : {}
 
-  const taskProgressConnections: ConnectionsType = hasTools
+  const taskWorkLogConnections: ConnectionsType = hasTools
     ? {
-        'Create Task Progress Tool': {
+        'Create Task Work Log Tool': {
           ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
         },
-        'Search Task Progress Tool': {
+        'Search Task Work Log Tool': {
           ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
         },
-        'Delete Task Progress Tool': {
+        'Delete Task Work Log Tool': {
           ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
         },
       }
@@ -247,8 +247,8 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       })
     : []
 
-  const taskProgressNodes = hasTools
-    ? getTaskProgressNodes({
+  const taskWorkLogNodes = hasTools
+    ? getTaskWorkLogNodes({
         agentId,
         agentName,
       })
@@ -276,7 +276,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...authNodes,
     ...mindLogNodes,
     ...taskNodes,
-    ...taskProgressNodes,
+    ...taskWorkLogNodes,
     ...webSearchAgentNodes,
     ...codeExecutionNodes,
     ...fetchRequestNodes,
@@ -350,7 +350,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...authConnections,
     ...mindLogConnections,
     ...taskConnections,
-    ...taskProgressConnections,
+    ...taskWorkLogConnections,
     ...webSearchAgentConnections,
     ...codeExecutionConnections,
     ...fetchRequestConnections,

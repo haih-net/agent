@@ -1,18 +1,15 @@
 import { builder } from '../../../builder'
-import { TaskWhereUniqueInput, TaskResponse } from '../inputs'
+import { TaskWhereUniqueInput } from '../inputs'
 
 builder.mutationField('deleteTask', (t) =>
-  t.field({
-    type: TaskResponse,
+  t.prismaField({
+    type: 'Task',
     args: {
       where: t.arg({ type: TaskWhereUniqueInput, required: true }),
     },
-    resolve: async (_root, args, ctx) => {
+    resolve: async (query, _root, args, ctx) => {
       if (!ctx.currentUser) {
-        return {
-          success: false,
-          message: 'Not authenticated',
-        }
+        throw new Error('Not authenticated')
       }
 
       const taskId = args.where.id
@@ -20,35 +17,21 @@ builder.mutationField('deleteTask', (t) =>
         throw new Error('Task ID is required')
       }
 
-      try {
-        const existing = await ctx.prisma.task.findFirst({
-          where: {
-            id: taskId,
-            assigneeId: ctx.currentUser.id,
-          },
-        })
+      const existing = await ctx.prisma.task.findFirst({
+        where: {
+          id: taskId,
+          assigneeId: ctx.currentUser.id,
+        },
+      })
 
-        if (!existing) {
-          return {
-            success: false,
-            message: 'Task not found',
-          }
-        }
-
-        await ctx.prisma.task.delete({
-          where: { id: taskId },
-        })
-
-        return {
-          success: true,
-          message: 'Task deleted',
-        }
-      } catch (error) {
-        return {
-          success: false,
-          message: error instanceof Error ? error.message : 'Unknown error',
-        }
+      if (!existing) {
+        throw new Error('Task not found')
       }
+
+      return ctx.prisma.task.delete({
+        ...query,
+        where: { id: taskId },
+      })
     },
   }),
 )

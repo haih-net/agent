@@ -48,8 +48,13 @@ if (!sessionId) {
   sessionId = 'unhandledSessionId'
 }
 
-const enableStreaming =
-  triggerData.body?.enableStreaming ?? triggerData.enableStreaming
+// Streaming is only available for chat trigger.
+// When called via Execute Workflow Trigger (agent-to-agent calls),
+// streaming must be disabled so response is returned via "Respond to Webhook" node.
+const isWorkflowTrigger = $('Execute Workflow Trigger').isExecuted
+const enableStreaming = isWorkflowTrigger
+  ? false
+  : (triggerData.body?.enableStreaming ?? triggerData.enableStreaming)
 
 return [
   {

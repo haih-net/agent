@@ -51,10 +51,3 @@ export const TaskUpdateInput = builder.inputType('TaskUpdateInput', {
     endDate: t.field({ type: 'DateTime' }),
   }),
 })
-
-export const TaskResponse = builder.simpleObject('TaskResponse', {
-  fields: (t) => ({
-    success: t.boolean({ nullable: false }),
-    message: t.string({ nullable: false }),
-  }),
-})

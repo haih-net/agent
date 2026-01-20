@@ -38,7 +38,7 @@ model User {
   MindLogs      MindLog[]      @relation(name: "MindLogCreatedBy")
   TasksCreated  Task[]         @relation(name: "TaskCreatedBy")
   TasksAssigned Task[]         @relation(name: "TaskAssignee")
-  TaskProgress  TaskProgress[] @relation(name: "TaskProgressCreatedBy")
+  TaskWorkLogs  TaskWorkLog[] @relation(name: "TaskWorkLogCreatedBy")
 
   @@unique([email])
   @@unique([username])
@@ -139,10 +139,10 @@ model Task {
   Parent   Task?   @relation(fields: [parentId], references: [id], onDelete: Cascade, name: "TaskChildren")
   Children Task[]  @relation(name: "TaskChildren")
 
-  Progress TaskProgress[]
+  WorkLogs TaskWorkLog[]
 }
 
-model TaskProgress {
+model TaskWorkLog {
   id        String   @id @default(cuid()) @db.VarChar(36)
   createdAt DateTime @default(now()) @db.Timestamp(3)
   content   String   @db.Text
@@ -151,5 +151,5 @@ model TaskProgress {
   Task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   createdById String @db.VarChar(36)
-  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade, name: "TaskProgressCreatedBy")
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade, name: "TaskWorkLogCreatedBy")
 }
