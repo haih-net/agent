@@ -29,12 +29,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
   const { onAuth } = useAppContext()
 
   const form = useForm<SignUpFormData>({
-    defaultValues: {
-      fullname: '',
-      username: '',
-      email: '',
-      password: '',
-    },
+    defaultValues: {},
     mode: 'all',
     reValidateMode: 'onChange',
     resolver: yupResolver(signUpSchema),

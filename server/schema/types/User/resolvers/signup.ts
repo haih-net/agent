@@ -9,23 +9,31 @@ builder.mutationField('signup', (t) =>
       data: t.arg({ type: UserSignupDataInput, required: true }),
     },
     resolve: async (_root, args, ctx) => {
-      const { email, password, username, fullname } = args.data
+      const password = args.data.password
+      const email = args.data.email || undefined
+      const username = args.data.username || undefined
+      const fullname = args.data.fullname || undefined
 
-      const existing = await ctx.prisma.user.findFirst({
-        where: {
-          OR: [{ email }, ...(username ? [{ username }] : [])],
-        },
-      })
+      if (
+        email &&
+        (await ctx.prisma.user.findFirst({
+          where: { email },
+        }))
+      ) {
+        throw new Error('Email already registered')
+      }
 
-      if (existing) {
-        return {
-          success: false,
-          message:
-            existing.email === email
-              ? 'Email already registered'
-              : 'Username already taken',
-          token: null,
-        }
+      if (
+        username &&
+        (await ctx.prisma.user.findFirst({
+          where: { username },
+        }))
+      ) {
+        throw new Error('Username already taken')
+      }
+
+      if (!password) {
+        throw new Error('Password is required')
       }
 
       const hashedPassword = await hashPassword(password)
