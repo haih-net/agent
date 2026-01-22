@@ -136,3 +136,48 @@ builder.mutationField('createTask', (t) =>
 ```
 
 For delete operations, return the deleted entity before deletion or return `nullable: true` and return `null` on error.
+
+## GraphQL Enum Types
+
+**Enum types must be defined in a separate `enums.ts` file within the entity folder.**
+
+This prevents circular import issues when `inputs.ts` needs to reference enum types that are defined in `index.ts`.
+
+### Bad
+
+```
+KBLabel/
+├── index.ts      ← defines KBLabelRoleEnum AND imports inputs.ts
+├── inputs.ts     ← imports KBLabelRoleEnum from index.ts (circular!)
+└── resolvers/
+```
+
+### Good
+
+```
+KBLabel/
+├── index.ts      ← imports enums.ts and inputs.ts
+├── enums.ts      ← defines and exports KBLabelRoleEnum
+├── inputs.ts     ← imports KBLabelRoleEnum from enums.ts
+└── resolvers/
+```
+
+### Example `enums.ts`
+
+```typescript
+import { builder } from '../../builder'
+import { KBLabelRole } from '@prisma/client'
+
+export const KBLabelRoleEnum = builder.enumType('KBLabelRole', {
+  values: Object.values(KBLabelRole),
+})
+```
+
+Then in `inputs.ts`:
+
+```typescript
+import { KBLabelRoleEnum } from './enums'
+
+// Use in input fields
+role: t.field({ type: KBLabelRoleEnum })
+```

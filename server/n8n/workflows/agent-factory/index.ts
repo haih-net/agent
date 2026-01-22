@@ -5,6 +5,7 @@ import {
   ConnectionsType,
   NodeType,
 } from './interfaces'
+import { getKBNodes } from './nodes/kbNodes'
 import { getMindLogNodes } from './nodes/mindLogNodes'
 import { getTaskNodes } from './nodes/taskNodes'
 import { getTaskWorkLogNodes } from './nodes/taskWorkLogNodes'
@@ -201,6 +202,26 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       }
     : {}
 
+  const kbConnections: ConnectionsType = hasTools
+    ? {
+        'KB Concept Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'KB Fact Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'KB Fact Participation Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'KB Fact Projection Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'KB Knowledge Space Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+      }
+    : {}
+
   const codeExecutionNodes: NodeType[] = canAccessFileSystem
     ? getCodeExecutionNodes({ agentId, agentName })
     : []
@@ -254,6 +275,13 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       })
     : []
 
+  const kbNodes = hasTools
+    ? getKBNodes({
+        agentId,
+        agentName,
+      })
+    : []
+
   const baseNodes = getBaseNodes({
     agentId,
     agentName,
@@ -277,6 +305,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...mindLogNodes,
     ...taskNodes,
     ...taskWorkLogNodes,
+    ...kbNodes,
     ...webSearchAgentNodes,
     ...codeExecutionNodes,
     ...fetchRequestNodes,
@@ -351,6 +380,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...mindLogConnections,
     ...taskConnections,
     ...taskWorkLogConnections,
+    ...kbConnections,
     ...webSearchAgentConnections,
     ...codeExecutionConnections,
     ...fetchRequestConnections,

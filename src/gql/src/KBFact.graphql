@@ -1,0 +1,49 @@
+query myFacts($where: KBFactWhereInput, $orderBy: KBFactOrderByInput, $skip: Int, $take: Int) {
+  response: myFacts(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBFact_
+  }
+}
+
+query myFact($id: String!) {
+  response: myFact(id: $id) {
+    ...KBFact_
+  }
+}
+
+mutation createFact($data: KBFactCreateInput!) {
+  response: createFact(data: $data) {
+    ...KBFact_
+  }
+}
+
+mutation updateFact($id: String!, $data: KBFactUpdateInput!) {
+  response: updateFact(id: $id, data: $data) {
+    ...KBFact_
+  }
+}
+
+mutation deleteFact($id: String!) {
+  response: deleteFact(id: $id) {
+    ...KBFact_
+  }
+}
+
+fragment KBFact_ on KBFact {
+  ...KBFactNoNesting
+}
+
+fragment KBFactNoNesting on KBFact {
+  id
+  createdAt
+  updatedAt
+  type
+  statement
+  validFrom
+  validTo
+  knownSince
+  confidence
+  importance
+  source
+  status
+  createdById
+}

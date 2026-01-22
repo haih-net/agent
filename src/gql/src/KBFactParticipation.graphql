@@ -1,0 +1,38 @@
+query myFactParticipations($where: KBFactParticipationWhereInput, $orderBy: KBFactParticipationOrderByInput, $skip: Int, $take: Int) {
+  response: myFactParticipations(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBFactParticipation_
+  }
+}
+
+mutation createFactParticipation($data: KBFactParticipationCreateInput!) {
+  response: createFactParticipation(data: $data) {
+    ...KBFactParticipation_
+  }
+}
+
+mutation updateFactParticipation($id: String!, $data: KBFactParticipationUpdateInput!) {
+  response: updateFactParticipation(id: $id, data: $data) {
+    ...KBFactParticipation_
+  }
+}
+
+mutation deleteFactParticipation($id: String!) {
+  response: deleteFactParticipation(id: $id) {
+    ...KBFactParticipation_
+  }
+}
+
+fragment KBFactParticipation_ on KBFactParticipation {
+  ...KBFactParticipationNoNesting
+}
+
+fragment KBFactParticipationNoNesting on KBFactParticipation {
+  id
+  createdAt
+  conceptId
+  factId
+  role
+  impact
+  value
+  localImportance
+}

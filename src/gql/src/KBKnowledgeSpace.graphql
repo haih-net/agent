@@ -1,0 +1,43 @@
+query myKnowledgeSpaces($where: KBKnowledgeSpaceWhereInput, $orderBy: KBKnowledgeSpaceOrderByInput, $skip: Int, $take: Int) {
+  response: myKnowledgeSpaces(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBKnowledgeSpace_
+  }
+}
+
+query myKnowledgeSpace($id: String!) {
+  response: myKnowledgeSpace(id: $id) {
+    ...KBKnowledgeSpace_
+  }
+}
+
+mutation createKnowledgeSpace($data: KBKnowledgeSpaceCreateInput!) {
+  response: createKnowledgeSpace(data: $data) {
+    ...KBKnowledgeSpace_
+  }
+}
+
+mutation updateKnowledgeSpace($id: String!, $data: KBKnowledgeSpaceUpdateInput!) {
+  response: updateKnowledgeSpace(id: $id, data: $data) {
+    ...KBKnowledgeSpace_
+  }
+}
+
+mutation deleteKnowledgeSpace($id: String!) {
+  response: deleteKnowledgeSpace(id: $id) {
+    ...KBKnowledgeSpace_
+  }
+}
+
+fragment KBKnowledgeSpace_ on KBKnowledgeSpace {
+  ...KBKnowledgeSpaceNoNesting
+}
+
+fragment KBKnowledgeSpaceNoNesting on KBKnowledgeSpace {
+  id
+  createdAt
+  updatedAt
+  type
+  name
+  description
+  createdById
+}

@@ -13,10 +13,10 @@ services:
       args:
         - ENV_MODE=production
     environment:
-      ENV_MODE: production
+      - ENV_MODE=production
       # Credential files inside the container will be deleted after import.
       # These files are used to create agents and service access credentials in n8n.
-      N8N_DELETE_CREDENTIALS_AFTER_IMPORT: true
+      - N8N_DELETE_CREDENTIALS_AFTER_IMPORT=${N8N_DELETE_CREDENTIALS_AFTER_IMPORT:-true}
     command: 'npm run start'
 
   supabase:

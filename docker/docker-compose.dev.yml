@@ -7,7 +7,7 @@ services:
       - 8080:8080
   app:
     environment:
-      N8N_SECURE_COOKIE: false
+      - N8N_SECURE_COOKIE=false
     volumes:
       - ../package.json:/app/package.json
       - ../next.config.js:/app/next.config.js

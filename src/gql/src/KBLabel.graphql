@@ -1,0 +1,44 @@
+query myLabels($where: KBLabelWhereInput, $orderBy: KBLabelOrderByInput, $skip: Int, $take: Int) {
+  response: myLabels(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBLabel_
+  }
+}
+
+query myLabel($id: String!) {
+  response: myLabel(id: $id) {
+    ...KBLabel_
+  }
+}
+
+mutation createLabel($data: KBLabelCreateInput!) {
+  response: createLabel(data: $data) {
+    ...KBLabel_
+  }
+}
+
+mutation updateLabel($id: String!, $data: KBLabelUpdateInput!) {
+  response: updateLabel(id: $id, data: $data) {
+    ...KBLabel_
+  }
+}
+
+mutation deleteLabel($id: String!) {
+  response: deleteLabel(id: $id) {
+    ...KBLabel_
+  }
+}
+
+fragment KBLabel_ on KBLabel {
+  ...KBLabelNoNesting
+}
+
+fragment KBLabelNoNesting on KBLabel {
+  id
+  createdAt
+  updatedAt
+  text
+  language
+  role
+  conceptId
+  createdById
+}

@@ -1,0 +1,43 @@
+query myProposals($where: KBProposalWhereInput, $orderBy: KBProposalOrderByInput, $skip: Int, $take: Int) {
+  response: myProposals(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBProposal_
+  }
+}
+
+query myProposal($id: String!) {
+  response: myProposal(id: $id) {
+    ...KBProposal_
+  }
+}
+
+mutation createProposal($data: KBProposalCreateInput!) {
+  response: createProposal(data: $data) {
+    ...KBProposal_
+  }
+}
+
+mutation updateProposal($id: String!, $data: KBProposalUpdateInput!) {
+  response: updateProposal(id: $id, data: $data) {
+    ...KBProposal_
+  }
+}
+
+mutation deleteProposal($id: String!) {
+  response: deleteProposal(id: $id) {
+    ...KBProposal_
+  }
+}
+
+fragment KBProposal_ on KBProposal {
+  ...KBProposalNoNesting
+}
+
+fragment KBProposalNoNesting on KBProposal {
+  id
+  createdAt
+  updatedAt
+  statement
+  status
+  testedBy
+  createdById
+}

@@ -1,0 +1,46 @@
+query myFactProjections($where: KBFactProjectionWhereInput, $orderBy: KBFactProjectionOrderByInput, $skip: Int, $take: Int) {
+  response: myFactProjections(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBFactProjection_
+  }
+}
+
+query myFactProjection($id: String!) {
+  response: myFactProjection(id: $id) {
+    ...KBFactProjection_
+  }
+}
+
+mutation createFactProjection($data: KBFactProjectionCreateInput!) {
+  response: createFactProjection(data: $data) {
+    ...KBFactProjection_
+  }
+}
+
+mutation updateFactProjection($id: String!, $data: KBFactProjectionUpdateInput!) {
+  response: updateFactProjection(id: $id, data: $data) {
+    ...KBFactProjection_
+  }
+}
+
+mutation deleteFactProjection($id: String!) {
+  response: deleteFactProjection(id: $id) {
+    ...KBFactProjection_
+  }
+}
+
+fragment KBFactProjection_ on KBFactProjection {
+  ...KBFactProjectionNoNesting
+}
+
+fragment KBFactProjectionNoNesting on KBFactProjection {
+  id
+  createdAt
+  updatedAt
+  factId
+  knowledgeSpaceId
+  visibility
+  trustLevel
+  importance
+  notes
+  createdById
+}

@@ -1,0 +1,42 @@
+query myIdentityOperations($where: KBIdentityOperationWhereInput, $orderBy: KBIdentityOperationOrderByInput, $skip: Int, $take: Int) {
+  response: myIdentityOperations(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBIdentityOperation_
+  }
+}
+
+query myIdentityOperation($id: String!) {
+  response: myIdentityOperation(id: $id) {
+    ...KBIdentityOperation_
+  }
+}
+
+mutation createIdentityOperation($data: KBIdentityOperationCreateInput!) {
+  response: createIdentityOperation(data: $data) {
+    ...KBIdentityOperation_
+  }
+}
+
+mutation updateIdentityOperation($id: String!, $data: KBIdentityOperationUpdateInput!) {
+  response: updateIdentityOperation(id: $id, data: $data) {
+    ...KBIdentityOperation_
+  }
+}
+
+mutation deleteIdentityOperation($id: String!) {
+  response: deleteIdentityOperation(id: $id) {
+    ...KBIdentityOperation_
+  }
+}
+
+fragment KBIdentityOperation_ on KBIdentityOperation {
+  ...KBIdentityOperationNoNesting
+}
+
+fragment KBIdentityOperationNoNesting on KBIdentityOperation {
+  id
+  createdAt
+  updatedAt
+  operation
+  rationale
+  createdById
+}

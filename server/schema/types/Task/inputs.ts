@@ -1,9 +1,6 @@
 import { builder } from '../../builder'
 import { TaskStatusEnum } from './index'
-
-export const SortOrder = builder.enumType('SortOrder', {
-  values: ['asc', 'desc'] as const,
-})
+import { SortOrder } from '../common'
 
 export const TaskOrderByInput = builder.inputType('TaskOrderByInput', {
   fields: (t) => ({

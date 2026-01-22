@@ -1,0 +1,44 @@
+query myConcepts($where: KBConceptWhereInput, $orderBy: KBConceptOrderByInput, $skip: Int, $take: Int) {
+  response: myConcepts(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBConcept_
+  }
+}
+
+query myConcept($id: String!) {
+  response: myConcept(id: $id) {
+    ...KBConcept_
+  }
+}
+
+mutation createConcept($data: KBConceptCreateInput!) {
+  response: createConcept(data: $data) {
+    ...KBConcept_
+  }
+}
+
+mutation updateConcept($id: String!, $data: KBConceptUpdateInput!) {
+  response: updateConcept(id: $id, data: $data) {
+    ...KBConcept_
+  }
+}
+
+mutation deleteConcept($id: String!) {
+  response: deleteConcept(id: $id) {
+    ...KBConcept_
+  }
+}
+
+fragment KBConcept_ on KBConcept {
+  ...KBConceptNoNesting
+}
+
+fragment KBConceptNoNesting on KBConcept {
+  id
+  createdAt
+  updatedAt
+  type
+  name
+  description
+  content
+  createdById
+}

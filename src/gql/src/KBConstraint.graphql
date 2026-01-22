@@ -1,0 +1,42 @@
+query myConstraints($where: KBConstraintWhereInput, $orderBy: KBConstraintOrderByInput, $skip: Int, $take: Int) {
+  response: myConstraints(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBConstraint_
+  }
+}
+
+query myConstraint($id: String!) {
+  response: myConstraint(id: $id) {
+    ...KBConstraint_
+  }
+}
+
+mutation createConstraint($data: KBConstraintCreateInput!) {
+  response: createConstraint(data: $data) {
+    ...KBConstraint_
+  }
+}
+
+mutation updateConstraint($id: String!, $data: KBConstraintUpdateInput!) {
+  response: updateConstraint(id: $id, data: $data) {
+    ...KBConstraint_
+  }
+}
+
+mutation deleteConstraint($id: String!) {
+  response: deleteConstraint(id: $id) {
+    ...KBConstraint_
+  }
+}
+
+fragment KBConstraint_ on KBConstraint {
+  ...KBConstraintNoNesting
+}
+
+fragment KBConstraintNoNesting on KBConstraint {
+  id
+  createdAt
+  updatedAt
+  constraint
+  scope
+  createdById
+}

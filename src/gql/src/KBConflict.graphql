@@ -1,0 +1,44 @@
+query myConflicts($where: KBConflictWhereInput, $orderBy: KBConflictOrderByInput, $skip: Int, $take: Int) {
+  response: myConflicts(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBConflict_
+  }
+}
+
+query myConflict($id: String!) {
+  response: myConflict(id: $id) {
+    ...KBConflict_
+  }
+}
+
+mutation createConflict($data: KBConflictCreateInput!) {
+  response: createConflict(data: $data) {
+    ...KBConflict_
+  }
+}
+
+mutation updateConflict($id: String!, $data: KBConflictUpdateInput!) {
+  response: updateConflict(id: $id, data: $data) {
+    ...KBConflict_
+  }
+}
+
+mutation deleteConflict($id: String!) {
+  response: deleteConflict(id: $id) {
+    ...KBConflict_
+  }
+}
+
+fragment KBConflict_ on KBConflict {
+  ...KBConflictNoNesting
+}
+
+fragment KBConflictNoNesting on KBConflict {
+  id
+  createdAt
+  updatedAt
+  type
+  severity
+  status
+  createdById
+  constraintId
+}

@@ -35,10 +35,21 @@ model User {
 
   Tokens Token[]
 
-  MindLogs      MindLog[]      @relation(name: "MindLogCreatedBy")
-  TasksCreated  Task[]         @relation(name: "TaskCreatedBy")
-  TasksAssigned Task[]         @relation(name: "TaskAssignee")
+  MindLogs      MindLog[]     @relation(name: "MindLogCreatedBy")
+  TasksCreated  Task[]        @relation(name: "TaskCreatedBy")
+  TasksAssigned Task[]        @relation(name: "TaskAssignee")
   TaskWorkLogs  TaskWorkLog[] @relation(name: "TaskWorkLogCreatedBy")
+
+  KBConcepts           KBConcept[]
+  KBLabels             KBLabel[]
+  KBFacts              KBFact[]
+  KBConstraints        KBConstraint[]
+  KBConflicts          KBConflict[]
+  KBIdentityOperations KBIdentityOperation[]
+  KBProposals          KBProposal[]
+  KBDecisions          KBDecision[]
+  KBKnowledgeSpaces    KBKnowledgeSpace[]
+  KBFactProjections    KBFactProjection[]
 
   @@unique([email])
   @@unique([username])
@@ -152,4 +163,433 @@ model TaskWorkLog {
 
   createdById String @db.VarChar(36)
   CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade, name: "TaskWorkLogCreatedBy")
+}
+
+// ============================================
+// Knowledge Base
+// ============================================
+//
+// KB is not a storage of objective facts, but a belief graph of a specific subject (agent).
+// Every piece of knowledge is a hypothesis with confidence level, temporal validity, and relative importance.
+// Key principles:
+// - Fact ≠ truth — fact = statement + trust context
+// - Contradiction is a first-class object, not an error
+// - Re-evaluation = adding new fact, not modifying old ones
+// - One KB = one subject of cognition
+// ============================================
+
+// Concept: A semantic anchor representing an entity in the knowledge graph.
+// Can be a person, organization, event, abstract idea, etc.
+// Concepts are intentionally loose — they can be drafts, poorly defined initially.
+// The meaning emerges from Labels and Facts attached to them.
+model KBConcept {
+  id          String   @id @default(cuid()) @db.VarChar(36)
+  createdAt   DateTime @default(now()) @db.Timestamp(3)
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamp(3)
+  // Semantic type of the concept (e.g., "organization", "person", "market_position", "event")
+  type        String?  @db.VarChar(100)
+  // Primary name for quick scanning without joining Labels (denormalized for performance)
+  name        String   @db.VarChar(500)
+  // Brief description of what this concept represents
+  description String?  @db.Text
+
+  content String? @db.Text
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  Labels             KBLabel[]
+  FactParticipations KBFactParticipation[]
+  IdentityInputs     KBIdentityOperation[] @relation(name: "IdentityInput")
+  IdentityOutputs    KBIdentityOperation[] @relation(name: "IdentityOutput")
+}
+
+// Label roles define how a name relates to its concept:
+// - primary: The main/official name in a given language
+// - synonym: Alternative name with the same meaning
+// - alias: Informal or alternative reference (e.g., nickname)
+// - abbreviation: Shortened form (e.g., "BMW" for "Bayerische Motoren Werke")
+enum KBLabelRole {
+  primary
+  synonym
+  alias
+  abbreviation
+}
+
+// Label: A name or designation for a Concept.
+// Supports multilingual naming — same concept can have labels in different languages.
+// Synonyms are different Labels of the same Concept; homonyms are different Concepts.
+model KBLabel {
+  id        String      @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime    @default(now()) @db.Timestamp(3)
+  updatedAt DateTime    @default(now()) @updatedAt @db.Timestamp(3)
+  // The actual text of the label (e.g., "Toyota", "トヨタ自動車")
+  text      String      @db.VarChar(500)
+  // ISO language code (e.g., "en", "ru", "ja")
+  language  String?     @db.VarChar(10)
+  // How this label relates to the concept
+  role      KBLabelRole @default(primary)
+
+  conceptId String    @db.VarChar(36)
+  Concept   KBConcept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([conceptId])
+}
+
+// Fact verification status — epistemic state of the assertion:
+// - unverified: Just recorded, no validation yet
+// - tentative: Preliminary assessment, needs more evidence
+// - verified: Confirmed by reliable sources
+// - disputed: Conflicting evidence exists
+// - deprecated: No longer considered valid (but kept for history)
+enum KBFactStatus {
+  unverified
+  tentative
+  verified
+  disputed
+  deprecated
+}
+
+// Fact origin type:
+// - raw: Direct observation or input from external source
+// - derived: Computed/aggregated from other facts (e.g., yearly summary from monthly data)
+enum KBFactType {
+  raw
+  derived
+}
+
+// Fact: An n-ary statement that can involve multiple concepts through participation.
+// Facts don't belong to a single entity — entities PARTICIPATE in facts through roles.
+// Example: "In 2020, companies A, B, C were impacted by event X" is ONE fact with 4 participants.
+// Facts are temporal (valid_from/to), epistemic (confidence/status), and attention-weighted (importance).
+// Old facts are never deleted — they form the history of beliefs.
+model KBFact {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // === FACT CONTENT ===
+  // Type of fact (e.g., "market_position", "event_impact", "financial_metric")
+  type      String @db.VarChar(200)
+  // Human-readable statement of the fact
+  statement String @db.Text
+
+  // === TEMPORALITY ===
+  // When this fact was true in the real world (null = unknown/ongoing)
+  validFrom  DateTime? @db.Date
+  validTo    DateTime? @db.Date
+  // When we learned about this fact (epistemic timestamp)
+  knownSince DateTime  @default(now()) @db.Timestamp(3)
+
+  // === EPISTEMOLOGY ===
+  // How much we trust this fact (0.0 to 1.0)
+  confidence Float        @default(0.5)
+  // Verification status
+  status     KBFactStatus @default(unverified)
+  // Where this information came from (document, URL, observation)
+  source     String?      @db.Text
+
+  // === ATTENTION MANAGEMENT ===
+  // Global importance of this fact (0.0 to 1.0)
+  // Note: local importance per entity is in KBFactParticipation.localImportance
+  importance      Float @default(0.5)
+  // Why this importance level (e.g., ["used_in_reasoning", "constraint_violation"])
+  importanceBasis Json?
+
+  // === PROVENANCE ===
+  // Whether this is raw input or computed from other facts
+  factType    KBFactType @default(raw)
+  // For derived facts: array of source fact IDs
+  derivedFrom Json?
+
+  // Concepts participating in this fact (with their roles)
+  Participations KBFactParticipation[]
+  ConflictFacts  KBConflictFact[]
+  Projections    KBFactProjection[]
+
+  @@index([type])
+}
+
+// FactParticipation: Links a Concept to a Fact with a specific role.
+// This enables n-ary facts where multiple entities participate with different roles.
+// Example roles: "subject", "object", "affected_party", "cause", "beneficiary", "location"
+model KBFactParticipation {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+
+  conceptId String    @db.VarChar(36)
+  Concept   KBConcept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  factId String @db.VarChar(36)
+  Fact   KBFact @relation(fields: [factId], references: [id], onDelete: Cascade)
+
+  // Role of this concept in the fact (e.g., "subject", "object", "affected_party", "cause")
+  role String @db.VarChar(100)
+
+  // Optional: impact qualifier (e.g., "positive", "negative", "neutral")
+  impact String? @db.VarChar(50)
+
+  // Optional: value associated with this participation (e.g., "12.3%" for market_share)
+  value String? @db.Text
+
+  // Local importance: how important this fact is for THIS specific concept (0.0 to 1.0)
+  // Different from fact.importance which is global
+  localImportance Float @default(0.5)
+
+  @@unique([conceptId, factId, role])
+  @@index([conceptId])
+  @@index([factId])
+  @@index([role])
+}
+
+// Constraint: An invariant rule that facts must satisfy.
+// Used for consistency checking — when facts violate a constraint, a Conflict is created.
+// Example: "sum(company.market_share) <= 100%" for a given market and period.
+model KBConstraint {
+  id         String   @id @default(cuid()) @db.VarChar(36)
+  createdAt  DateTime @default(now()) @db.Timestamp(3)
+  updatedAt  DateTime @default(now()) @updatedAt @db.Timestamp(3)
+  // The rule expression (can be natural language or formal)
+  constraint String   @db.Text
+  // Context where this constraint applies (e.g., {"market": "automotive", "region": "EU"})
+  scope      Json?
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Conflicts triggered by this constraint
+  Conflicts KBConflict[]
+}
+
+// Conflict resolution status:
+// - open: Contradiction detected, needs attention
+// - resolved: Resolved by adding new facts or adjusting confidence
+// - dismissed: Determined to be non-issue (false positive)
+enum KBConflictStatus {
+  open
+  resolved
+  dismissed
+}
+
+// Conflict: A detected contradiction between facts.
+// Contradictions are first-class objects — they are recorded, not hidden.
+// This allows the agent to reason about uncertainty and prioritize investigation.
+model KBConflict {
+  id        String           @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime         @default(now()) @db.Timestamp(3)
+  updatedAt DateTime         @default(now()) @updatedAt @db.Timestamp(3)
+  // Type of conflict (e.g., "constraint_violation", "temporal_overlap", "value_mismatch")
+  type      String           @db.VarChar(100)
+  // Impact level (e.g., "high", "medium", "low")
+  severity  String           @db.VarChar(50)
+  status    KBConflictStatus @default(open)
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Optional: which constraint was violated
+  constraintId String?       @db.VarChar(36)
+  Constraint   KBConstraint? @relation(fields: [constraintId], references: [id], onDelete: SetNull)
+
+  // The facts involved in this conflict
+  Facts KBConflictFact[]
+}
+
+// Junction table linking Conflicts to the Facts involved in them.
+// A conflict typically involves 2+ facts that contradict each other.
+model KBConflictFact {
+  conflictId String     @db.VarChar(36)
+  Conflict   KBConflict @relation(fields: [conflictId], references: [id], onDelete: Cascade)
+
+  factId String @db.VarChar(36)
+  Fact   KBFact @relation(fields: [factId], references: [id], onDelete: Cascade)
+
+  @@id([conflictId, factId])
+}
+
+// Identity operation types:
+// - merge: "These were thought to be different, but are actually the same entity"
+// - split: "This was thought to be one entity, but is actually multiple"
+enum KBIdentityOperationType {
+  merge
+  split
+}
+
+// IdentityOperation: Records when concepts are merged or split.
+// This is not a fact about the world — it's a cognitive operation by the agent.
+// Merge: multiple input concepts → one output concept (they were the same all along)
+// Split: one input concept → multiple output concepts (they were different all along)
+// Original concepts are preserved for historical integrity.
+model KBIdentityOperation {
+  id        String                  @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime                @default(now()) @db.Timestamp(3)
+  updatedAt DateTime                @default(now()) @updatedAt @db.Timestamp(3)
+  operation KBIdentityOperationType
+  // Why this operation was performed (e.g., "archival comparison", "new evidence")
+  rationale String?                 @db.Text
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // For merge: the concepts being unified; for split: the concept being divided
+  Inputs  KBConcept[] @relation(name: "IdentityInput")
+  // For merge: the unified concept; for split: the resulting separate concepts
+  Outputs KBConcept[] @relation(name: "IdentityOutput")
+}
+
+// Proposal (Hypothesis) lifecycle:
+// - untested: Just formulated, not yet validated
+// - tested: Experiment/check performed
+// - confirmed: Hypothesis proved correct → can become a Fact
+// - rejected: Hypothesis proved incorrect
+enum KBProposalStatus {
+  untested
+  tested
+  confirmed
+  rejected
+}
+
+// Proposal (Hypothesis): A testable assumption before verification.
+// Hypotheses drive experimentation and can become Facts after confirmation.
+// Example: "In-memory cache will reduce latency by 30%"
+model KBProposal {
+  id        String           @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime         @default(now()) @db.Timestamp(3)
+  updatedAt DateTime         @default(now()) @updatedAt @db.Timestamp(3)
+  // The hypothesis statement
+  statement String           @db.Text
+  status    KBProposalStatus @default(untested)
+  // Reference to what tested this hypothesis (could be a decision ID or external ref)
+  testedBy  String?          @db.VarChar(36)
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Decisions that were based on this hypothesis
+  Decisions KBDecision[] @relation(name: "DecisionProposal")
+}
+
+// Decision validity status:
+// - still_valid: Decision remains applicable in current context
+// - superseded: A newer decision has replaced this one
+// - context_invalid: The conditions that made this decision sensible no longer apply
+enum KBDecisionStatus {
+  superseded
+  context_invalid
+  still_valid
+}
+
+// Decision: A recorded choice made by the agent at a specific point in time.
+// Decisions are not facts — they are traces of reasoning under specific conditions.
+// Old decisions don't become "wrong" — they were locally optimal in their past context.
+// New decisions don't "fix" old ones — they dominate under new conditions.
+model KBDecision {
+  id        String           @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime         @default(now()) @db.Timestamp(3)
+  updatedAt DateTime         @default(now()) @updatedAt @db.Timestamp(3)
+  // What this decision is about (e.g., "Component X caching strategy")
+  subject   String           @db.VarChar(500)
+  // The actual decision made (e.g., "Use in-memory cache")
+  decision  String           @db.Text
+  // Conditions at decision time (constraints, knowledge state, etc.)
+  context   Json?
+  // What happened after (result, issues, metrics)
+  outcome   Json?
+  status    KBDecisionStatus @default(still_valid)
+
+  // If this decision was superseded, points to the newer decision
+  revisedById String?      @db.VarChar(36)
+  RevisedBy   KBDecision?  @relation(fields: [revisedById], references: [id], onDelete: SetNull, name: "DecisionRevision")
+  // Decisions that superseded this one
+  Revisions   KBDecision[] @relation(name: "DecisionRevision")
+
+  // The hypothesis this decision was based on (if any)
+  basedOnProposalId String?     @db.VarChar(36)
+  BasedOnProposal   KBProposal? @relation(fields: [basedOnProposalId], references: [id], onDelete: SetNull, name: "DecisionProposal")
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+}
+
+// Knowledge Space type:
+// - private: Personal knowledge space, visible only to owner
+// - shared: Shared among specific members
+// - public: Publicly available knowledge
+enum KBKnowledgeSpaceType {
+  private
+  shared
+  public
+}
+
+// KnowledgeSpace: A container for interpretation, trust, and access.
+// Facts exist globally but are "known" only through a Knowledge Space.
+// Reasoning always happens in the context of a specific space.
+// This enables:
+// - Privacy: fact is known to agent but not shared
+// - Contextuality: important in research, not important in summary
+// - Divergent opinions: two agents reference same fact with different trust/importance
+model KBKnowledgeSpace {
+  id          String               @id @default(cuid()) @db.VarChar(36)
+  createdAt   DateTime             @default(now()) @db.Timestamp(3)
+  updatedAt   DateTime             @default(now()) @updatedAt @db.Timestamp(3)
+  // Type of knowledge space
+  type        KBKnowledgeSpaceType @default(private)
+  // Human-readable name for this space
+  name        String               @db.VarChar(255)
+  // Description of what this space represents
+  description String?              @db.Text
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Fact projections in this space
+  FactProjections KBFactProjection[]
+}
+
+// Visibility level for fact projections:
+// - visible: Fact is accessible in this space
+// - hidden: Fact exists but is intentionally hidden in this context
+enum KBFactProjectionVisibility {
+  visible
+  hidden
+}
+
+// FactProjection: A projection of a fact into a specific knowledge space.
+// One fact can have multiple projections in different spaces with different:
+// - visibility (visible/hidden)
+// - trustLevel (how much this space trusts the fact)
+// - importance (how important the fact is in this context)
+// This separates the fact itself from its interpretation in different contexts.
+model KBFactProjection {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  factId String @db.VarChar(36)
+  Fact   KBFact @relation(fields: [factId], references: [id], onDelete: Cascade)
+
+  knowledgeSpaceId String           @db.VarChar(36)
+  KnowledgeSpace   KBKnowledgeSpace @relation(fields: [knowledgeSpaceId], references: [id], onDelete: Cascade)
+
+  // Visibility in this space
+  visibility KBFactProjectionVisibility @default(visible)
+  // Trust level in this space (0.0 to 1.0)
+  trustLevel Float                      @default(0.5)
+  // Importance in this space (0.0 to 1.0)
+  importance Float                      @default(0.5)
+  // Optional notes specific to this projection
+  notes      String?                    @db.Text
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@unique([factId, knowledgeSpaceId])
+  @@index([factId])
+  @@index([knowledgeSpaceId])
 }

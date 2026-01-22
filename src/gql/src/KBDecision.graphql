@@ -1,0 +1,46 @@
+query myDecisions($where: KBDecisionWhereInput, $orderBy: KBDecisionOrderByInput, $skip: Int, $take: Int) {
+  response: myDecisions(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...KBDecision_
+  }
+}
+
+query myDecision($id: String!) {
+  response: myDecision(id: $id) {
+    ...KBDecision_
+  }
+}
+
+mutation createDecision($data: KBDecisionCreateInput!) {
+  response: createDecision(data: $data) {
+    ...KBDecision_
+  }
+}
+
+mutation updateDecision($id: String!, $data: KBDecisionUpdateInput!) {
+  response: updateDecision(id: $id, data: $data) {
+    ...KBDecision_
+  }
+}
+
+mutation deleteDecision($id: String!) {
+  response: deleteDecision(id: $id) {
+    ...KBDecision_
+  }
+}
+
+fragment KBDecision_ on KBDecision {
+  ...KBDecisionNoNesting
+}
+
+fragment KBDecisionNoNesting on KBDecision {
+  id
+  createdAt
+  updatedAt
+  subject
+  decision
+  context
+  outcome
+  status
+  revisedById
+  createdById
+}
