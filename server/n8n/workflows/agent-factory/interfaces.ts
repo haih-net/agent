@@ -30,6 +30,8 @@ export interface AgentFactoryConfig {
   authFromToken?: boolean
   hasGraphqlTool?: boolean
   hasTools?: boolean
+  hasMindLogs?: boolean
+  hasTasks?: boolean
   hasWebSearchAgent?: boolean
   additionalNodes?: NodeType[]
   additionalConnections?: ConnectionsType

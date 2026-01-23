@@ -44,6 +44,8 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     authFromToken = false,
     hasGraphqlTool = false,
     hasTools = true,
+    hasMindLogs = true,
+    hasTasks = true,
     hasWebSearchAgent = false,
     additionalNodes = [],
     additionalConnections = {},
@@ -154,53 +156,56 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       }
     : {}
 
-  const mindLogConnections: ConnectionsType = hasTools
-    ? {
-        'Create MindLog Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Search MindLogs Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Update MindLog Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Delete MindLog Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-      }
-    : {}
+  const mindLogConnections: ConnectionsType =
+    hasTools && hasMindLogs
+      ? {
+          'Create MindLog Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Search MindLogs Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Update MindLog Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Delete MindLog Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+        }
+      : {}
 
-  const taskConnections: ConnectionsType = hasTools
-    ? {
-        'Create Task Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Search Tasks Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Update Task Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Delete Task Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-      }
-    : {}
+  const taskConnections: ConnectionsType =
+    hasTools && hasTasks
+      ? {
+          'Create Task Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Search Tasks Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Update Task Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Delete Task Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+        }
+      : {}
 
-  const taskWorkLogConnections: ConnectionsType = hasTools
-    ? {
-        'Create Task Work Log Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Search Task Work Log Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-        'Delete Task Work Log Tool': {
-          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
-        },
-      }
-    : {}
+  const taskWorkLogConnections: ConnectionsType =
+    hasTools && hasTasks
+      ? {
+          'Create Task Work Log Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Search Task Work Log Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+          'Delete Task Work Log Tool': {
+            ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+          },
+        }
+      : {}
 
   const kbConnections: ConnectionsType = hasTools
     ? {
@@ -254,26 +259,29 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ? getWebSearchAgentConnections({ agentId, agentName })
     : {}
 
-  const mindLogNodes = hasTools
-    ? getMindLogNodes({
-        agentId,
-        agentName,
-      })
-    : []
+  const mindLogNodes =
+    hasTools && hasMindLogs
+      ? getMindLogNodes({
+          agentId,
+          agentName,
+        })
+      : []
 
-  const taskNodes = hasTools
-    ? getTaskNodes({
-        agentId,
-        agentName,
-      })
-    : []
+  const taskNodes =
+    hasTools && hasTasks
+      ? getTaskNodes({
+          agentId,
+          agentName,
+        })
+      : []
 
-  const taskWorkLogNodes = hasTools
-    ? getTaskWorkLogNodes({
-        agentId,
-        agentName,
-      })
-    : []
+  const taskWorkLogNodes =
+    hasTools && hasTasks
+      ? getTaskWorkLogNodes({
+          agentId,
+          agentName,
+        })
+      : []
 
   const kbNodes = hasTools
     ? getKBNodes({
