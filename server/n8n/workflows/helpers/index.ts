@@ -179,6 +179,14 @@ export function createTool(config: CreateToolConfig): NodeType {
   }
 }
 
+export function getModel(specificModel?: string): string {
+  return (
+    specificModel ||
+    process.env.AGENT_DEFAULT_MODEL ||
+    'anthropic/claude-haiku-4.5'
+  )
+}
+
 export function createAgentTool(config: CreateAgentToolConfig): NodeType {
   const {
     name,

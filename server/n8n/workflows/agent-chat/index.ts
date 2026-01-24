@@ -1,5 +1,6 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
+import { getModel } from '../helpers'
 
 const { toolGraphqlRequest, agentWorkflow } = createAgent({
   agentName: 'Chat Agent',
@@ -12,7 +13,7 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   systemMessagePath: path.join(__dirname, 'system-message.md'),
   webhookId: 'agent-chat-webhook',
   instanceId: 'narasim-dev-agent-chat',
-  model: process.env.AGENT_CHAT_MODEL || 'anthropic/claude-opus-4.5',
+  model: getModel(process.env.AGENT_CHAT_MODEL),
   hasWorkflowOutput: true,
   authFromToken: true,
   agentNodeType: 'orchestrator',

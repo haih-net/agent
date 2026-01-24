@@ -10,6 +10,7 @@ import { getMindLogNodes } from './nodes/mindLogNodes'
 import { getTaskNodes } from './nodes/taskNodes'
 import { getTaskWorkLogNodes } from './nodes/taskWorkLogNodes'
 import { WorkflowBase } from '../interfaces'
+import { getModel } from '../helpers'
 import { getBaseNodes } from './nodes/baseNodes'
 import {
   getCodeExecutionNodes,
@@ -51,7 +52,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     additionalConnections = {},
     systemMessagePath,
     webhookId,
-    model = process.env.AGENT_DEFAULT_MODEL || 'anthropic/claude-sonnet-4',
+    model = getModel(),
     maxIterations = 20,
     agentNodeType = 'orchestrator',
     enableStreaming = true,
