@@ -1,5 +1,6 @@
 import { print } from 'graphql'
 import { CreateTaskDocument } from 'src/gql/generated/createTask'
+import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { createTaskSchema } from './schema'
 
@@ -16,50 +17,26 @@ export function getCreateTaskNode({
   agentId,
   agentName,
 }: GetCreateTaskNodeProps): NodeType {
-  return {
-    parameters: {
-      name: 'create_task',
-      description: `Create an agent's own Task. These are YOUR tasks as an agent, not user tasks`,
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: `Tool: GraphQL Request (${agentName})`,
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          query: createTaskQuery,
-          variables: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${schemaDescription}\`, 'json') }}`,
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'query',
-            displayName: 'query',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'variables',
-            displayName: 'variables',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-create-task`,
-    name: 'Create Task Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+  return createTool({
+    name: 'create_task',
+    toolName: 'Create Task Tool',
+    description: `Create an agent's own Task. These are YOUR tasks as an agent, not user tasks`,
+    workflowName: `Tool: GraphQL Request (${agentName})`,
+    nodeId: `${agentId}-tool-create-task`,
     position: [1600, 528],
-  }
+    inputs: createStaticInputs([
+      {
+        name: 'query',
+        value: createTaskQuery,
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'variables',
+        value: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${schemaDescription}\`, 'json') }}`,
+        type: 'string',
+        required: true,
+      },
+    ]),
+  })
 }

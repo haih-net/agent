@@ -1,5 +1,6 @@
 import { print } from 'graphql'
 import { CreateMindLogDocument } from 'src/gql/generated/createMindLog'
+import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { createMindLogSchema } from './schema'
 
@@ -20,50 +21,26 @@ export function getCreateMindLogNode({
   agentId,
   agentName,
 }: GetCreateMindLogNodeProps): NodeType {
-  return {
-    parameters: {
-      name: 'create_mindlog',
-      description: 'Create a MindLog entry',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: `Tool: GraphQL Request (${agentName})`,
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          query: createMindLogQuery,
-          variables: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${schemaDescription}\`, 'json') }}`,
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'query',
-            displayName: 'query',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'variables',
-            displayName: 'variables',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-create-mindlog`,
-    name: 'Create MindLog Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+  return createTool({
+    name: 'create_mindlog',
+    toolName: 'Create MindLog Tool',
+    description: 'Create a MindLog entry',
+    workflowName: `Tool: GraphQL Request (${agentName})`,
+    nodeId: `${agentId}-tool-create-mindlog`,
     position: [800, 528],
-  }
+    inputs: createStaticInputs([
+      {
+        name: 'query',
+        value: createMindLogQuery,
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'variables',
+        value: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${schemaDescription}\`, 'json') }}`,
+        type: 'string',
+        required: true,
+      },
+    ]),
+  })
 }

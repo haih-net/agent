@@ -1,5 +1,6 @@
 import { print } from 'graphql'
 import { DeleteMindLogDocument } from 'src/gql/generated/deleteMindLog'
+import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { deleteMindLogSchema } from './schema'
 
@@ -20,50 +21,26 @@ export function getDeleteMindLogNode({
   agentId,
   agentName,
 }: GetDeleteMindLogNodeProps): NodeType {
-  return {
-    parameters: {
-      name: 'delete_mindlog',
-      description: 'Delete a MindLog entry by ID',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: `Tool: GraphQL Request (${agentName})`,
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          query: deleteMindLogQuery,
-          variables: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${schemaDescription}\`, 'json') }}`,
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'query',
-            displayName: 'query',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'variables',
-            displayName: 'variables',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-delete-mindlog`,
-    name: 'Delete MindLog Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+  return createTool({
+    name: 'delete_mindlog',
+    toolName: 'Delete MindLog Tool',
+    description: 'Delete a MindLog entry by ID',
+    workflowName: `Tool: GraphQL Request (${agentName})`,
+    nodeId: `${agentId}-tool-delete-mindlog`,
     position: [1184, 528],
-  }
+    inputs: createStaticInputs([
+      {
+        name: 'query',
+        value: deleteMindLogQuery,
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'variables',
+        value: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${schemaDescription}\`, 'json') }}`,
+        type: 'string',
+        required: true,
+      },
+    ]),
+  })
 }

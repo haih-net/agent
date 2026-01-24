@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { knowledgeSpaceOperations, knowledgeSpaceSchemas } from './schema'
 
@@ -31,61 +32,33 @@ export function getKnowledgeSpaceNode({
   agentId,
   agentName,
 }: GetKnowledgeSpaceNodeProps): NodeType {
-  return {
-    parameters: {
-      name: 'kb_knowledge_space',
-      description:
-        'CRUD Manage Knowledge Base Knowledge Spaces (containers for fact projections, can be private, public, or shared).',
-      workflowId: {
-        __rl: true,
-        mode: 'list',
-        value: `Tool: GraphQL Request (${agentName})`,
-      },
-      workflowInputs: {
-        mappingMode: 'defineBelow',
-        value: {
-          query: combinedDocument,
-          operationName: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('operationName', 'One of: ${knowledgeSpaceOperations.join(', ')}', 'string') }}`,
-          variables: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${variablesDescription}\`, 'json') }}`,
-        },
-        matchingColumns: [],
-        schema: [
-          {
-            id: 'query',
-            displayName: 'query',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'operationName',
-            displayName: 'operationName',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-          {
-            id: 'variables',
-            displayName: 'variables',
-            required: true,
-            defaultMatch: false,
-            display: true,
-            canBeUsedToMatch: true,
-            type: 'string',
-          },
-        ],
-        attemptToConvertTypes: false,
-        convertFieldsToString: false,
-      },
-    },
-    id: `${agentId}-tool-kb-knowledge-space`,
-    name: 'KB Knowledge Space Tool',
-    type: '@n8n/n8n-nodes-langchain.toolWorkflow',
-    typeVersion: 2.2,
+  return createTool({
+    name: 'kb_knowledge_space',
+    toolName: 'KB Knowledge Space Tool',
+    description:
+      'CRUD Manage Knowledge Base Knowledge Spaces (containers for fact projections, can be private, public, or shared).',
+    workflowName: `Tool: GraphQL Request (${agentName})`,
+    nodeId: `${agentId}-tool-kb-knowledge-space`,
     position: [2200, 1008],
-  }
+    inputs: createStaticInputs([
+      {
+        name: 'query',
+        value: combinedDocument,
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'operationName',
+        value: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('operationName', 'One of: ${knowledgeSpaceOperations.join(', ')}', 'string') }}`,
+        type: 'string',
+        required: true,
+      },
+      {
+        name: 'variables',
+        value: `={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('variables', \`${variablesDescription}\`, 'json') }}`,
+        type: 'string',
+        required: true,
+      },
+    ]),
+  })
 }

@@ -10,7 +10,7 @@ import { getMindLogNodes } from './nodes/mindLogNodes'
 import { getTaskNodes } from './nodes/taskNodes'
 import { getTaskWorkLogNodes } from './nodes/taskWorkLogNodes'
 import { WorkflowBase } from '../interfaces'
-import { getModel } from '../helpers'
+import { getModel, createTool, createStaticInputs } from '../helpers'
 import { getBaseNodes } from './nodes/baseNodes'
 import {
   getCodeExecutionNodes,
@@ -73,40 +73,21 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
 
   const authNodes: NodeType[] = authFromToken
     ? [
-        {
-          parameters: {
-            workflowId: {
-              __rl: true,
-              mode: 'name',
-              value: 'Tool: Get User By Token',
-            },
-            workflowInputs: {
-              mappingMode: 'defineBelow',
-              value: {
-                token: '={{ $json.token }}',
-              },
-              matchingColumns: [],
-              schema: [
-                {
-                  id: 'token',
-                  displayName: 'token',
-                  required: false,
-                  defaultMatch: false,
-                  display: true,
-                  canBeUsedToMatch: true,
-                  type: 'string',
-                },
-              ],
-              attemptToConvertTypes: false,
-              convertFieldsToString: false,
-            },
-          },
-          id: `${agentId}-get-user-by-token`,
-          name: 'Get User By Token',
-          type: 'n8n-nodes-base.executeWorkflow',
-          typeVersion: 1.2,
+        createTool({
+          name: 'get_user_by_token',
+          toolName: 'Get User By Token',
+          description: 'Get user data by authentication token',
+          workflowName: 'Tool: Get User By Token',
+          nodeId: `${agentId}-get-user-by-token`,
           position: [-432, 592],
-        },
+          inputs: createStaticInputs([
+            {
+              name: 'token',
+              value: '={{ $json.token }}',
+              type: 'string',
+            },
+          ]),
+        }),
         {
           parameters: {
             mode: 'manual',
