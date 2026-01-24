@@ -1,0 +1,50 @@
+query myReactions($where: EXReactionWhereInput, $orderBy: EXReactionOrderByInput, $skip: Int, $take: Int) {
+  response: myReactions(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...EXReaction_
+  }
+}
+
+query myReaction($id: String!) {
+  response: myReaction(id: $id) {
+    ...EXReaction_
+  }
+}
+
+mutation createReaction($data: EXReactionCreateInput!) {
+  response: createReaction(data: $data) {
+    ...EXReaction_
+  }
+}
+
+mutation updateReaction($id: String!, $data: EXReactionUpdateInput!) {
+  response: updateReaction(id: $id, data: $data) {
+    ...EXReaction_
+  }
+}
+
+mutation deleteReaction($id: String!) {
+  response: deleteReaction(id: $id) {
+    ...EXReaction_
+  }
+}
+
+fragment EXReaction_ on EXReaction {
+  ...EXReactionNoNesting
+}
+
+fragment EXReactionNoNesting on EXReaction {
+  id
+  createdAt
+  updatedAt
+  reflexId
+  stimulus
+  result
+  tokensUsed
+  durationMs
+  scoreAgent
+  scoreTarget
+  scoreMentor
+  feedback
+  createdById
+  relatedToUserId
+}

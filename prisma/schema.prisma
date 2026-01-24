@@ -51,6 +51,9 @@ model User {
   KBKnowledgeSpaces    KBKnowledgeSpace[]
   KBFactProjections    KBFactProjection[]
 
+  EXReflexes  EXReflex[]
+  EXReactions EXReaction[]
+
   @@unique([email])
   @@unique([username])
 }
@@ -592,4 +595,105 @@ model KBFactProjection {
   @@unique([factId, knowledgeSpaceId])
   @@index([factId])
   @@index([knowledgeSpaceId])
+}
+
+// ============================================
+// EX — Reflex + Reaction System
+// ============================================
+//
+// Like biological reflexes: stimulus → reflex (rule) → reaction (response) → result → evaluation
+// Two entities:
+// - EXReflex: rule "if X, then do Y with params Z" (conditional/unconditional)
+// - EXReaction: specific response to a stimulus
+// One reflex → many reactions
+// ============================================
+
+enum EXReflexType {
+  unconditional // Built-in, mandatory
+  conditional // Learned, based on experience
+}
+
+enum EXReflexStatus {
+  active // Active, in use
+  disabled // Disabled
+  draft // Draft, not yet applied
+}
+
+model EXReflex {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  type   EXReflexType   @default(conditional)
+  status EXReflexStatus @default(active)
+
+  // === STIMULUS ===
+  // What triggers this reflex: situation description
+  // e.g., "User requests file editing", "User asks to find information"
+  stimulus String @db.Text
+
+  // === RESPONSE ===
+  // What to do: action description
+  // e.g., "1. Read file\n2. Make changes\n3. Save"
+  response String @db.Text
+
+  // Which tools/functions to call with which params (JSON)
+  // e.g., { "tools": ["readFile", "editFile"], "params": { "backup": true } }
+  // execution Json?
+
+  // === AGGREGATED STATISTICS ===
+  // Updated after reactions
+  effectiveness  Float? // 0.0 - 1.0, quality of this reflex
+  executionRate  Float? // 0.0 - 1.0, how often this reflex is triggered
+
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  Reactions EXReaction[]
+
+  @@index([type])
+  @@index([status])
+}
+
+model EXReaction {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  // Which reflex was triggered
+  reflexId String   @db.VarChar(36)
+  Reflex   EXReflex @relation(fields: [reflexId], references: [id], onDelete: Cascade)
+
+  // === STIMULUS ===
+  // What exactly triggered the reaction (specific message, event)
+  stimulus String @db.Text
+
+  // === RESULT ===
+  // Descriptive result from agent (what happened)
+  result String @db.Text
+
+  // === METRICS ===
+  tokensUsed Int?
+  durationMs Int?
+
+  // === SCORES ===
+  // Agent self-assessment (0.0 - 1.0)
+  scoreAgent  Float?
+  // Target user assessment — who received the action (0.0 - 1.0)
+  scoreTarget Float?
+  // Mentor/external assessment — who evaluates the agent (0.0 - 1.0)
+  scoreMentor Float?
+  // Feedback comment
+  feedback    String? @db.Text
+
+  // Who created this reaction (agent)
+  createdById String @db.VarChar(36)
+  CreatedBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Related user (who was interacted with)
+  relatedToUserId String? @db.VarChar(36)
+
+  @@index([reflexId])
+  @@index([createdById])
+  @@index([relatedToUserId])
 }

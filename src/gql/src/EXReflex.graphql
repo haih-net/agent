@@ -1,0 +1,46 @@
+query myReflexes($where: EXReflexWhereInput, $orderBy: EXReflexOrderByInput, $skip: Int, $take: Int) {
+  response: myReflexes(where: $where, orderBy: $orderBy, skip: $skip, take: $take) {
+    ...EXReflex_
+  }
+}
+
+query myReflex($id: String!) {
+  response: myReflex(id: $id) {
+    ...EXReflex_
+  }
+}
+
+mutation createReflex($data: EXReflexCreateInput!) {
+  response: createReflex(data: $data) {
+    ...EXReflex_
+  }
+}
+
+mutation updateReflex($id: String!, $data: EXReflexUpdateInput!) {
+  response: updateReflex(id: $id, data: $data) {
+    ...EXReflex_
+  }
+}
+
+mutation deleteReflex($id: String!) {
+  response: deleteReflex(id: $id) {
+    ...EXReflex_
+  }
+}
+
+fragment EXReflex_ on EXReflex {
+  ...EXReflexNoNesting
+}
+
+fragment EXReflexNoNesting on EXReflex {
+  id
+  createdAt
+  updatedAt
+  type
+  status
+  stimulus
+  response
+  effectiveness
+  executionRate
+  createdById
+}

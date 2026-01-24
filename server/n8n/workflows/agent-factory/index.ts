@@ -6,6 +6,7 @@ import {
   NodeType,
 } from './interfaces'
 import { getKBNodes } from './nodes/kbNodes'
+import { getEXNodes } from './nodes/exNodes'
 import { getMindLogNodes } from './nodes/mindLogNodes'
 import { getTaskNodes } from './nodes/taskNodes'
 import { getTaskWorkLogNodes } from './nodes/taskWorkLogNodes'
@@ -209,6 +210,17 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       }
     : {}
 
+  const exConnections: ConnectionsType = hasTools
+    ? {
+        'EX Reflex Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+        'EX Reaction Tool': {
+          ai_tool: [[{ node: agentName, type: 'ai_tool', index: 0 }]],
+        },
+      }
+    : {}
+
   const codeExecutionNodes: NodeType[] = canAccessFileSystem
     ? getCodeExecutionNodes({ agentId, agentName })
     : []
@@ -272,6 +284,13 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       })
     : []
 
+  const exNodes = hasTools
+    ? getEXNodes({
+        agentId,
+        agentName,
+      })
+    : []
+
   const baseNodes = getBaseNodes({
     agentId,
     agentName,
@@ -296,6 +315,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...taskNodes,
     ...taskWorkLogNodes,
     ...kbNodes,
+    ...exNodes,
     ...webSearchAgentNodes,
     ...codeExecutionNodes,
     ...fetchRequestNodes,
@@ -371,6 +391,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     ...taskConnections,
     ...taskWorkLogConnections,
     ...kbConnections,
+    ...exConnections,
     ...webSearchAgentConnections,
     ...codeExecutionConnections,
     ...fetchRequestConnections,
