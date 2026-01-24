@@ -7,6 +7,7 @@ import { extractToolCalls } from './extractToolCalls'
 import { callLLM } from './callLLM'
 import { executeTool } from './executeTool'
 import { getMemoryMessages, saveToMemory } from './getMemoryMessages'
+import { debugLog } from './debugLog'
 
 interface AgentOptions {
   systemMessage?: string
@@ -15,20 +16,6 @@ interface AgentOptions {
   showToolCalls?: boolean
   toolChoice?: string
   assistantMessages?: string
-}
-
-const IS_DEVELOPMENT =
-  process.env.NODE_ENV !== 'production' &&
-  process.env.N8N_DEBUG_AGENTS === 'true'
-
-const debugLog = (
-  ctx: ExecuteContext,
-  isStreamingAvailable: boolean,
-  message: string,
-) => {
-  if (IS_DEVELOPMENT && isStreamingAvailable) {
-    ctx.sendChunk('item', 0, `\n[DEBUG] ${message}\n`)
-  }
 }
 
 interface OpenRouterCredentials {
@@ -97,6 +84,9 @@ export const executeFullMode = async (
     [...memoryMessages, ...assistantMessages],
     { user, sessionId },
   )
+
+  debugLog(ctx, isStreamingAvailable, messages)
+
   let iterations = 0
   let finalOutput = ''
   const allToolCalls: ToolCall[] = []

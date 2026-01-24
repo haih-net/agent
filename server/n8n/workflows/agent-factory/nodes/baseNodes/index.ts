@@ -46,11 +46,6 @@ export function getBaseNodes({
     'utf-8',
   )
 
-  const prepareMindLogsTemplate = fs.readFileSync(
-    path.join(__dirname, 'prepareMindLogs.js'),
-    'utf-8',
-  )
-
   const baseSystemMessage = fs.readFileSync(
     path.join(__dirname, 'base-system-message.md'),
     'utf-8',
@@ -69,12 +64,17 @@ ${customSystemMessage}`
     JSON.stringify({ agentId }, null, 2),
   )
 
-  const prepareMindLogsCode = prepareMindLogsTemplate.replace(
-    '$config',
-    JSON.stringify({ agentId }, null, 2),
-  )
-
   const baseNodes: NodeType[] = [
+    {
+      parameters: {
+        jsCode: 'return $input.all()',
+      },
+      id: `${agentId}-merge-trigger`,
+      name: 'Merge Trigger',
+      type: 'n8n-nodes-base.code',
+      typeVersion: 2,
+      position: [-848, 272],
+    },
     {
       parameters: {
         workflowId: {
@@ -107,7 +107,7 @@ ${customSystemMessage}`
       name: 'Get Agent Data',
       type: 'n8n-nodes-base.executeWorkflow',
       typeVersion: 1.2,
-      position: [-432, 304],
+      position: [-496, 160],
     },
     {
       parameters: {
@@ -117,20 +117,18 @@ ${customSystemMessage}`
       name: 'Prepare Context',
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [-224, 304],
+      position: [48, 304],
     },
     ...(hasTools
       ? [
           getFetchMindLogsNode({ agentId, agentName }),
           {
-            parameters: {
-              jsCode: prepareMindLogsCode,
-            },
-            id: `${agentId}-prepare-mindlogs`,
-            name: 'Prepare MindLogs',
-            type: 'n8n-nodes-base.code',
-            typeVersion: 2,
-            position: [192, 304] as [number, number],
+            parameters: {},
+            type: 'n8n-nodes-base.merge',
+            typeVersion: 3.2,
+            position: [-176, 304] as [number, number],
+            id: `${agentId}-merge`,
+            name: 'Merge',
           },
         ]
       : []),
@@ -147,7 +145,7 @@ ${customSystemMessage}`
         name: agentName,
         type: '@n8n/n8n-nodes-langchain.agent',
         typeVersion: 3.1,
-        position: [400, 304],
+        position: [256, 304],
       }
 
       if (agentNodeType === 'orchestrator') {
@@ -189,7 +187,7 @@ ${customSystemMessage}`
             name: 'Chat Model',
             type: '@n8n/n8n-nodes-langchain.lmChatOpenRouter',
             typeVersion: 1,
-            position: [-64, 512] as [number, number],
+            position: [256, 520] as [number, number],
             credentials: {
               openRouterApi: {
                 id: 'FsN0N48lU327xkz6',
@@ -213,7 +211,7 @@ ${customSystemMessage}`
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-640, 304],
+      position: [-1152, 176],
     },
     {
       parameters: {
@@ -230,7 +228,7 @@ ${customSystemMessage}`
       },
       type: '@n8n/n8n-nodes-langchain.chatTrigger',
       typeVersion: 1.4,
-      position: [-640, 592],
+      position: [-1408, 352],
       id: `${agentId}-chat-trigger`,
       name: 'When chat message received',
       webhookId,
@@ -248,7 +246,7 @@ ${customSystemMessage}`
       name: 'Simple Memory',
       type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
       typeVersion: 1.3,
-      position: [440, 720],
+      position: [352, 576],
     })
   }
 
@@ -273,7 +271,7 @@ ${customSystemMessage}`
       name: 'Workflow Output',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [728, 304],
+      position: [464, 304],
     })
 
     baseNodes.push({
@@ -304,7 +302,7 @@ ${customSystemMessage}`
       name: 'If Not Streaming',
       type: 'n8n-nodes-base.if',
       typeVersion: 2.2,
-      position: [944, 304],
+      position: [672, 304],
     })
 
     baseNodes.push({
@@ -316,7 +314,7 @@ ${customSystemMessage}`
       name: 'Respond to Webhook',
       type: 'n8n-nodes-base.respondToWebhook',
       typeVersion: 1.1,
-      position: [1160, 304],
+      position: [880, 304],
     })
   }
 

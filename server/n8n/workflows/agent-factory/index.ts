@@ -80,7 +80,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           description: 'Get user data by authentication token',
           workflowName: 'Tool: Get User By Token',
           nodeId: `${agentId}-get-user-by-token`,
-          position: [-432, 592],
+          position: [-1248, 496],
           inputs: createStaticInputs([
             {
               name: 'token',
@@ -123,7 +123,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           name: 'Set Auth Context',
           type: 'n8n-nodes-base.set',
           typeVersion: 3.4,
-          position: [-224, 592],
+          position: [-1056, 528],
         },
       ]
     : []
@@ -134,7 +134,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           main: [[{ node: 'Set Auth Context', type: 'main', index: 0 }]],
         },
         'Set Auth Context': {
-          main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
+          main: [[{ node: 'Merge Trigger', type: 'main', index: 0 }]],
         },
       }
     : {}
@@ -343,35 +343,49 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
       },
     }),
     'Execute Workflow Trigger': {
-      main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
+      main: [[{ node: 'Merge Trigger', type: 'main', index: 0 }]],
     },
     'When chat message received': {
       main: [
         [
           {
-            node: authFromToken ? 'Get User By Token' : 'Get Agent Data',
+            node: authFromToken ? 'Get User By Token' : 'Merge Trigger',
             type: 'main',
             index: 0,
           },
         ],
       ],
     },
-    'Get Agent Data': {
-      main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
-    },
     ...(hasTools
       ? {
-          'Prepare Context': {
-            main: [[{ node: 'Fetch MindLogs', type: 'main', index: 0 }]],
+          'Merge Trigger': {
+            main: [
+              [
+                { node: 'Get Agent Data', type: 'main', index: 0 },
+                { node: 'Fetch MindLogs', type: 'main', index: 0 },
+              ],
+            ],
+          },
+          'Get Agent Data': {
+            main: [[{ node: 'Merge', type: 'main', index: 0 }]],
           },
           'Fetch MindLogs': {
-            main: [[{ node: 'Prepare MindLogs', type: 'main', index: 0 }]],
+            main: [[{ node: 'Merge', type: 'main', index: 1 }]],
           },
-          'Prepare MindLogs': {
+          Merge: {
+            main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
+          },
+          'Prepare Context': {
             main: [[{ node: agentName, type: 'main', index: 0 }]],
           },
         }
       : {
+          'Merge Trigger': {
+            main: [[{ node: 'Get Agent Data', type: 'main', index: 0 }]],
+          },
+          'Get Agent Data': {
+            main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
+          },
           'Prepare Context': {
             main: [[{ node: agentName, type: 'main', index: 0 }]],
           },

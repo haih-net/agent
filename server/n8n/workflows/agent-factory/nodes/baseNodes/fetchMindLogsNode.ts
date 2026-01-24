@@ -1,9 +1,6 @@
 import { print } from 'graphql'
-import {
-  MyMindLogsDocument,
-  MyMindLogsQueryVariables,
-} from 'src/gql/generated/myMindLogs'
-import { MindLogType, MindLogWhereInput } from 'src/gql/generated/types'
+import { MyMindLogsDocument } from 'src/gql/generated/myMindLogs'
+import { MindLogType } from 'src/gql/generated/types'
 import { NodeType } from '../../interfaces'
 
 const myMindLogsQuery = print(MyMindLogsDocument)
@@ -14,40 +11,38 @@ const FETCH_MINDLOG_TYPES: MindLogType[] = [
   MindLogType.CONTEXT,
 ]
 
+const FETCH_MINDLOGS_TAKE = 100
+
 type GetFetchMindLogsNodeProps = {
   agentId: string
   agentName: string
-}
-
-function buildVariables(userId?: string): MyMindLogsQueryVariables {
-  const where: MindLogWhereInput = {
-    type: { in: FETCH_MINDLOG_TYPES },
-  }
-
-  if (userId) {
-    where.relatedToUserId = userId
-  }
-
-  return {
-    where,
-    take: 100,
-  }
 }
 
 export function getFetchMindLogsNode({
   agentId,
   agentName,
 }: GetFetchMindLogsNodeProps): NodeType {
-  const baseVariables = buildVariables()
-
   const typesArray = JSON.stringify(FETCH_MINDLOG_TYPES)
 
   const variables = `={{ (() => {
     const types = ${typesArray};
-    const userId = $json.user?.id;
+    let userData = null;
+    try {
+      if ($('Set Auth Context').isExecuted) {
+        userData = $('Set Auth Context').first().json.user || null;
+      }
+    } catch {}
+    if (!userData) {
+      if ($('Execute Workflow Trigger').isExecuted) {
+        userData = $('Execute Workflow Trigger').first().json.user || null;
+      } else if ($('When chat message received').isExecuted) {
+        userData = $('When chat message received').first().json.user || null;
+      }
+    }
+    const userId = userData?.id || null;
     const where = { type: { in: types } };
     if (userId) where.relatedToUserId = userId;
-    return JSON.stringify({ where: where, take: ${baseVariables.take} });
+    return JSON.stringify({ where: where, take: ${FETCH_MINDLOGS_TAKE} });
   })() }}`
 
   return {
@@ -92,6 +87,6 @@ export function getFetchMindLogsNode({
     name: 'Fetch MindLogs',
     type: 'n8n-nodes-base.executeWorkflow',
     typeVersion: 1.2,
-    position: [-16, 304] as [number, number],
+    position: [-496, 416] as [number, number],
   }
 }

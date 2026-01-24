@@ -9,7 +9,10 @@ if ($('Execute Workflow Trigger').isExecuted) {
   triggerData = $('When chat message received').first().json
 }
 
-const agentData = $('Get Agent Data').first().json.data?.me || null
+// After Merge node, data comes combined: data.me (agent) and data.response (mindlogs)
+const items = $input.all()
+const agentData = items[0]?.json?.data?.me || null
+const mindLogs = items[1]?.json?.data?.response || []
 
 let userData = null
 let authSessionId = null
@@ -56,6 +59,31 @@ const enableStreaming = isWorkflowTrigger
   ? false
   : (triggerData.body?.enableStreaming ?? triggerData.enableStreaming)
 
+// Process MindLogs from merged data.response
+let assistantMessages = '[]'
+
+if (mindLogs.length > 0) {
+  const formatMindLogs = (mindLog) => {
+    const { type, data, ...other } = mindLog
+    const entries = Object.entries(other)
+      .map(([key, value]) => `- **${key}**: ${JSON.stringify(value)}`)
+      .join('\n')
+
+    return `## ${type}\n\n
+        ${data || ''}\n\n
+        ${entries}`
+  }
+
+  const sections = mindLogs.map(formatMindLogs)
+
+  const assistantMessage =
+    sections.length > 0 ? `# My Memory\n\n${sections.join('\n\n')}` : ''
+
+  assistantMessages = assistantMessage
+    ? JSON.stringify([{ role: 'assistant', content: assistantMessage }])
+    : '[]'
+}
+
 return [
   {
     json: {
@@ -67,6 +95,7 @@ return [
       currentDate: new Date().toISOString().split('T')[0],
       currentDateTime: new Date().toISOString(),
       enableStreaming,
+      assistantMessages,
     },
   },
 ]
