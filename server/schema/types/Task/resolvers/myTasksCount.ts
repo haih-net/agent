@@ -1,5 +1,6 @@
 import { builder } from '../../../builder'
 import { TaskWhereInput } from '../inputs'
+import { buildTaskWhere } from '../helpers'
 
 builder.queryField('myTasksCount', (t) =>
   t.int({
@@ -12,11 +13,7 @@ builder.queryField('myTasksCount', (t) =>
       }
 
       return ctx.prisma.task.count({
-        where: {
-          assigneeId: ctx.currentUser.id,
-          status: args.where?.status ?? undefined,
-          parentId: args.where?.parentId ?? undefined,
-        },
+        where: buildTaskWhere(args.where, { myOnly: true }, ctx),
       })
     },
   }),
