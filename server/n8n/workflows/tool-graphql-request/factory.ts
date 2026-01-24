@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { WorkflowBase } from '../interfaces'
+import { createHandleResponseNode } from '../helpers'
 
 const parseInputCode = fs.readFileSync(
   path.join(__dirname, 'parseInput.js'),
@@ -160,7 +161,12 @@ export function createToolGraphqlRequest(
             name: credentialName,
           },
         },
+        onError: 'continueRegularOutput',
       },
+      createHandleResponseNode({
+        nodeId: 'handle-response',
+        position: [1200, 300],
+      }),
     ],
     connections: {
       'Execute Workflow Trigger': {
@@ -177,6 +183,9 @@ export function createToolGraphqlRequest(
       },
       'Merge Config': {
         main: [[{ node: 'GraphQL Request', type: 'main', index: 0 }]],
+      },
+      'GraphQL Request': {
+        main: [[{ node: 'Handle Response', type: 'main', index: 0 }]],
       },
     },
     pinData: {},

@@ -1,5 +1,34 @@
 import * as fs from 'fs'
+import * as path from 'path'
 import { NodeType } from '../agent-factory/interfaces'
+
+const handleResponseCode = fs.readFileSync(
+  path.join(__dirname, '../../helper-nodes/handleResponse/index.js'),
+  'utf-8',
+)
+
+export interface HandleResponseNodeConfig {
+  nodeId: string
+  nodeName?: string
+  position: [number, number]
+}
+
+export function createHandleResponseNode(
+  config: HandleResponseNodeConfig,
+): NodeType {
+  const { nodeId, nodeName = 'Handle Response', position } = config
+
+  return {
+    parameters: {
+      jsCode: handleResponseCode,
+    },
+    id: nodeId,
+    name: nodeName,
+    type: 'n8n-nodes-base.code',
+    typeVersion: 2,
+    position,
+  }
+}
 
 export function readN8nTemplate(filePath: string): string {
   const content = fs.readFileSync(filePath, 'utf-8')
