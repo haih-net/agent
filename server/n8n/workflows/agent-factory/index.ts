@@ -393,6 +393,9 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
             main: [[{ node: 'Merge Context', type: 'main', index: 1 }]],
           },
           'Merge Context': {
+            main: [[{ node: 'Prepare Agent Input', type: 'main', index: 0 }]],
+          },
+          'Prepare Agent Input': {
             main: [[{ node: agentName, type: 'main', index: 0 }]],
           },
         }

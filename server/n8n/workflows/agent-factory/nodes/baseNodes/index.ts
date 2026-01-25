@@ -49,6 +49,11 @@ export function getBaseNodes({
     'utf-8',
   )
 
+  const prepareAgentInputCode = fs.readFileSync(
+    path.join(__dirname, 'prepareAgentInput.js'),
+    'utf-8',
+  )
+
   const baseSystemMessage = fs.readFileSync(
     path.join(__dirname, 'base-system-message.md'),
     'utf-8',
@@ -133,12 +138,22 @@ ${customSystemMessage}`
           mappingMode: 'defineBelow',
           value: {
             agentId,
+            chatInput: '={{ $json.chatInput }}',
           },
           matchingColumns: [],
           schema: [
             {
               id: 'agentId',
               displayName: 'agentId',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+            {
+              id: 'chatInput',
+              displayName: 'chatInput',
               required: true,
               defaultMatch: false,
               display: true,
@@ -174,6 +189,16 @@ ${customSystemMessage}`
             position: getNodeCoordinates('merge-context'),
             id: `${agentId}-merge-context`,
             name: 'Merge Context',
+          },
+          {
+            parameters: {
+              jsCode: prepareAgentInputCode,
+            },
+            id: `${agentId}-prepare-agent-input`,
+            name: 'Prepare Agent Input',
+            type: 'n8n-nodes-base.code',
+            typeVersion: 2,
+            position: getNodeCoordinates('prepare-agent-input'),
           },
         ]
       : []),

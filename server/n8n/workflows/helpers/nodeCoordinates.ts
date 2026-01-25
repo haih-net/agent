@@ -6,6 +6,7 @@ export type NodeId =
   | 'fetch-mindlogs'
   | 'merge'
   | 'merge-context'
+  | 'prepare-agent-input'
   | 'agent'
   | 'workflow-trigger'
   | 'chat-trigger'
@@ -123,6 +124,7 @@ const nodeCoordinates: Record<NodeId, [number, number]> = {
   'fetch-mindlogs': [-1344, 400],
   merge: [-992, 288],
   'merge-context': [-224, 304],
+  'prepare-agent-input': [-48, 304],
   agent: [112, 304],
   'workflow-trigger': [-1888, 128],
   'chat-trigger': [-2224, 336],

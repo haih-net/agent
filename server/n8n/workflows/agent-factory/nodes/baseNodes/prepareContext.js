@@ -60,7 +60,7 @@ const enableStreaming = isWorkflowTrigger
   : (triggerData.body?.enableStreaming ?? triggerData.enableStreaming)
 
 // Process MindLogs from merged data.response
-let assistantMessages = '[]'
+let assistantMessages = []
 
 if (mindLogs.length > 0) {
   const formatMindLogs = (mindLog) => {
@@ -79,9 +79,9 @@ if (mindLogs.length > 0) {
   const assistantMessage =
     sections.length > 0 ? `# My Memory\n\n${sections.join('\n\n')}` : ''
 
-  assistantMessages = assistantMessage
-    ? JSON.stringify([{ role: 'assistant', content: assistantMessage }])
-    : '[]'
+  if (assistantMessage) {
+    assistantMessages.push({ role: 'assistant', content: assistantMessage })
+  }
 }
 
 return [

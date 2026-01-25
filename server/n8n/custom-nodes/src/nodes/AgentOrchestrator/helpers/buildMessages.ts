@@ -51,6 +51,11 @@ export const buildMessages = (
   if (systemMessage) {
     messages.push({ role: 'system', content: systemMessage })
   }
+
+  if (userInput) {
+    messages.push({ role: 'user', content: userInput })
+  }
+
   for (const msg of assistantMessages) {
     if (msg.role && msg.content) {
       messages.push(msg)
@@ -62,8 +67,5 @@ export const buildMessages = (
     content: buildContextMessage(context || {}),
   })
 
-  if (userInput) {
-    messages.push({ role: 'user', content: userInput })
-  }
   return messages
 }
