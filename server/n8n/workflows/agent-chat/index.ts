@@ -2,7 +2,7 @@ import * as path from 'path'
 import { createAgent } from '../agent-factory'
 import { getModel } from '../helpers'
 
-const { toolGraphqlRequest, agentWorkflow } = createAgent({
+export default createAgent({
   agentName: 'Chat Agent',
   agentDescription: 'Main chat agent. Handles user conversations.',
   agentId: 'chat-agent',
@@ -21,5 +21,3 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
   canExecuteFetch: true,
   canAccessFileSystem: false,
 })
-
-export default [toolGraphqlRequest, agentWorkflow]

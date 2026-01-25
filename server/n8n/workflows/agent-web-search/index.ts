@@ -1,10 +1,8 @@
 import * as path from 'path'
 import { createAgent } from '../agent-factory'
 
-const AGENT_NAME = 'Web Search Agent'
-
-const { toolGraphqlRequest, agentWorkflow } = createAgent({
-  agentName: AGENT_NAME,
+export default createAgent({
+  agentName: 'Web Search Agent',
   agentDescription:
     'Specialized agent for web search and research using Perplexity Sonar. Provides real-time information from the internet with citations.',
   agentId: 'web-search-agent',
@@ -24,5 +22,3 @@ const { toolGraphqlRequest, agentWorkflow } = createAgent({
     { name: 'user', type: 'object' },
   ],
 })
-
-export default [toolGraphqlRequest, agentWorkflow]

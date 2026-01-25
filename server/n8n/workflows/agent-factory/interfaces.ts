@@ -44,7 +44,4 @@ export interface AgentFactoryConfig {
   enableStreaming?: boolean
 }
 
-export interface AgentFactoryResult {
-  toolGraphqlRequest: WorkflowBase
-  agentWorkflow: WorkflowBase
-}
+export type AgentFactoryResult = WorkflowBase[]

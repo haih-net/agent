@@ -1,4 +1,5 @@
 import { createToolGraphqlRequest } from '../tool-graphql-request/factory'
+import { createReflectionWorkflow } from '../reflection/factory'
 import {
   AgentFactoryConfig,
   AgentFactoryResult,
@@ -71,6 +72,10 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     agentName,
     credentialId,
     credentialName,
+  })
+
+  const reflectionWorkflow = createReflectionWorkflow({
+    agentName,
   })
 
   const authNodes: NodeType[] = authFromToken
@@ -377,6 +382,17 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
             main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
           },
           'Prepare Context': {
+            main: [
+              [
+                { node: 'Reflection', type: 'main', index: 0 },
+                { node: 'Merge Context', type: 'main', index: 0 },
+              ],
+            ],
+          },
+          Reflection: {
+            main: [[{ node: 'Merge Context', type: 'main', index: 1 }]],
+          },
+          'Merge Context': {
             main: [[{ node: agentName, type: 'main', index: 0 }]],
           },
         }
@@ -388,6 +404,9 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
             main: [[{ node: 'Prepare Context', type: 'main', index: 0 }]],
           },
           'Prepare Context': {
+            main: [[{ node: 'Reflection', type: 'main', index: 0 }]],
+          },
+          Reflection: {
             main: [[{ node: agentName, type: 'main', index: 0 }]],
           },
         }),
@@ -429,8 +448,5 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
     },
   }
 
-  return {
-    toolGraphqlRequest,
-    agentWorkflow,
-  }
+  return [toolGraphqlRequest, reflectionWorkflow, agentWorkflow]
 }

@@ -3,6 +3,7 @@ import * as path from 'path'
 import { WorkflowBase } from '../interfaces'
 import { createHandleResponseNode } from '../helpers'
 import { getNodeCoordinates } from '../helpers/nodeCoordinates'
+import { getGraphqlRequestWorkflowName } from './helpers'
 
 const parseInputCode = fs.readFileSync(
   path.join(__dirname, 'parseInput.js'),
@@ -39,7 +40,7 @@ export function createToolGraphqlRequest(
   )
 
   return {
-    name: `Tool: GraphQL Request (${agentName})`,
+    name: getGraphqlRequestWorkflowName(agentName),
     active: true,
     versionId: `tool-graphql-request-${agentName.toLowerCase().replace(/\s+/g, '-')}-v1`,
     nodes: [

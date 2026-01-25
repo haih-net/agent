@@ -6,6 +6,8 @@ import { AgentFactoryConfig, NodeType } from '../../interfaces'
 import type { INodeParameters } from 'n8n-workflow'
 import { getFetchMindLogsNode } from './fetchMindLogsNode'
 import { getNodeCoordinates } from '../../../helpers/nodeCoordinates'
+import { getGraphqlRequestWorkflowName } from '../../../tool-graphql-request/helpers'
+import { getReflectionWorkflowName } from '../../../reflection/helpers'
 
 const meUserQuery = print(MeDocument)
 
@@ -81,7 +83,7 @@ ${customSystemMessage}`
         workflowId: {
           __rl: true,
           mode: 'list',
-          value: `Tool: GraphQL Request (${agentName})`,
+          value: getGraphqlRequestWorkflowName(agentName),
         },
         workflowInputs: {
           mappingMode: 'defineBelow',
@@ -120,6 +122,40 @@ ${customSystemMessage}`
       typeVersion: 2,
       position: getNodeCoordinates('prepare-context'),
     },
+    {
+      parameters: {
+        workflowId: {
+          __rl: true,
+          mode: 'list',
+          value: getReflectionWorkflowName(agentName),
+        },
+        workflowInputs: {
+          mappingMode: 'defineBelow',
+          value: {
+            agentId,
+          },
+          matchingColumns: [],
+          schema: [
+            {
+              id: 'agentId',
+              displayName: 'agentId',
+              required: true,
+              defaultMatch: false,
+              display: true,
+              canBeUsedToMatch: true,
+              type: 'string',
+            },
+          ],
+          attemptToConvertTypes: false,
+          convertFieldsToString: false,
+        },
+      },
+      id: `${agentId}-reflection`,
+      name: 'Reflection',
+      type: 'n8n-nodes-base.executeWorkflow',
+      typeVersion: 1.2,
+      position: getNodeCoordinates('reflection'),
+    },
     ...(hasTools
       ? [
           getFetchMindLogsNode({ agentId, agentName }),
@@ -130,6 +166,14 @@ ${customSystemMessage}`
             position: getNodeCoordinates('merge'),
             id: `${agentId}-merge`,
             name: 'Merge',
+          },
+          {
+            parameters: {},
+            type: 'n8n-nodes-base.merge',
+            typeVersion: 3.2,
+            position: getNodeCoordinates('merge-context'),
+            id: `${agentId}-merge-context`,
+            name: 'Merge Context',
           },
         ]
       : []),

@@ -2,8 +2,10 @@ export type NodeId =
   | 'merge-trigger'
   | 'get-agent-data'
   | 'prepare-context'
+  | 'reflection'
   | 'fetch-mindlogs'
   | 'merge'
+  | 'merge-context'
   | 'agent'
   | 'workflow-trigger'
   | 'chat-trigger'
@@ -108,22 +110,28 @@ export type NodeId =
   | 'verify-token-trigger'
   | 'verify-token-graphql'
   | 'verify-token-set-output'
+  | 'reflection-trigger'
+  | 'reflection-manual'
+  | 'reflection-set-test'
+  | 'reflection-process'
 
 const nodeCoordinates: Record<NodeId, [number, number]> = {
-  'merge-trigger': [-960, 272],
-  'get-agent-data': [-640, 160],
-  'prepare-context': [-96, 304],
-  'fetch-mindlogs': [-640, 416],
-  merge: [-288, 304],
-  agent: [160, 304],
-  'workflow-trigger': [-1184, 144],
-  'chat-trigger': [-1520, 352],
-  memory: [256, 560],
+  'merge-trigger': [-1664, 256],
+  'get-agent-data': [-1344, 144],
+  'prepare-context': [-752, 288],
+  reflection: [-480, 512],
+  'fetch-mindlogs': [-1344, 400],
+  merge: [-992, 288],
+  'merge-context': [-224, 304],
+  agent: [112, 304],
+  'workflow-trigger': [-1888, 128],
+  'chat-trigger': [-2224, 336],
+  memory: [208, 560],
   'workflow-output': [464, 304],
   'if-not-streaming': [672, 304],
   'respond-webhook': [880, 304],
-  'get-user-by-token': [-1328, 480],
-  'set-auth-context': [-1168, 512],
+  'get-user-by-token': [-2032, 464],
+  'set-auth-context': [-1872, 496],
   'tool-create-mindlog': [1248, 720],
   'tool-update-mindlog': [1248, 864],
   'tool-delete-mindlog': [1248, 1024],
@@ -219,6 +227,10 @@ const nodeCoordinates: Record<NodeId, [number, number]> = {
   'verify-token-trigger': [0, 300],
   'verify-token-graphql': [220, 300],
   'verify-token-set-output': [440, 300],
+  'reflection-trigger': [-400, 300],
+  'reflection-manual': [-400, 500],
+  'reflection-set-test': [0, 500],
+  'reflection-process': [200, 300],
 }
 
 export function getNodeCoordinates(nodeId: NodeId): [number, number] {
