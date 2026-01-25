@@ -3,6 +3,7 @@ import { TaskWorkLogListDocument } from 'src/gql/generated/taskWorkLogList'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { searchTaskWorkLogSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const searchTaskWorkLogQuery = print(TaskWorkLogListDocument)
 
@@ -27,7 +28,7 @@ export function getSearchTaskWorkLogNode({
     description: 'Search task work log entries',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-search-task-work-log`,
-    position: [2560, 528],
+    position: getNodeCoordinates('tool-search-task-work-log'),
     inputs: createStaticInputs([
       {
         name: 'query',

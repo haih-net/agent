@@ -1,4 +1,5 @@
 import { WorkflowBase } from '../interfaces'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 if (!process.env.GRAPHQL_ENDPOINT) {
   throw new Error('GRAPHQL_ENDPOINT environment variable is required')
@@ -28,13 +29,13 @@ const workflow: WorkflowBase = {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-200, 304],
+      position: getNodeCoordinates('tool-get-config-trigger'),
     },
     {
       parameters: {},
       type: 'n8n-nodes-base.manualTrigger',
       typeVersion: 1,
-      position: [-200, 504],
+      position: getNodeCoordinates('tool-get-config-manual'),
       id: 'manual-trigger',
       name: 'Manual Trigger',
     },
@@ -46,7 +47,7 @@ const workflow: WorkflowBase = {
       name: 'Get Config',
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [0, 304],
+      position: getNodeCoordinates('tool-get-config-code'),
     },
   ],
   connections: {

@@ -1,4 +1,5 @@
 import { WorkflowBase } from '../interfaces'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 const workflow: WorkflowBase = {
   name: 'Tool: List Files',
@@ -13,13 +14,13 @@ const workflow: WorkflowBase = {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-200, 304],
+      position: getNodeCoordinates('tool-list-files-trigger'),
     },
     {
       parameters: {},
       type: 'n8n-nodes-base.manualTrigger',
       typeVersion: 1,
-      position: [-200, 504],
+      position: getNodeCoordinates('tool-list-files-manual'),
       id: 'manual-trigger',
       name: 'Manual Trigger',
     },
@@ -43,7 +44,7 @@ const workflow: WorkflowBase = {
       name: 'Set Test Path',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [0, 504],
+      position: getNodeCoordinates('tool-list-files-set-test'),
     },
     {
       parameters: {
@@ -53,7 +54,7 @@ const workflow: WorkflowBase = {
       name: 'List Files',
       type: 'n8n-nodes-base.executeCommand',
       typeVersion: 1,
-      position: [200, 304],
+      position: getNodeCoordinates('tool-list-files-execute'),
     },
   ],
   connections: {

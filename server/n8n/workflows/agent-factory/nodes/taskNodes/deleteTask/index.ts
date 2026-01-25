@@ -3,6 +3,7 @@ import { DeleteTaskDocument } from 'src/gql/generated/deleteTask'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { deleteTaskSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const deleteTaskQuery = print(DeleteTaskDocument)
 
@@ -24,7 +25,7 @@ export function getDeleteTaskNode({
       "Delete an agent's own Task by ID. These are YOUR tasks as an agent, not user tasks",
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-delete-task`,
-    position: [1984, 528],
+    position: getNodeCoordinates('tool-delete-task'),
     inputs: createStaticInputs([
       {
         name: 'query',

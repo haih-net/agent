@@ -1,5 +1,6 @@
 import { createTool, createToolInputs } from '../../../helpers'
 import { ConnectionsType, NodeType } from '../../interfaces'
+import { getNodeCoordinates } from '../../../helpers/nodeCoordinates'
 
 interface GraphqlToolsConfig {
   agentId: string
@@ -16,7 +17,7 @@ export function getGraphqlToolNodes(config: GraphqlToolsConfig): NodeType[] {
       description: `Execute a GraphQL query or mutation against the API. IMPORTANT: All requests are authenticated as ${agentName}, not as the external user.`,
       workflowName: `Tool: GraphQL Request (${agentName})`,
       nodeId: `${agentId}-tool-graphql`,
-      position: [224, 512],
+      position: getNodeCoordinates('tool-graphql'),
       inputs: createToolInputs([
         {
           name: 'query',

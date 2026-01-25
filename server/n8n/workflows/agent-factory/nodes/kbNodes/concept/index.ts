@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { conceptOperations, conceptSchemas } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const combinedDocument = fs.readFileSync(
   path.join(__dirname, '../../../../../../../src/gql/src/KBConcept.graphql'),
@@ -33,7 +34,7 @@ export function getConceptNode({
       'CRUD Manage Knowledge Base Concepts (entities like companies, positions, persons).',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-kb-concept`,
-    position: [2200, 528],
+    position: getNodeCoordinates('tool-kb-concept'),
     inputs: createStaticInputs([
       {
         name: 'query',

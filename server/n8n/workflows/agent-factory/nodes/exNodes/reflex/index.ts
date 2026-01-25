@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { reflexOperations, reflexSchemas } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const combinedDocument = fs.readFileSync(
   path.join(__dirname, '../../../../../../../src/gql/src/EXReflex.graphql'),
@@ -33,7 +34,7 @@ export function getReflexNode({
       'CRUD Manage EX Reflexes (behavioral rules: stimulus → response patterns with effectiveness tracking).',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-ex-reflex`,
-    position: [2200, 1088],
+    position: getNodeCoordinates('tool-ex-reflex'),
     inputs: createStaticInputs([
       {
         name: 'query',

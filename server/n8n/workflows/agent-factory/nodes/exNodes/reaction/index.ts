@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { reactionOperations, reactionSchemas } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const combinedDocument = fs.readFileSync(
   path.join(__dirname, '../../../../../../../src/gql/src/EXReaction.graphql'),
@@ -33,7 +34,7 @@ export function getReactionNode({
       'CRUD Manage EX Reactions (specific responses to stimuli with scoring: agent, target, mentor).',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-ex-reaction`,
-    position: [2200, 1188],
+    position: getNodeCoordinates('tool-ex-reaction'),
     inputs: createStaticInputs([
       {
         name: 'query',

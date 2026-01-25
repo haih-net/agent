@@ -2,6 +2,7 @@ import { print } from 'graphql'
 import { MyMindLogsDocument } from 'src/gql/generated/myMindLogs'
 import { MindLogType } from 'src/gql/generated/types'
 import { NodeType } from '../../interfaces'
+import { getNodeCoordinates } from '../../../helpers/nodeCoordinates'
 
 const myMindLogsQuery = print(MyMindLogsDocument)
 
@@ -87,6 +88,6 @@ export function getFetchMindLogsNode({
     name: 'Fetch MindLogs',
     type: 'n8n-nodes-base.executeWorkflow',
     typeVersion: 1.2,
-    position: [-496, 416] as [number, number],
+    position: getNodeCoordinates('fetch-mindlogs'),
   }
 }

@@ -5,6 +5,7 @@ import { MeDocument } from 'src/gql/generated/me'
 import { AgentFactoryConfig, NodeType } from '../../interfaces'
 import type { INodeParameters } from 'n8n-workflow'
 import { getFetchMindLogsNode } from './fetchMindLogsNode'
+import { getNodeCoordinates } from '../../../helpers/nodeCoordinates'
 
 const meUserQuery = print(MeDocument)
 
@@ -73,7 +74,7 @@ ${customSystemMessage}`
       name: 'Merge Trigger',
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [-848, 272],
+      position: getNodeCoordinates('merge-trigger'),
     },
     {
       parameters: {
@@ -107,7 +108,7 @@ ${customSystemMessage}`
       name: 'Get Agent Data',
       type: 'n8n-nodes-base.executeWorkflow',
       typeVersion: 1.2,
-      position: [-496, 160],
+      position: getNodeCoordinates('get-agent-data'),
     },
     {
       parameters: {
@@ -117,7 +118,7 @@ ${customSystemMessage}`
       name: 'Prepare Context',
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [48, 304],
+      position: getNodeCoordinates('prepare-context'),
     },
     ...(hasTools
       ? [
@@ -126,7 +127,7 @@ ${customSystemMessage}`
             parameters: {},
             type: 'n8n-nodes-base.merge',
             typeVersion: 3.2,
-            position: [-176, 304] as [number, number],
+            position: getNodeCoordinates('merge'),
             id: `${agentId}-merge`,
             name: 'Merge',
           },
@@ -145,7 +146,7 @@ ${customSystemMessage}`
         name: agentName,
         type: '@n8n/n8n-nodes-langchain.agent',
         typeVersion: 3.1,
-        position: [256, 304],
+        position: getNodeCoordinates('agent'),
       }
 
       if (agentNodeType === 'orchestrator') {
@@ -211,7 +212,7 @@ ${customSystemMessage}`
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-1152, 176],
+      position: getNodeCoordinates('workflow-trigger'),
     },
     {
       parameters: {
@@ -228,7 +229,7 @@ ${customSystemMessage}`
       },
       type: '@n8n/n8n-nodes-langchain.chatTrigger',
       typeVersion: 1.4,
-      position: [-1408, 352],
+      position: getNodeCoordinates('chat-trigger'),
       id: `${agentId}-chat-trigger`,
       name: 'When chat message received',
       webhookId,
@@ -246,7 +247,7 @@ ${customSystemMessage}`
       name: 'Simple Memory',
       type: '@n8n/n8n-nodes-langchain.memoryBufferWindow',
       typeVersion: 1.3,
-      position: [352, 576],
+      position: getNodeCoordinates('memory'),
     })
   }
 
@@ -271,7 +272,7 @@ ${customSystemMessage}`
       name: 'Workflow Output',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [464, 304],
+      position: getNodeCoordinates('workflow-output'),
     })
 
     baseNodes.push({
@@ -302,7 +303,7 @@ ${customSystemMessage}`
       name: 'If Not Streaming',
       type: 'n8n-nodes-base.if',
       typeVersion: 2.2,
-      position: [672, 304],
+      position: getNodeCoordinates('if-not-streaming'),
     })
 
     baseNodes.push({
@@ -314,7 +315,7 @@ ${customSystemMessage}`
       name: 'Respond to Webhook',
       type: 'n8n-nodes-base.respondToWebhook',
       typeVersion: 1.1,
-      position: [880, 304],
+      position: getNodeCoordinates('respond-webhook'),
     })
   }
 

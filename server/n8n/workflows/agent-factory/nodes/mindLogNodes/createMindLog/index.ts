@@ -3,6 +3,7 @@ import { CreateMindLogDocument } from 'src/gql/generated/createMindLog'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { createMindLogSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const createMindLogQuery = print(CreateMindLogDocument)
 
@@ -27,7 +28,7 @@ export function getCreateMindLogNode({
     description: 'Create a MindLog entry',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-create-mindlog`,
-    position: [800, 528],
+    position: getNodeCoordinates('tool-create-mindlog'),
     inputs: createStaticInputs([
       {
         name: 'query',

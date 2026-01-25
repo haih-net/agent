@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { WorkflowBase } from '../interfaces'
 import { createHandleResponseNode } from '../helpers'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 const parseInputCode = fs.readFileSync(
   path.join(__dirname, 'parseInput.js'),
@@ -65,7 +66,7 @@ export function createToolGraphqlRequest(
         name: 'Execute Workflow Trigger',
         type: 'n8n-nodes-base.executeWorkflowTrigger',
         typeVersion: 1.1,
-        position: [-400, 300],
+        position: getNodeCoordinates('tool-graphql-request-trigger'),
       },
       {
         parameters: {
@@ -75,13 +76,13 @@ export function createToolGraphqlRequest(
         name: 'Parse Input',
         type: 'n8n-nodes-base.code',
         typeVersion: 2,
-        position: [0, 300],
+        position: getNodeCoordinates('tool-graphql-request-parse'),
       },
       {
         parameters: {},
         type: 'n8n-nodes-base.manualTrigger',
         typeVersion: 1,
-        position: [-400, 500],
+        position: getNodeCoordinates('tool-graphql-request-manual'),
         id: 'manual-trigger',
         name: 'Manual Trigger',
       },
@@ -117,7 +118,7 @@ export function createToolGraphqlRequest(
         name: 'Set Test Input',
         type: 'n8n-nodes-base.set',
         typeVersion: 3.4,
-        position: [0, 500],
+        position: getNodeCoordinates('tool-graphql-request-set-test'),
       },
       {
         parameters: {
@@ -127,7 +128,7 @@ export function createToolGraphqlRequest(
         name: 'Merge Config',
         type: 'n8n-nodes-base.code',
         typeVersion: 2,
-        position: [400, 300],
+        position: getNodeCoordinates('tool-graphql-request-merge-config'),
       },
       {
         parameters: {
@@ -154,7 +155,7 @@ export function createToolGraphqlRequest(
         name: 'GraphQL Request',
         type: 'n8n-nodes-base.httpRequest',
         typeVersion: 4.2,
-        position: [800, 300],
+        position: getNodeCoordinates('tool-graphql-request-http'),
         credentials: {
           httpHeaderAuth: {
             id: credentialId,
@@ -165,7 +166,7 @@ export function createToolGraphqlRequest(
       },
       createHandleResponseNode({
         nodeId: 'handle-response',
-        position: [1200, 300],
+        position: getNodeCoordinates('tool-graphql-request-handle-response'),
       }),
     ],
     connections: {

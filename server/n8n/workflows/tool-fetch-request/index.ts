@@ -1,4 +1,5 @@
 import { WorkflowBase } from '../interfaces'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 const workflow: WorkflowBase = {
   name: 'Tool: Fetch Request',
@@ -32,13 +33,13 @@ const workflow: WorkflowBase = {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-200, 304],
+      position: getNodeCoordinates('tool-fetch-request-trigger'),
     },
     {
       parameters: {},
       type: 'n8n-nodes-base.manualTrigger',
       typeVersion: 1,
-      position: [-200, 504],
+      position: getNodeCoordinates('tool-fetch-request-manual'),
       id: 'manual-trigger',
       name: 'Manual Trigger',
     },
@@ -81,7 +82,7 @@ const workflow: WorkflowBase = {
       name: 'Set Test Data',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [0, 504],
+      position: getNodeCoordinates('tool-fetch-request-set-test'),
     },
     {
       parameters: {
@@ -105,7 +106,7 @@ const workflow: WorkflowBase = {
       name: 'HTTP Request',
       type: 'n8n-nodes-base.httpRequest',
       typeVersion: 4.2,
-      position: [200, 304],
+      position: getNodeCoordinates('tool-fetch-request-http'),
     },
   ],
   connections: {

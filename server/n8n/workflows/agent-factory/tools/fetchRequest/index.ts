@@ -1,5 +1,6 @@
 import { createTool, createToolInputs } from '../../../helpers'
 import { ConnectionsType, NodeType } from '../../interfaces'
+import { getNodeCoordinates } from '../../../helpers/nodeCoordinates'
 
 interface FetchRequestToolsConfig {
   agentId: string
@@ -19,7 +20,7 @@ export function getFetchRequestNodes(
         'Execute HTTP request using fetch. Only external URLs allowed (no localhost/internal IPs). Returns status, statusText and body (JSON auto-parsed).',
       workflowName: 'Tool: Fetch Request',
       nodeId: `${agentId}-tool-fetch`,
-      position: [2928, 528],
+      position: getNodeCoordinates('tool-fetch'),
       inputs: createToolInputs([
         {
           name: 'url',

@@ -3,6 +3,7 @@ import { DeleteTaskWorkLogDocument } from 'src/gql/generated/deleteTaskWorkLog'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { deleteTaskWorkLogSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const deleteTaskWorkLogQuery = print(DeleteTaskWorkLogDocument)
 
@@ -27,7 +28,7 @@ export function getDeleteTaskWorkLogNode({
     description: 'Delete a task work log entry by ID',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-delete-task-work-log`,
-    position: [2752, 528],
+    position: getNodeCoordinates('tool-delete-task-work-log'),
     inputs: createStaticInputs([
       {
         name: 'query',

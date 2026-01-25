@@ -1,4 +1,5 @@
 import { WorkflowBase } from '../interfaces'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 const jsCode = `
 const now = new Date().toISOString();
@@ -26,7 +27,7 @@ const workflow: WorkflowBase = {
       },
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [0, 300],
+      position: getNodeCoordinates('loop-handler-trigger'),
       id: 'loop-handler-trigger',
       name: 'Execute Workflow Trigger',
     },
@@ -37,7 +38,7 @@ const workflow: WorkflowBase = {
       },
       type: 'n8n-nodes-base.wait',
       typeVersion: 1.1,
-      position: [220, 300],
+      position: getNodeCoordinates('loop-handler-wait'),
       id: 'loop-handler-wait',
       name: 'Wait 10s (simulate work)',
     },
@@ -47,7 +48,7 @@ const workflow: WorkflowBase = {
       },
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [440, 300],
+      position: getNodeCoordinates('loop-handler-code'),
       id: 'loop-handler-code',
       name: 'Process',
     },

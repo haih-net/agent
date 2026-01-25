@@ -1,6 +1,7 @@
 import { print } from 'graphql'
 import { MeDocument } from 'src/gql/generated/me'
 import { WorkflowBase } from '../interfaces'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 if (!process.env.GRAPHQL_ENDPOINT) {
   throw new Error('GRAPHQL_ENDPOINT environment variable is required')
@@ -30,13 +31,13 @@ const toolGetUserByToken: WorkflowBase = {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [-400, 200],
+      position: getNodeCoordinates('tool-get-user-by-token-trigger'),
     },
     {
       parameters: {},
       type: 'n8n-nodes-base.manualTrigger',
       typeVersion: 1,
-      position: [-400, 400],
+      position: getNodeCoordinates('tool-get-user-by-token-manual'),
       id: 'manual-trigger',
       name: 'Manual Trigger',
     },
@@ -60,7 +61,7 @@ const toolGetUserByToken: WorkflowBase = {
       name: 'Set Test Input',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [-200, 400],
+      position: getNodeCoordinates('tool-get-user-by-token-set-test'),
     },
     {
       parameters: {
@@ -78,7 +79,7 @@ return { token };`,
       name: 'Prepare Input',
       type: 'n8n-nodes-base.code',
       typeVersion: 2,
-      position: [-200, 200],
+      position: getNodeCoordinates('tool-get-user-by-token-prepare'),
     },
     {
       parameters: {
@@ -107,7 +108,7 @@ return { token };`,
       name: 'Has Token?',
       type: 'n8n-nodes-base.if',
       typeVersion: 2.2,
-      position: [0, 200],
+      position: getNodeCoordinates('tool-get-user-by-token-check'),
     },
     {
       parameters: {
@@ -137,7 +138,7 @@ return { token };`,
       name: 'Get User Data',
       type: 'n8n-nodes-base.httpRequest',
       typeVersion: 4.2,
-      position: [200, 100],
+      position: getNodeCoordinates('tool-get-user-by-token-http'),
     },
     {
       parameters: {
@@ -159,7 +160,7 @@ return { token };`,
       name: 'Set User',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [400, 100],
+      position: getNodeCoordinates('tool-get-user-by-token-set-user'),
     },
     {
       parameters: {
@@ -181,7 +182,7 @@ return { token };`,
       name: 'Set No User',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [200, 300],
+      position: getNodeCoordinates('tool-get-user-by-token-set-no-user'),
     },
   ],
   connections: {

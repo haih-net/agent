@@ -3,6 +3,7 @@ import { DeleteMindLogDocument } from 'src/gql/generated/deleteMindLog'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { deleteMindLogSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const deleteMindLogQuery = print(DeleteMindLogDocument)
 
@@ -27,7 +28,7 @@ export function getDeleteMindLogNode({
     description: 'Delete a MindLog entry by ID',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-delete-mindlog`,
-    position: [1184, 528],
+    position: getNodeCoordinates('tool-delete-mindlog'),
     inputs: createStaticInputs([
       {
         name: 'query',

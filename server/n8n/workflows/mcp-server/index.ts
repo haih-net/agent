@@ -1,4 +1,5 @@
 import { WorkflowBase } from '../interfaces'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 const toolSendMessage: WorkflowBase = {
   name: 'Tool: Send Message (MCP)',
@@ -28,7 +29,7 @@ const toolSendMessage: WorkflowBase = {
       name: 'Execute Workflow Trigger',
       type: 'n8n-nodes-base.executeWorkflowTrigger',
       typeVersion: 1.1,
-      position: [0, 200],
+      position: getNodeCoordinates('mcp-server-trigger'),
     },
     {
       parameters: {
@@ -57,7 +58,7 @@ const toolSendMessage: WorkflowBase = {
       name: 'Has Token?',
       type: 'n8n-nodes-base.if',
       typeVersion: 2.2,
-      position: [200, 200],
+      position: getNodeCoordinates('mcp-server-check-token'),
     },
     {
       parameters: {
@@ -91,7 +92,7 @@ const toolSendMessage: WorkflowBase = {
       name: 'Get User Data',
       type: 'n8n-nodes-base.executeWorkflow',
       typeVersion: 1.2,
-      position: [400, 100],
+      position: getNodeCoordinates('mcp-server-get-user'),
     },
     {
       parameters: {
@@ -125,7 +126,7 @@ const toolSendMessage: WorkflowBase = {
       name: 'Set User',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [600, 100],
+      position: getNodeCoordinates('mcp-server-set-user'),
     },
     {
       parameters: {
@@ -159,7 +160,7 @@ const toolSendMessage: WorkflowBase = {
       name: 'Set No User',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [400, 300],
+      position: getNodeCoordinates('mcp-server-set-no-user'),
     },
     {
       parameters: {
@@ -213,7 +214,7 @@ const toolSendMessage: WorkflowBase = {
       name: 'Call Chat Agent',
       type: 'n8n-nodes-base.executeWorkflow',
       typeVersion: 1.2,
-      position: [800, 200],
+      position: getNodeCoordinates('mcp-server-call-agent'),
     },
   ],
   connections: {
@@ -261,7 +262,7 @@ const mcpServerWorkflow: WorkflowBase = {
       name: 'MCP Trigger',
       type: '@n8n/n8n-nodes-langchain.mcpTrigger',
       typeVersion: 2,
-      position: [368, 96],
+      position: getNodeCoordinates('mcp-server-mcp-trigger'),
       webhookId: 'mcp-server-webhook',
     },
     {
@@ -321,7 +322,7 @@ const mcpServerWorkflow: WorkflowBase = {
       name: 'Send Message',
       type: '@n8n/n8n-nodes-langchain.toolWorkflow',
       typeVersion: 2.2,
-      position: [680, 200],
+      position: getNodeCoordinates('mcp-server-send-message'),
     },
   ],
   connections: {

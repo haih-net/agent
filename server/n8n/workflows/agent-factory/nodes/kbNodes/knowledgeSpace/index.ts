@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { knowledgeSpaceOperations, knowledgeSpaceSchemas } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const combinedDocument = fs.readFileSync(
   path.join(
@@ -39,7 +40,7 @@ export function getKnowledgeSpaceNode({
       'CRUD Manage Knowledge Base Knowledge Spaces (containers for fact projections, can be private, public, or shared).',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-kb-knowledge-space`,
-    position: [2200, 1008],
+    position: getNodeCoordinates('tool-kb-knowledge-space'),
     inputs: createStaticInputs([
       {
         name: 'query',

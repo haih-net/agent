@@ -3,6 +3,7 @@ import { CreateTaskDocument } from 'src/gql/generated/createTask'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { createTaskSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const createTaskQuery = print(CreateTaskDocument)
 
@@ -23,7 +24,7 @@ export function getCreateTaskNode({
     description: `Create an agent's own Task. These are YOUR tasks as an agent, not user tasks`,
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-create-task`,
-    position: [1600, 528],
+    position: getNodeCoordinates('tool-create-task'),
     inputs: createStaticInputs([
       {
         name: 'query',

@@ -3,6 +3,7 @@ import { MyTasksDocument } from 'src/gql/generated/myTasks'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { searchTaskSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const searchTasksQuery = print(MyTasksDocument)
 
@@ -24,7 +25,7 @@ export function getSearchTaskNode({
       "Search agent's own Tasks. These are YOUR tasks as an agent, not user tasks",
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-search-tasks`,
-    position: [2176, 528],
+    position: getNodeCoordinates('tool-search-tasks'),
     inputs: createStaticInputs([
       {
         name: 'query',

@@ -3,6 +3,7 @@ import { UpdateTaskDocument } from 'src/gql/generated/updateTask'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { updateTaskSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const updateTaskQuery = print(UpdateTaskDocument)
 
@@ -24,7 +25,7 @@ export function getUpdateTaskNode({
       "Update an agent's own Task by ID. These are YOUR tasks as an agent, not user tasks",
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-update-task`,
-    position: [1792, 528],
+    position: getNodeCoordinates('tool-update-task'),
     inputs: createStaticInputs([
       {
         name: 'query',

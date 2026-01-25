@@ -1,6 +1,7 @@
 import { print } from 'graphql'
 import { MeDocument } from 'src/gql/generated/me'
 import { WorkflowBase } from '../interfaces'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 
 const getUserDataQuery = print(MeDocument)
 
@@ -63,13 +64,13 @@ const toolGetUserData: WorkflowBase = {
       name: 'Set Query',
       type: 'n8n-nodes-base.set',
       typeVersion: 3.4,
-      position: [0, 300],
+      position: getNodeCoordinates('tool-get-user-data-set-query'),
     },
     {
       parameters: {},
       type: 'n8n-nodes-base.manualTrigger',
       typeVersion: 1,
-      position: [-400, 500],
+      position: getNodeCoordinates('tool-get-user-data-manual'),
       id: 'manual-trigger',
       name: 'Manual Trigger',
     },

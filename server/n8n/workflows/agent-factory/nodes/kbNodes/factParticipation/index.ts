@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { factParticipationOperations, factParticipationSchemas } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const combinedDocument = fs.readFileSync(
   path.join(
@@ -39,7 +40,7 @@ export function getFactParticipationNode({
       'CRUD Manage Knowledge Base Fact Participations (N-ary relationships between facts and concepts with roles).',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-kb-fact-participation`,
-    position: [2200, 848],
+    position: getNodeCoordinates('tool-kb-fact-participation'),
     inputs: createStaticInputs([
       {
         name: 'query',

@@ -3,6 +3,7 @@ import { UpdateMindLogDocument } from 'src/gql/generated/updateMindLog'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { updateMindLogSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const updateMindLogQuery = print(UpdateMindLogDocument)
 
@@ -27,7 +28,7 @@ export function getUpdateMindLogNode({
     description: 'Update a MindLog entry by ID',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-update-mindlog`,
-    position: [992, 528],
+    position: getNodeCoordinates('tool-update-mindlog'),
     inputs: createStaticInputs([
       {
         name: 'query',

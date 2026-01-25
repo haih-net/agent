@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { factProjectionOperations, factProjectionSchemas } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const combinedDocument = fs.readFileSync(
   path.join(
@@ -39,7 +40,7 @@ export function getFactProjectionNode({
       'CRUD Manage Knowledge Base Fact Projections (facts projected into knowledge spaces with trust/importance levels).',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-kb-fact-projection`,
-    position: [2200, 1168],
+    position: getNodeCoordinates('tool-kb-fact-projection'),
     inputs: createStaticInputs([
       {
         name: 'query',

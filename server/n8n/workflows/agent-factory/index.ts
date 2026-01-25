@@ -13,6 +13,7 @@ import { getTaskWorkLogNodes } from './nodes/taskWorkLogNodes'
 import { WorkflowBase } from '../interfaces'
 import { getModel, createTool, createStaticInputs } from '../helpers'
 import { getBaseNodes } from './nodes/baseNodes'
+import { getNodeCoordinates } from '../helpers/nodeCoordinates'
 import {
   getCodeExecutionNodes,
   getCodeExecutionConnections,
@@ -80,7 +81,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           description: 'Get user data by authentication token',
           workflowName: 'Tool: Get User By Token',
           nodeId: `${agentId}-get-user-by-token`,
-          position: [-1248, 496],
+          position: getNodeCoordinates('get-user-by-token'),
           inputs: createStaticInputs([
             {
               name: 'token',
@@ -123,7 +124,7 @@ export function createAgent(config: AgentFactoryConfig): AgentFactoryResult {
           name: 'Set Auth Context',
           type: 'n8n-nodes-base.set',
           typeVersion: 3.4,
-          position: [-1056, 528],
+          position: getNodeCoordinates('set-auth-context'),
         },
       ]
     : []

@@ -3,6 +3,7 @@ import { MyMindLogsDocument } from 'src/gql/generated/myMindLogs'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { searchMindLogSchema } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const searchMindLogsQuery = print(MyMindLogsDocument)
 
@@ -27,7 +28,7 @@ export function getSearchMindLogNode({
     description: 'Search MindLog entries',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-search-mindlogs`,
-    position: [1408, 528],
+    position: getNodeCoordinates('tool-search-mindlogs'),
     inputs: createStaticInputs([
       {
         name: 'query',

@@ -1,5 +1,6 @@
 import { createTool, createToolInputs } from '../../../helpers'
 import { ConnectionsType, NodeType } from '../../interfaces'
+import { getNodeCoordinates } from '../../../helpers/nodeCoordinates'
 
 interface CodeExecutionToolsConfig {
   agentId: string
@@ -19,7 +20,7 @@ export function getCodeExecutionNodes(
         'Read a file from the project source code. Returns file content (max 500 lines).',
       workflowName: 'Tool: Read File',
       nodeId: `${agentId}-tool-read-file`,
-      position: [1568, 512],
+      position: getNodeCoordinates('tool-read-file'),
       inputs: createToolInputs([
         {
           name: 'path',
@@ -37,7 +38,7 @@ export function getCodeExecutionNodes(
         'List files and directories in a given path. Returns ls -la output.',
       workflowName: 'Tool: List Files',
       nodeId: `${agentId}-tool-list-files`,
-      position: [1792, 512],
+      position: getNodeCoordinates('tool-list-files'),
       inputs: createToolInputs([
         {
           name: 'path',

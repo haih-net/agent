@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createTool, createStaticInputs } from '../../../../helpers'
 import { NodeType } from '../../../interfaces'
 import { factOperations, factSchemas } from './schema'
+import { getNodeCoordinates } from '../../../../helpers/nodeCoordinates'
 
 const combinedDocument = fs.readFileSync(
   path.join(__dirname, '../../../../../../../src/gql/src/KBFact.graphql'),
@@ -33,7 +34,7 @@ export function getFactNode({
       'CRUD Manage Knowledge Base Facts (statements with confidence, importance, validity period).',
     workflowName: `Tool: GraphQL Request (${agentName})`,
     nodeId: `${agentId}-tool-kb-fact`,
-    position: [2200, 688],
+    position: getNodeCoordinates('tool-kb-fact'),
     inputs: createStaticInputs([
       {
         name: 'query',
