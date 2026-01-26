@@ -28,25 +28,21 @@ const convertSchemaToJsonSchema = (
 }
 
 export const getConnectedTools = async (ctx: ExecuteContext) => {
-  try {
-    const connectedTools = await ctx.getInputConnectionData('ai_tool', 0)
-    if (!connectedTools) {
-      return []
-    }
-
-    const toolsArray = Array.isArray(connectedTools)
-      ? connectedTools
-      : [connectedTools]
-
-    return toolsArray.map((tool: N8nTool) => ({
-      type: 'function',
-      function: {
-        name: tool.name || 'unknown_tool',
-        description: tool.description || '',
-        parameters: convertSchemaToJsonSchema(tool.schema),
-      },
-    }))
-  } catch {
+  const connectedTools = await ctx.getInputConnectionData('ai_tool', 0)
+  if (!connectedTools) {
     return []
   }
+
+  const toolsArray = Array.isArray(connectedTools)
+    ? connectedTools
+    : [connectedTools]
+
+  return toolsArray.map((tool: N8nTool) => ({
+    type: 'function',
+    function: {
+      name: tool.name || 'unknown_tool',
+      description: tool.description || '',
+      parameters: convertSchemaToJsonSchema(tool.schema),
+    },
+  }))
 }

@@ -18,40 +18,36 @@ interface LangChainMessage {
 export const getMemoryMessages = async (
   ctx: ExecuteContext,
 ): Promise<Message[]> => {
-  try {
-    const memory = await ctx.getInputConnectionData('ai_memory', 0)
-    if (!memory) {
-      return []
-    }
-
-    const memoryInstance = (
-      Array.isArray(memory) ? memory[0] : memory
-    ) as MemoryInstance
-
-    if (
-      memoryInstance &&
-      typeof memoryInstance === 'object' &&
-      typeof memoryInstance.loadMemoryVariables === 'function'
-    ) {
-      const memoryVariables = await memoryInstance.loadMemoryVariables({})
-      const chatHistory =
-        (memoryVariables['chat_history'] as LangChainMessage[]) || []
-
-      return chatHistory.map((msg) => ({
-        role:
-          msg._getType?.() === 'human'
-            ? 'user'
-            : msg._getType?.() === 'ai'
-              ? 'assistant'
-              : 'user',
-        content: (msg.content as string) || '',
-      }))
-    }
-
-    return []
-  } catch {
+  const memory = await ctx.getInputConnectionData('ai_memory', 0)
+  if (!memory) {
     return []
   }
+
+  const memoryInstance = (
+    Array.isArray(memory) ? memory[0] : memory
+  ) as MemoryInstance
+
+  if (
+    memoryInstance &&
+    typeof memoryInstance === 'object' &&
+    typeof memoryInstance.loadMemoryVariables === 'function'
+  ) {
+    const memoryVariables = await memoryInstance.loadMemoryVariables({})
+    const chatHistory =
+      (memoryVariables['chat_history'] as LangChainMessage[]) || []
+
+    return chatHistory.map((msg) => ({
+      role:
+        msg._getType?.() === 'human'
+          ? 'user'
+          : msg._getType?.() === 'ai'
+            ? 'assistant'
+            : 'user',
+      content: (msg.content as string) || '',
+    }))
+  }
+
+  return []
 }
 
 export const saveToMemory = async (
