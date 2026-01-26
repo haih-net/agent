@@ -80,7 +80,7 @@ if (mindLogs.length > 0) {
     sections.length > 0 ? `# My Memory\n\n${sections.join('\n\n')}` : ''
 
   if (assistantMessage) {
-    assistantMessages.push({ role: 'assistant', content: assistantMessage })
+    assistantMessages.push({ role: 'system', content: assistantMessage })
   }
 }
 

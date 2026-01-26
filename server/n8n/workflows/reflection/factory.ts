@@ -14,7 +14,7 @@ const systemMessageTemplate = fs.readFileSync(
   'utf-8',
 )
 
-const outputInstructionsTemplate = fs.readFileSync(
+const outputInstructions = fs.readFileSync(
   path.join(__dirname, 'output-instructions.md'),
   'utf-8',
 )
@@ -41,8 +41,6 @@ export function createReflectionWorkflow(
     '$systemMessageTemplate',
     systemMessageTemplate,
   )
-
-  const outputInstructions = outputInstructionsTemplate.replace(/`/g, "'")
 
   return {
     name: getReflectionWorkflowName(agentName),
@@ -229,7 +227,6 @@ const finalOutput = outputInstructions.replace('\${reflectionResult}', reflectio
 
 return [{
   json: {
-    reflectionResult,
     instructions: finalOutput,
   }
 }];`,
