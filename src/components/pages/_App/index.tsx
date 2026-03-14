@@ -20,6 +20,7 @@ import { getInitialProps } from './getInitialProps'
 import { useScrollPage } from 'src/hooks/useScrollPage'
 import { Layout } from 'src/components/Layout'
 import { ChatProvider } from 'src/components/Chat/ChatWidget/context'
+import { SeoHeaders } from 'src/components/seo/SeoHeaders'
 
 export const App: MainApp<AppProps> = ({ Component, pageProps }) => {
   useScrollPage()
@@ -61,6 +62,8 @@ export const App: MainApp<AppProps> = ({ Component, pageProps }) => {
     return <>{content}</>
   }, [statusCode, pageProps, Component])
 
+  const siteTitle = process.env.NEXT_PUBLIC_SITE_TITLE
+
   const template = (
     <>
       <Head>
@@ -69,6 +72,8 @@ export const App: MainApp<AppProps> = ({ Component, pageProps }) => {
           content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
         />
       </Head>
+
+      {siteTitle && <SeoHeaders title={siteTitle} />}
 
       <ThemeProvider theme={theme}>
         <GlobalStyle />

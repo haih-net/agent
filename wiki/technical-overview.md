@@ -135,6 +135,11 @@ PORT=3000
 # AI Agent
 AGENT_CHAT_MODEL="anthropic/claude-sonnet-4"
 N8N_ENABLED=true
+
+# Registration Policy (see registration-policy.md)
+# NEXT_PUBLIC_SITE_SIGNUP_STRATEGY=ANY  # Open registration without referral
+# USER_DEFAULT_STATUS=newbie             # Default status for new users
+# REFERRER_TOKEN_TTL=1H                  # Referral token expiration
 ```
 
 ### AI Credentials

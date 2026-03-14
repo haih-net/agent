@@ -13,6 +13,7 @@ datasource db {
 }
 
 enum UserStatus {
+  newbie
   active
   blocked
 }
@@ -60,6 +61,12 @@ model User {
   Transactions    Transaction[]
   EthTransactions EthTransaction[]
 
+  PostsCreated Post[]
+
+  Referrer   User?   @relation(fields: [referrerId], references: [id], name: "Referrer")
+  Referrals  User[]  @relation(name: "Referrer")
+  referrerId String? @db.VarChar(36)
+
   @@unique([email])
   @@unique([username])
 }
@@ -90,7 +97,7 @@ model TelegramAccount {
   createdAt DateTime @default(now()) @db.Date()
   updatedAt DateTime @default(now()) @updatedAt @db.Date()
 
-  externalKey String       @unique
+  externalKey String    @unique
   first_name  String?
   last_name   String?
   username    String?
@@ -795,4 +802,62 @@ model EthTransaction {
   Transaction Transaction?
 
   @@unique([chainId, txHash])
+}
+
+enum PostStatus {
+  draft
+  published
+  unpublished
+}
+
+// ============================================================================
+// POST & POST REVISION
+// AI-agent note: Post and PostRevision share content fields (status, title,
+// description, intro, content, signature). When modifying these fields in one
+// model, ALWAYS update the other model accordingly to keep them in sync.
+// ============================================================================
+
+model Post {
+  id          String         @id @default(cuid()) @db.VarChar(36)
+  createdAt   DateTime       @default(now()) @db.Timestamp(3)
+  updatedAt   DateTime       @default(now()) @updatedAt @db.Timestamp(3)
+  revision    Int            @default(1)
+  createdById String         @db.VarChar(36)
+  CreatedBy   User           @relation(fields: [createdById], references: [id])
+  Revisions   PostRevision[]
+
+  // -- Shared content fields (keep in sync with PostRevision) --
+  status      PostStatus @default(draft)
+  title       String?    @db.VarChar(512)
+  description String?    @db.VarChar(3072)
+  intro       String?    @db.Text
+  content     String     @db.Text
+  signature   String?    @db.Text
+  // -- End of shared content fields --
+
+  parentId String? @db.VarChar(36)
+  rootId   String? @db.VarChar(36)
+
+  @@index([createdById])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model PostRevision {
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  postId    String   @db.VarChar(36)
+  Post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // -- Shared content fields (keep in sync with Post) --
+  status      PostStatus
+  title       String?    @db.VarChar(512)
+  description String?    @db.VarChar(3072)
+  intro       String?    @db.Text
+  content     String     @db.Text
+  signature   String?    @db.Text
+  // -- End of shared content fields --
+
+  @@index([postId])
+  @@index([createdAt])
 }

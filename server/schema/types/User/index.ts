@@ -1,4 +1,17 @@
 import { builder } from '../../builder'
+import './inputs'
+
+import { UserStatusEnum } from './types'
+
+import './resolvers/users'
+import './resolvers/usersCount'
+import './resolvers/user'
+import './resolvers/me'
+import './resolvers/signup'
+import './resolvers/signin'
+import './resolvers/updateCurrentUser'
+import './resolvers/updateUser'
+import './resolvers/createReferrerToken'
 
 // User object type
 builder.prismaObject('User', {
@@ -14,6 +27,11 @@ builder.prismaObject('User', {
     username: t.exposeString('username', { nullable: true }),
     fullname: t.exposeString('fullname', { nullable: true }),
     createdAt: t.expose('createdAt', { type: 'DateTime' }),
+    sudo: t.exposeBoolean('sudo', { nullable: true }),
+    status: t.field({
+      type: UserStatusEnum,
+      resolve: (user) => user.status,
+    }),
     EthAccount: t.relation('EthAccount', {
       async resolve(_query, parent, _args, context) {
         const { currentUser, prisma } = context
@@ -55,15 +73,3 @@ builder.prismaObject('User', {
     }),
   }),
 })
-
-// Import inputs (registers them with builder)
-import './inputs'
-
-// Import resolvers
-import './resolvers/users'
-import './resolvers/usersCount'
-import './resolvers/user'
-import './resolvers/me'
-import './resolvers/signup'
-import './resolvers/signin'
-import './resolvers/updateCurrentUser'

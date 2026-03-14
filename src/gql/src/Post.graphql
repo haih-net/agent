@@ -1,0 +1,43 @@
+query postsConnection($where: PostWhereInput, $skip: Int, $take: Int = 10) {
+  postsCount(where: $where)
+  posts(where: $where, skip: $skip, take: $take) {
+    ...Post_
+  }
+}
+
+query post($where: PostWhereUniqueInput!) {
+  object: post(where: $where) {
+    ...Post_
+  }
+}
+
+mutation createPost($data: PostCreateInput!) {
+  response: createPost(data: $data) {
+    ...Post_
+  }
+}
+
+mutation updatePost(
+  $data: PostUpdateDataInput!
+  $where: PostWhereUniqueInput!
+) {
+  response: updatePost(data: $data, where: $where) {
+    ...Post_
+  }
+}
+
+fragment Post_ on Post {
+  id
+  createdAt
+  updatedAt
+  status
+  revision
+  title
+  description
+  intro
+  content
+  createdById
+  CreatedBy {
+    ...UserNoNesting
+  }
+}

@@ -22,15 +22,16 @@ export const TelegramAuthForm: React.FC<TelegramAuthFormProps> = ({
   onAuthSuccessHandler,
   buttonSize = 'large',
 }) => {
+  const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME
   const [container, containerSetter] = useState<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (!container) {
+    if (!container || !botName) {
       return
     }
 
     const telegramAuthProps: TelegramButtonProps = {
-      botName: process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || '',
+      botName,
       cornerRadius: 5,
       buttonSize,
     }
@@ -52,7 +53,7 @@ export const TelegramAuthForm: React.FC<TelegramAuthFormProps> = ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).onTelegramAuth
     }
-  }, [container, buttonSize])
+  }, [container, botName, buttonSize])
 
   const { addMessage } = useSnackbar() || {}
 
@@ -92,11 +93,13 @@ export const TelegramAuthForm: React.FC<TelegramAuthFormProps> = ({
   }, [addMessage, authMutation, onAuthSuccess, onAuthSuccessHandler])
 
   return (
-    <div
-      style={{
-        display: 'contents',
-      }}
-      ref={containerSetter}
-    />
+    botName && (
+      <div
+        style={{
+          display: 'contents',
+        }}
+        ref={containerSetter}
+      />
+    )
   )
 }

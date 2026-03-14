@@ -3,6 +3,7 @@ import { shield, type IRules } from 'graphql-shield'
 import { isSudo } from './rules/isSudo'
 
 import type { Mutation, Query, User } from 'src/gql/generated/types'
+import { isActive } from './rules/isActive'
 
 type UnwrapType<T> = T extends (infer U)[]
   ? UnwrapType<U>
@@ -45,6 +46,14 @@ const ruleTree = {
   Mutation: {
     // Example: require authentication for specific mutations
     // someProtectedMutation: isAuthenticated,
+    updateUser: isSudo,
+    createPost: isActive,
+    updatePost: isActive,
+    createTask: isActive,
+    updateTask: isActive,
+    createTaskWorkLog: isActive,
+    createMindLog: isActive,
+    updateMindLog: isActive,
   },
 } satisfies PermissionsRuleTree
 

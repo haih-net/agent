@@ -7,7 +7,6 @@ import {
 } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { SignUpFormStyled } from './styles'
-import { SignUpFormData, signUpSchema } from './interfaces'
 import { SignupMutation, useSignupMutation } from 'src/gql/generated'
 import { useAppContext } from 'src/components/AppContext'
 import { useSnackbar } from 'src/ui-kit/Snackbar'
@@ -15,8 +14,9 @@ import { FormControl } from 'src/ui-kit/FormControl'
 import { TextField } from 'src/ui-kit/controls/TextField'
 import { Button } from 'src/ui-kit/Button'
 import { AuthProviders } from '../AuthProviders'
-
-export type { SignUpFormData }
+import { useSearchParams } from 'next/navigation'
+import { GET_PARAM_REFERRERTOKEN_NAME, SignUpFormData } from './interfaces'
+import { signUpSchema } from './schema'
 
 export interface SignUpFormProps {
   onSuccessHandler?: (data: SignupMutation['response']) => void
@@ -27,10 +27,16 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
   onSuccessHandler,
   loading = false,
 }) => {
+  const params = useSearchParams()
+
+  const referrerToken = params.get(GET_PARAM_REFERRERTOKEN_NAME)
+
   const { onAuth } = useAppContext()
 
   const form = useForm<SignUpFormData>({
-    defaultValues: {},
+    defaultValues: {
+      referrerToken,
+    },
     mode: 'all',
     reValidateMode: 'onChange',
     resolver: yupResolver(signUpSchema),
@@ -79,7 +85,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
   const fieldRenderer = useCallback<
     ControllerProps<
       SignUpFormData,
-      'fullname' | 'username' | 'email' | 'password'
+      'fullname' | 'username' | 'email' | 'password' | 'referrerToken'
     >['render']
   >(
     ({ field: { name, value, onChange, onBlur }, fieldState: { error } }) => {
@@ -107,6 +113,10 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
           placeholder = 'Enter password'
           type = 'password'
           required = true
+          break
+        case 'referrerToken':
+          label = 'Invitation token'
+          placeholder = 'Enter invitation token'
           break
       }
 
@@ -138,6 +148,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
         <Controller name="email" render={fieldRenderer} />
         <Controller name="username" render={fieldRenderer} />
         <Controller name="password" render={fieldRenderer} />
+        <Controller name="referrerToken" render={fieldRenderer} />
 
         <AuthProviders onSuccessHandler={onSuccessHandler} />
 

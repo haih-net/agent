@@ -1,8 +1,9 @@
-# n8n Integration Documentation
+# Agent Documentation
 
 ## Contents
 
 - [Technical Overview](./technical-overview.md) — stack, architecture, configuration, manual setup
+- [Registration Policy](./registration-policy.md) — referral system, user statuses
 - [Code Style](./code-style.md)
 - [Custom Nodes](./custom-nodes/README.md)
 - [Workflows](./workflows/README.md)

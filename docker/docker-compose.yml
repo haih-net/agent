@@ -10,9 +10,15 @@ services:
         - ENV_MODE=development
         - JWT_SECRET=${JWT_SECRET}
         - DATABASE_URL=${DATABASE_URL}
+        - SUDO_PASSWORD=${SUDO_PASSWORD}
         - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
         - NEXT_PUBLIC_TELEGRAM_BOT_NAME=${NEXT_PUBLIC_TELEGRAM_BOT_NAME}
+        - NEXT_PUBLIC_POSTS_ENABLED=${NEXT_PUBLIC_POSTS_ENABLED}
+        - NEXT_PUBLIC_CRYPTO_ENABLED=${NEXT_PUBLIC_CRYPTO_ENABLED}
+        - NEXT_PUBLIC_WORLD3D_ENABLED=${NEXT_PUBLIC_WORLD3D_ENABLED}
         - NEXT_PUBLIC_DEBUG_WORLD3D=${NEXT_PUBLIC_DEBUG_WORLD3D}
+        - NEXT_PUBLIC_SITE_TITLE=${NEXT_PUBLIC_SITE_TITLE}
+        - NEXT_PUBLIC_MAIN_PAGE_TITLE=${NEXT_PUBLIC_MAIN_PAGE_TITLE}
     volumes:
       - ../public:/app/public
       - ../shared:/app/shared
@@ -112,7 +118,7 @@ services:
       - TURN_REALM=${TURN_REALM:-localhost}
       - TURN_HOST=${TURN_HOST:-coturn}
     expose:
-      - "4101"
+      - '4101'
 
 networks:
   default:

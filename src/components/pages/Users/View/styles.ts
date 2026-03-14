@@ -14,4 +14,7 @@ export const UsersViewCardStyled = styled.div`
   padding: ${({ theme }) => theme.spacing.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `

@@ -5,6 +5,7 @@ import './prisma'
 import { setupGraphqlServer } from './graphqlServer'
 import { initN8n, stopN8n } from './n8n'
 import { runBootstrap } from './n8n/bootstrap'
+import { generateSitemap, SitemapSection } from './sitemap'
 
 const withN8N = process.env.N8N_ENABLED === 'true'
 
@@ -82,6 +83,10 @@ async function startServer() {
       ws: false,
     }),
   )
+
+  server.get(Object.values(SitemapSection), (req, res) => {
+    return generateSitemap(req, res)
+  })
 
   if (!apiOnly) {
     // Otherwise, start full server with Next.js

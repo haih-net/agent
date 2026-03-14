@@ -23,6 +23,15 @@ mutation updateCurrentUser($data: CurrentUserUpdateInput!) {
   }
 }
 
+mutation updateUser(
+  $data: UserUpdateDataInput!
+  $where: UserWhereUniqueInput!
+) {
+  updateUser(data: $data, where: $where) {
+    ...User_
+  }
+}
+
 mutation signin($where: UserWhereUniqueInput!, $data: UserSigninDataInput!) {
   response: signin(where: $where, data: $data) {
     success
@@ -37,6 +46,10 @@ mutation signup($data: UserSignupDataInput!) {
     message
     token
   }
+}
+
+mutation createReferrerToken {
+  createReferrerToken
 }
 
 fragment meUser on User {
@@ -66,4 +79,6 @@ fragment UserNoNesting on User {
   fullname
   image
   content
+  sudo
+  status
 }

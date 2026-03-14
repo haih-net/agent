@@ -2,7 +2,7 @@ import Head from 'next/head'
 
 export interface SeoHeadersProps {
   title?: string
-  description?: string
+  description?: string | null
   noindex?: boolean
   nofollow?: boolean
 }
@@ -10,22 +10,21 @@ export interface SeoHeadersProps {
 export const SeoHeaders: React.FC<SeoHeadersProps> = ({
   title,
   description,
-  noindex,
-  nofollow,
+  noindex = false,
+  nofollow = false,
 }) => {
   return (
     <Head>
       {title && <title>{title}</title>}
       {description && <meta name="description" content={description} />}
-      {(noindex || nofollow) && (
-        <meta
-          name="robots"
-          content={[
-            noindex ? 'noindex' : 'index',
-            nofollow ? 'nofollow' : 'follow',
-          ].join(', ')}
-        />
-      )}
+
+      <meta
+        name="robots"
+        content={[
+          noindex ? 'noindex' : 'index',
+          nofollow ? 'nofollow' : 'follow',
+        ].join(', ')}
+      />
     </Head>
   )
 }

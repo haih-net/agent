@@ -2,7 +2,7 @@ import { UserPageView } from './View'
 import { UserPageProps } from './interfaces'
 import { userPageGetInitialProps } from './userPageGetInitialProps'
 import { getUserQueryVariables } from './helpers'
-import { useUserQuery } from 'src/gql/generated'
+import { UserStatusEnum, useUserQuery } from 'src/gql/generated'
 import { SeoHeaders } from 'src/components/seo/SeoHeaders'
 import { Page } from '../../_App/interfaces'
 
@@ -16,6 +16,8 @@ export const UserPage: Page<UserPageProps> = ({ userId }) => {
 
   const user = response.data?.object
 
+  const searchable = user?.status === UserStatusEnum.ACTIVE
+
   return user ? (
     <>
       <SeoHeaders
@@ -23,6 +25,8 @@ export const UserPage: Page<UserPageProps> = ({ userId }) => {
           [user.fullname, user.username].filter((n) => !!n).join(' | ') ||
           'Anonim'
         }
+        noindex={!searchable}
+        nofollow={!searchable}
       />
       {user && <UserPageView user={user} />}
     </>

@@ -1,4 +1,5 @@
 import { builder } from '../../../builder'
+import { buildUserWhere } from '../helpers/buildUserWhere'
 import { UserWhereInput } from '../inputs'
 
 builder.queryField('usersCount', (t) =>
@@ -8,13 +9,7 @@ builder.queryField('usersCount', (t) =>
     },
     resolve: (_root, args, ctx) =>
       ctx.prisma.user.count({
-        where: args.where
-          ? {
-              id: args.where.id ?? undefined,
-              email: args.where.email ?? undefined,
-              username: args.where.username ?? undefined,
-            }
-          : undefined,
+        where: buildUserWhere(args.where, ctx),
       }),
   }),
 )

@@ -1,5 +1,6 @@
 import { builder } from '../../../builder'
 import { UserWhereInput } from '../inputs'
+import { buildUserWhere } from '../helpers/buildUserWhere'
 
 builder.queryField('users', (t) =>
   t.prismaField({
@@ -11,15 +12,12 @@ builder.queryField('users', (t) =>
     },
     resolve: (_, _root, args, ctx) =>
       ctx.prisma.user.findMany({
-        where: args.where
-          ? {
-              id: args.where.id ?? undefined,
-              email: args.where.email ?? undefined,
-              username: args.where.username ?? undefined,
-            }
-          : undefined,
+        where: buildUserWhere(args.where, ctx),
         skip: args.skip ?? undefined,
         take: args.take ?? undefined,
+        orderBy: {
+          createdAt: 'desc',
+        },
       }),
   }),
 )

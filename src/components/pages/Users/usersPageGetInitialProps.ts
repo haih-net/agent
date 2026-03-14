@@ -5,18 +5,31 @@ import {
   UsersConnectionQueryVariables,
 } from 'src/gql/generated'
 import { getUsersQueryVariables } from './helpers'
+import { getCurrentUser } from 'src/helpers/getCurrentUser'
+import { UsersPageProps } from './interfaces'
 
-export const usersPageGetInitialProps: Page['getInitialProps'] = async ({
-  apolloClient,
-}) => {
-  const variables = getUsersQueryVariables()
+export const usersPageGetInitialProps: Page<UsersPageProps>['getInitialProps'] =
+  async ({ query, apolloClient }) => {
+    const pageParam = query.page
+    const page =
+      typeof pageParam === 'string' && parseInt(pageParam, 10) > 0
+        ? parseInt(pageParam, 10)
+        : 1
 
-  await apolloClient.query<UsersConnectionQuery, UsersConnectionQueryVariables>(
-    {
+    const currentUser = getCurrentUser(apolloClient)
+
+    await apolloClient.query<
+      UsersConnectionQuery,
+      UsersConnectionQueryVariables
+    >({
       query: UsersConnectionDocument,
-      variables,
-    },
-  )
+      variables: getUsersQueryVariables({
+        page,
+        currentUser,
+      }),
+    })
 
-  return {}
-}
+    return {
+      page,
+    }
+  }

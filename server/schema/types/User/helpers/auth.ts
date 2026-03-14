@@ -2,12 +2,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import type { User } from '@prisma/client'
 import { PrismaContext } from 'server/context/interfaces'
-
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET env is empty')
-}
-
-const JWT_SECRET = process.env.JWT_SECRET
+import { JWT_SECRET } from 'server/helpers/jwt'
 
 export interface TokenPayload {
   tokenId: string

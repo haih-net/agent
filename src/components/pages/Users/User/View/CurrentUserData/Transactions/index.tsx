@@ -27,24 +27,26 @@ export const Transactions: React.FC = () => {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
   return (
-    <TransactionsStyled>
-      <TransactionsHeaderStyled>Транзакции</TransactionsHeaderStyled>
+    process.env.NEXT_PUBLIC_CRYPTO_ENABLED === 'true' && (
+      <TransactionsStyled>
+        <TransactionsHeaderStyled>Транзакции</TransactionsHeaderStyled>
 
-      {transactions.length === 0 && !loading ? (
-        <TransactionsEmptyStyled>Пока нет транзакций</TransactionsEmptyStyled>
-      ) : (
-        <TransactionsListStyled>
-          {transactions.map((node) => (
-            <Transaction key={node.id} node={node} />
-          ))}
-        </TransactionsListStyled>
-      )}
+        {transactions.length === 0 && !loading ? (
+          <TransactionsEmptyStyled>Пока нет транзакций</TransactionsEmptyStyled>
+        ) : (
+          <TransactionsListStyled>
+            {transactions.map((node) => (
+              <Transaction key={node.id} node={node} />
+            ))}
+          </TransactionsListStyled>
+        )}
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageParam={PAGE_PARAM}
-      />
-    </TransactionsStyled>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageParam={PAGE_PARAM}
+        />
+      </TransactionsStyled>
+    )
   )
 }

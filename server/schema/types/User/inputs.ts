@@ -1,4 +1,5 @@
 import { builder } from '../../builder'
+import { UserStatusEnum } from './types'
 
 export const UserWhereUniqueInput = builder.inputType('UserWhereUniqueInput', {
   fields: (t) => ({
@@ -13,6 +14,7 @@ export const UserWhereInput = builder.inputType('UserWhereInput', {
     id: t.string(),
     email: t.string(),
     username: t.string(),
+    status: t.field({ type: UserStatusEnum, required: false }),
   }),
 })
 
@@ -30,6 +32,7 @@ export const UserSignupDataInput = builder.inputType('UserSignupDataInput', {
     password: t.string({ required: true }),
     username: t.string(),
     fullname: t.string(),
+    referrerToken: t.string(),
   }),
 })
 
@@ -51,3 +54,9 @@ export const CurrentUserUpdateInput = builder.inputType(
     }),
   },
 )
+
+export const UserUpdateDataInput = builder.inputType('UserUpdateDataInput', {
+  fields: (t) => ({
+    status: t.field({ type: UserStatusEnum, required: false }),
+  }),
+})

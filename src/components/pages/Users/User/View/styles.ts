@@ -1,9 +1,18 @@
 import styled from 'styled-components'
 
-export const UserPageViewStyled = styled.div``
-
 export const UserPageActionsStyled = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.lg};
+`
+
+export const UserPageViewToolbarStyled = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`
+
+export const UserPageViewStyled = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 `

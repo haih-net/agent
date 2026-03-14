@@ -139,37 +139,39 @@ export const Balance: React.FC<BalanceProps> = ({ currentUser }) => {
   )
 
   return (
-    <BalanceStyled>
-      {ethAccount && (
-        <BalanceAddressStyled>{ethAccount.address}</BalanceAddressStyled>
-      )}
-      <BalanceAmountStyled>
-        Ваш баланс: {currentUser.Balance?.amount ?? 0} Монет
-      </BalanceAmountStyled>
-      {ethAccount ? (
-        <BalanceFormStyled>
-          <BalanceInputStyled
-            type="number"
-            placeholder="Сумма USDT"
-            value={amount}
-            onChange={onChangeAmount}
-            disabled={loading}
-            min="0"
-            step="1"
-          />
-          <Button
-            type="button"
-            onClick={handleTopUp}
-            disabled={loading || !amount}
-            variant={ComponentVariant.PRIMARY}
-          >
-            {loading ? 'Обработка...' : 'Пополнить'}
-          </Button>
-        </BalanceFormStyled>
-      ) : (
-        'Привяжите MetaMask, чтобы иметь возможность пополнить баланс'
-      )}
-      {status && <BalanceStatusStyled>{status}</BalanceStatusStyled>}
-    </BalanceStyled>
+    process.env.NEXT_PUBLIC_CRYPTO_ENABLED === 'true' && (
+      <BalanceStyled>
+        {ethAccount && (
+          <BalanceAddressStyled>{ethAccount.address}</BalanceAddressStyled>
+        )}
+        <BalanceAmountStyled>
+          Ваш баланс: {currentUser.Balance?.amount ?? 0} Монет
+        </BalanceAmountStyled>
+        {ethAccount ? (
+          <BalanceFormStyled>
+            <BalanceInputStyled
+              type="number"
+              placeholder="Сумма USDT"
+              value={amount}
+              onChange={onChangeAmount}
+              disabled={loading}
+              min="0"
+              step="1"
+            />
+            <Button
+              type="button"
+              onClick={handleTopUp}
+              disabled={loading || !amount}
+              variant={ComponentVariant.PRIMARY}
+            >
+              {loading ? 'Обработка...' : 'Пополнить'}
+            </Button>
+          </BalanceFormStyled>
+        ) : (
+          'Привяжите MetaMask, чтобы иметь возможность пополнить баланс'
+        )}
+        {status && <BalanceStatusStyled>{status}</BalanceStatusStyled>}
+      </BalanceStyled>
+    )
   )
 }

@@ -112,7 +112,7 @@ export const SendTransfer: React.FC<SendTransferProps> = ({
   const recipientName =
     recipient.fullname || recipient.username || 'Пользователь'
 
-  return balance ? (
+  return process.env.NEXT_PUBLIC_CRYPTO_ENABLED === 'true' && balance ? (
     <SendTransferStyled>
       <Balance currentUser={currentUser} />
 

@@ -1,11 +1,7 @@
 import jwt from 'jsonwebtoken'
+import { JWT_SECRET } from 'server/helpers/jwt'
 import Web3 from 'web3'
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET env is empty')
-}
-
-const JWT_SECRET = process.env.JWT_SECRET
 const NONCE_TTL_MS = 5 * 60 * 1000
 
 interface NoncePayload {
