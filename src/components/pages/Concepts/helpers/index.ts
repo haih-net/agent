@@ -22,7 +22,6 @@ export function getConceptsConnectionQueryVariables({
   take: number
 } {
   const variable: ReturnType<typeof getConceptsConnectionQueryVariables> = {
-    ...other,
     where: {
       visibility: KbConceptVisibility.PUBLIC,
       ...where,
@@ -32,6 +31,7 @@ export function getConceptsConnectionQueryVariables({
     orderBy: {
       updatedAt: SortOrder.DESC,
     },
+    ...other,
   }
 
   return variable
