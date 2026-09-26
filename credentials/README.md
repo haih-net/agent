@@ -14,12 +14,14 @@ credentials/
 
 n8n credentials in JSON format. The `id` field is used to link credentials to workflow factories.
 
+Create `system/openrouter.json` for the AI provider selected during setup. The current workflow definitions refer to the OpenRouter credential by ID `FsN0N48lU327xkz6` and name `OpenRouter`; the file must use those values. This n8n credential is separate from `OPENROUTER_API_KEY` or `LLM_LOCAL_API_URL` in `docker/.env`, which configure direct GraphQL LLM calls.
+
 ### OpenRouter (Cloud API)
 
 ```json
 [
   {
-    "id": "openrouter-cred",
+    "id": "FsN0N48lU327xkz6",
     "name": "OpenRouter",
     "type": "openRouterApi",
     "data": { "apiKey": "sk-or-v1-xxx" }
@@ -29,15 +31,15 @@ n8n credentials in JSON format. The `id` field is used to link credentials to wo
 
 ### Local LM Studio / LocalAI
 
-`172.17.0.1` is the Docker bridge gateway (host machine from inside a container):
+Use an address reachable from the app container. For a provider on the Docker host, determine the gateway of this project's Docker network; it may differ from `172.17.0.1`.
 
 ```json
 [
   {
-    "id": "openrouter-cred",
+    "id": "FsN0N48lU327xkz6",
     "name": "OpenRouter",
     "type": "openRouterApi",
-    "data": { "apiKey": "local", "url": "http://172.17.0.1:1234/v1" }
+    "data": { "apiKey": "local", "url": "http://<docker-host-gateway>:1234/v1" }
   }
 ]
 ```
@@ -49,17 +51,13 @@ Included in docker-compose. See [wiki/llama-server/README.md](../wiki/llama-serv
 ```json
 [
   {
-    "id": "openrouter-cred",
+    "id": "FsN0N48lU327xkz6",
     "name": "OpenRouter",
     "type": "openRouterApi",
     "data": { "apiKey": "llama", "url": "http://llama:8080/v1" }
   }
 ]
 ```
-
-### Multiple configurations
-
-To keep multiple options in one file, rename unused ones to `data_`, `data__` — only `data` is active.
 
 ### Telegram
 
@@ -102,14 +100,19 @@ To use a different Telegram bot, create a new workflow class with a different `c
 
 Agent credentials for Internal API authentication.
 
+Create `agents/agent-chat.json` and `agents/agent-web-search.json` before the first bootstrap. Their `agentName` values must be exactly `Chat Agent` and `Web Search Agent`; other workflows reference these names. The file names are also used as bootstrap keys (`agents/agent-chat` and `agents/agent-web-search`). Missing files or different names prevent workflow import.
+
 ### Required Fields
 
-- `agentName` — display name of the agent
+- `agentName` — exact workflow name: `Chat Agent` or `Web Search Agent`
 - `username`, `password` — for Internal API auth
 - `email`, `fullname` — agent user profile
 
+> **Password security:** Generate strong random passwords (e.g., `openssl rand -base64 24`). Never include username, agent name, or other predictable patterns in passwords.
+
 ### Optional Fields
 
+- `model` — model name from the AI provider (uses system default if not specified)
 - `systemMessage` — custom system message for the agent (overrides default)
 - `smtp` — allows agent to send emails
 - `imap` — allows agent to read emails
@@ -122,12 +125,11 @@ Agent credentials can include any parameter from `AgentFactoryConfig` — see `s
 
 ```json
 {
-  "agentName": "Agent Display Name",
-  "username": "agent-name",
-  "password": "password",
-  "email": "agent@example.com",
-  "fullname": "Agent Name",
-  "model": "anthropic/claude-sonnet-4",
+  "agentName": "Chat Agent",
+  "username": "chat-agent",
+  "password": "generate-a-unique-password",
+  "email": "chat-agent@example.com",
+  "fullname": "Chat Agent",
   "systemMessage": "Custom system message for this agent instance",
   "hasMemoryRecall": true,
   "hasWebSearchAgent": true,
@@ -161,9 +163,11 @@ Agent credentials can include any parameter from `AgentFactoryConfig` — see `s
 
 ## bootstrap.env
 
+Create this file before starting n8n. It establishes the n8n owner account used to import credentials and workflows. Without it, bootstrap is skipped.
+
 ```
 N8N_BOOTSTRAP_OWNER_EMAIL=admin@example.com
-N8N_BOOTSTRAP_OWNER_PASSWORD=AdminPassword123!
+N8N_BOOTSTRAP_OWNER_PASSWORD=generate-a-unique-password
 N8N_BOOTSTRAP_OWNER_FIRSTNAME=Admin
 N8N_BOOTSTRAP_OWNER_LASTNAME=User
 ```

@@ -129,6 +129,8 @@ Infra:     Docker · Traefik · docker-mailserver · llama.cpp
 ## AI Agent Setup Instructions
 
 > **For AI coding assistants:** This section is for you. The project requires full autonomous setup — understand the architecture and proceed independently. Guide the user only on how to use the system.
+>
+> **⚠️ IMPORTANT:** Always read [`AGENT.md`](AGENT.md) first before any actions. It contains critical setup instructions and links to all necessary documentation.
 
 ### AI Model Configuration
 
@@ -146,6 +148,8 @@ Start with `google/gemini-3.1-flash-lite-preview` — good quality at minimal co
 
 - **Default:** `google/gemini-3.1-flash-lite-preview` or `anthropic/claude-haiku-4.5`
 - **For complex tasks:** `anthropic/claude-sonnet` or `anthropic/claude-opus`
+
+> **Note:** The `model` field in agent credentials is optional. If not specified, the system uses a default model. Only set it when you need a specific model.
 
 **Local models:**
 - Minimum: `qwen3 4B`
@@ -222,12 +226,18 @@ GRAPHQL_ENDPOINT=http://localhost:4000/api
 
 ```bash
 cd docker
-DOCKER_BUILDKIT=0 NEXT_PUBLIC_SITE_SIGNUP_STRATEGY=ANY USER_DEFAULT_STATUS=active docker compose -f docker-compose.yml -f docker-compose.dev.yml up supabase app --build -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d supabase
+# Wait until docker compose ps supabase reports healthy.
+DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker-compose.dev.yml build app
+# Generate into the bind-mounted local src directory before starting the dev app.
+docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps app npm run generate
+docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps app npm run build:custom-nodes
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d app
 ```
 
 **Important for first run:**
 
-By default, registration requires a referral token, which prevents automatic registration of system agents. Until a permanent solution is implemented, you must pass these environment variables on first startup:
+By default, registration requires a referral token, which prevents automatic registration of system agents. Set these variables in `docker/.env` before building:
 
 - `NEXT_PUBLIC_SITE_SIGNUP_STRATEGY=ANY` — allows registration without referral token
 - `USER_DEFAULT_STATUS=active` — gives new users full access immediately
@@ -236,7 +246,21 @@ By default, registration requires a referral token, which prevents automatic reg
 
 - `SUDO_PASSWORD="your_password"` — creates admin user with sudo rights
 
-On first run this builds the Docker image: installs dependencies, runs DB migrations, generates types, and builds the app. Takes a few minutes.
+The database must be healthy before the app image build because its Dockerfile runs Prisma migrations and seed during the build. The custom nodes must be built before n8n starts so agent workflows can load them. The first build takes a few minutes.
+
+**Development preparation:** The dev Compose file bind-mounts local `src`, `server`, and `prisma` over the image directories. Generated files inside the image are therefore hidden by the local directories. Prepare the local development checkout before starting the dev app: follow **Local Development** below to install dependencies (`npm ci`), configure the host database connection, start PostgreSQL, apply migrations (`npm run prisma:deploy`), generate code (`npm run generate`), and compile custom nodes (`npm run build:custom-nodes`).
+
+Alternatively, use the `compose run` commands above to generate code and compile custom nodes into the mounted checkout using the image's installed dependencies. The image build has already applied migrations and seed. This avoids requiring a local Node.js installation.
+
+If the dev app fails with `Cannot find module 'src/gql/generated'`, recover from the `docker` directory:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps app npm run generate
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d app
+```
+
+`docker exec -it tmp-agent-app-1 npm run generate` is only usable while that container is running. Restarting a container that immediately exits on missing generated files does not reliably allow `exec`; use the one-off `compose run` command first.
+
 
 ### Step 4 — Start Traefik (dev mode)
 
@@ -249,7 +273,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up traefik -d
 **Result:**
 
 - `http://localhost:2015` — app (via Traefik reverse proxy)
-- `http://localhost:8080` — Traefik dashboard
+- `http://localhost:2080` — Traefik dashboard
 
 > In Docker mode, Traefik proxies the app. In Local Development, the app runs directly on port 3000.
 
@@ -266,7 +290,7 @@ Same as Docker Setup — see [`credentials/README.md`](credentials/README.md).
 ### Step 2 — Install dependencies
 
 ```bash
-npm install
+npm ci
 ```
 
 ### Step 3 — Create environment files
